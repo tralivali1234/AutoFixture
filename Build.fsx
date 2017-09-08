@@ -257,8 +257,8 @@ Target "NuGetPack" (fun _ ->
     restoreNugetPackages()
 
     // Pack projects using MSBuild
+    // Isn't needed to include Symbols as we include PDB files explictly for SourceLink support.
     runMsBuild "Pack" (Some configuration) [ "IncludeSource", "true"
-                                             "IncludeSymbols", "true"
                                              "PackageOutputPath", FullName nuGetOutputFolder
                                              "NoBuild", "true" ]
 )
