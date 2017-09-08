@@ -258,8 +258,7 @@ Target "NuGetPack" (fun _ ->
 
     // Pack projects using MSBuild
     // Isn't needed to include Symbols as we include PDB files explictly for SourceLink support.
-    runMsBuild "Pack" (Some configuration) [ "IncludeSource", "true"
-                                             "PackageOutputPath", FullName nuGetOutputFolder
+    runMsBuild "Pack" (Some configuration) [ "PackageOutputPath", FullName nuGetOutputFolder
                                              "NoBuild", "true" ]
 )
 
