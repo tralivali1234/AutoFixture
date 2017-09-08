@@ -40,9 +40,7 @@
     <When Condition=" '$(Configuration)'=='Release' ">
       <PropertyGroup>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <!-- Ensure that we create Windows PDB for Full framework and Portable PDB for NET Core -->
-        <DebugType Condition=" '$(_IsFullFramework)'=='true' ">pdbonly</DebugType>
-        <DebugType Condition=" '$(_IsFullFramework)'!='true' ">portable</DebugType>
+        <DebugType>embedded</DebugType>
       </PropertyGroup>
     </When>
     <When Condition=" '$(Configuration)'=='Verify' ">
