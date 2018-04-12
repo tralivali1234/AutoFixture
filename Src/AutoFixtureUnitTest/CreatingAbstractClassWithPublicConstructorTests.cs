@@ -1,40 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.TestTypeFoundation;
+﻿using AutoFixture;
+using AutoFixture.Kernel;
+using TestTypeFoundation;
 using Xunit;
 
-namespace Ploeh.AutoFixtureUnitTest
+namespace AutoFixtureUnitTest
 {
     public class CreatingAbstractClassWithPublicConstructorTests
     {
         [Fact]
         public void CreateAbstractWithPublicConstructorWillThrow()
         {
-            // Fixture setup
+            // Arrange
             var sut = new Fixture();
-            // Exercise system
-            Assert.Throws<ObjectCreationException>(() =>
+            // Act
+            Assert.ThrowsAny<ObjectCreationException>(() =>
                 sut.Create<AbstractClassWithPublicConstructor>());
         }
 
         [Fact]
         public void MapAbstractClassWithPublicConstructorToTestDoubleToWorkAroundException()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             fixture.Customizations.Add(
                 new TypeRelay(
                     typeof(AbstractClassWithPublicConstructor),
                     typeof(TestDouble)));
-            // Exercise system
+            // Act
             var actual = fixture.Create<AbstractClassWithPublicConstructor>();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<TestDouble>(actual);
-            // Teardown
         }
 
         private class TestDouble : AbstractClassWithPublicConstructor

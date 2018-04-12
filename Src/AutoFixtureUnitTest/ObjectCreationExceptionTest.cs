@@ -1,59 +1,55 @@
 ﻿using System;
-using Ploeh.AutoFixture;
+using AutoFixture;
 using Xunit;
 
-namespace Ploeh.AutoFixtureUnitTest
+namespace AutoFixtureUnitTest
 {
     public class ObjectCreationExceptionTest
     {
         [Fact]
         public void SutIsException()
         {
-            // Fixture setup
+            // Arrange
             Type expectedBase = typeof(Exception);
-            // Exercise system
+            // Act
             var sut = new ObjectCreationException();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom(expectedBase, sut);
-            // Teardown
         }
 
         [Fact]
         public void MessageWillBeDefineWhenDefaultConstructorIsUsed()
         {
-            // Fixture setup
+            // Arrange
             var sut = new ObjectCreationException();
-            // Exercise system
+            // Act
             var result = sut.Message;
-            // Verify outcome
+            // Assert
             Assert.NotNull(result);
-            // Teardown
         }
 
         [Fact]
         public void MessageWillMatchConstructorArgument()
         {
-            // Fixture setup
+            // Arrange
             string expectedMessage = "Anonymous exception message";
             var sut = new ObjectCreationException(expectedMessage);
-            // Exercise system
+            // Act
             var result = sut.Message;
-            // Verify outcome
-            Assert.Equal<string>(expectedMessage, result);
-            // Teardown
+            // Assert
+            Assert.Equal(expectedMessage, result);
         }
 
         [Fact]
         public void InnerExceptionWillMatchConstructorArgument()
         {
-            // Fixture setup
+            // Arrange
             var expectedException = new ArgumentOutOfRangeException();
             var sut = new ObjectCreationException("Anonymous message.", expectedException);
-            // Exercise system
+            // Act
             var result = sut.InnerException;
-            // Verify outcome
+            // Assert
             Assert.Equal<Exception>(expectedException, result);
-            // Teardown
         }
     }
 }

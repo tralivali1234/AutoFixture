@@ -1,32 +1,29 @@
 ﻿using System;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.TestTypeFoundation;
+using AutoFixture.Kernel;
+using TestTypeFoundation;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class NoConstructorsSpecificationTest
     {
         [Fact]
         public void SutIsRequestSpecification()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new NoConstructorsSpecification();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<IRequestSpecification>(sut);
-            // Teardown
         }
 
         [Fact]
         public void IsSatisfiedByNullThrows()
         {
-            // Fixture setup
+            // Arrange
             var sut = new NoConstructorsSpecification();
-            // Exercise system and verify outcome
+            // Act & assert
             Assert.Throws<ArgumentNullException>(() => sut.IsSatisfiedBy(null));
-            // Teardown
         }
 
         [Theory]
@@ -41,13 +38,12 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [InlineData(typeof(ActivityScope), true)]
         public void IsSatisfiedByReturnsCorrectResult(object request, bool expectedResult)
         {
-            // Fixture setup
+            // Arrange
             var sut = new NoConstructorsSpecification();
-            // Exercise system
+            // Act
             var result = sut.IsSatisfiedBy(request);
-            // Verify outcome
+            // Assert
             Assert.Equal(expectedResult, result);
-            // Teardown
-        }  
+        }
     }
 }

@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Selects public constructors ordered so that any constructor with arguments matching
@@ -37,13 +38,11 @@ namespace Ploeh.AutoFixture.Kernel
         /// <seealso cref="ListFavoringConstructorQuery" />
         public IEnumerable<IMethod> SelectMethods(Type type)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
+            if (type == null) throw new ArgumentNullException(nameof(type));
 
-            return from ci in type.GetConstructors()
+            return from ci in type.GetTypeInfo().GetConstructors()
                    let score = new ParameterScore(type, typeof(IList<>), ci.GetParameters())
+                   where ci.GetParameters().All(p => p.ParameterType != type)
                    orderby score descending
                    select new ConstructorMethod(ci) as IMethod;
         }

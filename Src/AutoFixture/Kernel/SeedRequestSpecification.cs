@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// A specification that evaluates seeded requests for types against a target type.
@@ -13,12 +13,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// <param name="type">The target type.</param>
         public SeedRequestSpecification(Type type)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            this.TargetType = type;
+            this.TargetType = type ?? throw new ArgumentNullException(nameof(type));
         }
 
         /// <summary>
@@ -36,18 +31,10 @@ namespace Ploeh.AutoFixture.Kernel
         /// </returns>
         public bool IsSatisfiedBy(object request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            if (request == null) throw new ArgumentNullException(nameof(request));
 
-            var sr = request as SeededRequest;
-            if (sr != null)
-            {
-                return this.TargetType.Equals(sr.Request);
-            }
-
-            return false;
+            return request is SeededRequest seededRequest &&
+                   this.TargetType.Equals(seededRequest.Request);
         }
     }
 }

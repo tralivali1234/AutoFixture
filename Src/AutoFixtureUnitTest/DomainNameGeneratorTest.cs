@@ -1,79 +1,87 @@
-﻿using System.Linq;
-using System.Text.RegularExpressions;
-using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.Kernel;
+﻿using System;
+using System.Linq;
+using AutoFixture;
+using AutoFixture.Kernel;
+using AutoFixtureUnitTest.Kernel;
 using Xunit;
 
-namespace Ploeh.AutoFixtureUnitTest
+namespace AutoFixtureUnitTest
 {
     public class DomainNameGeneratorTest
     {
         [Fact]
         public void SutIsSpecimenBuilder()
         {
-            // Fixture setup
-
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new DomainNameGenerator();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<ISpecimenBuilder>(sut);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithNullRequestReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = new DomainNameGenerator();
-            // Exercise system
-            var result = sut.Create(null, null);
-            // Verify outcome
+            var context = new DelegatingSpecimenContext();
+            // Act
+            var result = sut.Create(null, context);
+            // Assert
             Assert.Equal(new NoSpecimen(), result);
-            // Teardown
+        }
+
+        [Fact]
+        public void CreateWithNullContextThrowsException()
+        {
+            // Arrange
+            var sut = new DomainNameGenerator();
+            var request = new object();
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() =>
+                sut.Create(request, context: null));
         }
 
         [Fact]
         public void CreateWithNonDomainNameRequestReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var nonDomainNameRequest = typeof(object);
+            var context = new DelegatingSpecimenContext();
             var sut = new DomainNameGenerator();
-            // Exercise system
-            var result = sut.Create(nonDomainNameRequest, null);
-            // Verify outcome
-#pragma warning disable 618
-            Assert.Equal(new NoSpecimen(nonDomainNameRequest), result);
-#pragma warning restore 618
-            // Teardown
+            // Act
+            var result = sut.Create(nonDomainNameRequest, context);
+            // Assert
+            Assert.Equal(new NoSpecimen(), result);
         }
 
         [Fact]
         public void CreateReturnsOneOfTheFictiousDomains()
         {
-            // Fixture setup
+            // Arrange
             var sut = new DomainNameGenerator();
-            // Exercise system
-            var result = sut.Create(typeof(DomainName), null);
-            // Verify outcome
+            var context = new DelegatingSpecimenContext();
+            // Act
+            var result = sut.Create(typeof(DomainName), context);
+            // Assert
             var actualDomainName = Assert.IsAssignableFrom<DomainName>(result);
-            Assert.True(Regex.IsMatch(actualDomainName.Domain, @"example\.(com|org|net)"));
-            // Teardown
+            Assert.Matches(@"example\.(com|org|net)", actualDomainName.Domain);
         }
 
         [Fact]
         public void CreateManyTimesReturnsAllConfiguredFictiousDomains()
         {
-            // Fixture setup
+            // Arrange
             var sut = new DomainNameGenerator();
-            var expectedDomains = new[] {"example.com", "example.net", "example.org"}.Select(x => new DomainName(x)).ToList();
-            // Exercise system
-            var result = Enumerable.Range(0, 100).Select(x => sut.Create(typeof(DomainName), null)).ToList();
-            // Verify outcome
+            var context = new DelegatingSpecimenContext();
+            var expectedDomains = new[] { "example.com", "example.net", "example.org" }.Select(x => new DomainName(x));
+            // Act
+            var result = Enumerable.Range(0, 100).Select(x => sut.Create(typeof(DomainName), context)).ToList();
+            // Assert
             foreach (var expectedDomain in expectedDomains)
             {
                 Assert.Contains(expectedDomain, result);
             }
-            // Teardown
         }
     }
 }

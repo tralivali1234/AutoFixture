@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
+using AutoFixture;
+using AutoFixture.Kernel;
 using Xunit;
-using Ploeh.AutoFixture;
-using System.Collections;
-using Ploeh.AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixtureUnitTest.AbstractRecursionIssue
+namespace AutoFixtureUnitTest.AbstractRecursionIssue
 {
     public class Repro
     {
@@ -18,7 +14,7 @@ namespace Ploeh.AutoFixtureUnitTest.AbstractRecursionIssue
         [Fact]
         public void IssueAsReported()
         {
-            var fixture = new Fixture().Customize(new MultipleCustomization());
+            var fixture = new Fixture();
             fixture.RepeatCount = 3;
             fixture.Behaviors.Clear();
             fixture.Behaviors.Add(new NullRecursionBehavior());
@@ -39,14 +35,14 @@ namespace Ploeh.AutoFixtureUnitTest.AbstractRecursionIssue
         [Fact]
         public void IssueReduced()
         {
-            var fixture = new Fixture().Customize(new MultipleCustomization());
+            var fixture = new Fixture();
             fixture.Behaviors
                 .OfType<ThrowingRecursionBehavior>()
                 .ToList().ForEach(b => fixture.Behaviors.Remove(b));
             fixture.Behaviors.Add(new NullRecursionBehavior());
             fixture.Register<ItemBase>(fixture.Create<FunkyItem>);
 
-            Assert.DoesNotThrow(() => fixture.Create<FunkyItem>());
+            Assert.Null(Record.Exception(() => fixture.Create<FunkyItem>()));
         }
 
         /// <summary>
@@ -55,7 +51,7 @@ namespace Ploeh.AutoFixtureUnitTest.AbstractRecursionIssue
         [Fact]
         public void Workaround()
         {
-            var fixture = new Fixture().Customize(new MultipleCustomization());
+            var fixture = new Fixture();
             fixture.RepeatCount = 3;
             fixture.Behaviors.Clear();
             fixture.Behaviors.Add(new NullRecursionBehavior());
@@ -65,7 +61,7 @@ namespace Ploeh.AutoFixtureUnitTest.AbstractRecursionIssue
                     typeof(ItemBase),
                     typeof(FunkyItem)));
 
-            Assert.DoesNotThrow(() => fixture.Create<FunkyItem>());
+            Assert.Null(Record.Exception(() => fixture.Create<FunkyItem>()));
         }
     }
 }

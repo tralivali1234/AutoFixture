@@ -1,6 +1,7 @@
 ﻿using System;
+using System.Reflection;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// A specification that evaluates whether a request is a request for an abstract type such as an abstract base class or an interface.
@@ -17,13 +18,9 @@ namespace Ploeh.AutoFixture.Kernel
         /// </returns>
         public bool IsSatisfiedBy(object request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            if (request == null) throw new ArgumentNullException(nameof(request));
 
-            var type = request as Type;
-            return type != null && type.IsAbstract;
+            return request is Type type && type.GetTypeInfo().IsAbstract;
         }
     }
 }

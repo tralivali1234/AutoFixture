@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Reflection;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Relays a request for an <see cref="ICollection{T}" /> to a request for a
     /// <see cref="List{T}"/> and returns the result.
     /// </summary>
+    [Obsolete("This relay has been deprecated, use \"new TypeRelay(typeof(ICollection<>), typeof(List<>))\" instead.")]
     public class CollectionRelay : ISpecimenBuilder
     {
         /// <summary>
@@ -29,25 +30,16 @@ namespace Ploeh.AutoFixture.Kernel
         /// </remarks>
         public object Create(object request, ISpecimenContext context)
         {
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
+            if (context == null) throw new ArgumentNullException(nameof(context));
 
             // This is performance-sensitive code when used repeatedly over many requests.
             // See discussion at https://github.com/AutoFixture/AutoFixture/pull/218
             var type = request as Type;
-#pragma warning disable 618
-            if (type == null) return new NoSpecimen(request);
-#pragma warning restore 618
-            var typeArguments = type.GetGenericArguments();
-#pragma warning disable 618
-            if (typeArguments.Length != 1) return new NoSpecimen(request);
-#pragma warning restore 618
+            if (type == null) return new NoSpecimen();
+            var typeArguments = type.GetTypeInfo().GetGenericArguments();
+            if (typeArguments.Length != 1) return new NoSpecimen();
             var gtd = type.GetGenericTypeDefinition();
-#pragma warning disable 618
-            if (gtd != typeof (ICollection<>)) return new NoSpecimen(request);
-#pragma warning restore 618
+            if (gtd != typeof (ICollection<>)) return new NoSpecimen();
             return context.Resolve(typeof (List<>).MakeGenericType(typeArguments));
         }
     }

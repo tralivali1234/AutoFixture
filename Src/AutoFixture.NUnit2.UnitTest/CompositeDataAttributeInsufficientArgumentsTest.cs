@@ -3,11 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using AutoFixture.NUnit2.Addins;
 using NUnit.Framework;
-using Ploeh.AutoFixture.NUnit2.Addins;
-using Ploeh.TestTypeFoundation;
+using TestTypeFoundation;
 
-namespace Ploeh.AutoFixture.NUnit2.UnitTest
+namespace AutoFixture.NUnit2.UnitTest
 {
     [TestFixture]
     public class CompositeDataAttributeInsufficientArgumentsTest : IEnumerable<object[]>
@@ -23,12 +23,11 @@ namespace Ploeh.AutoFixture.NUnit2.UnitTest
         [TestCaseSource(typeof(CompositeDataAttributeInsufficientArgumentsTest))]
         public void GetArgumentsThrows(IEnumerable<DataAttribute> attributes)
         {
-            // Fixture setup
-            // Exercise system and verify outcome
+            // Arrange
+            // Act & Assert
             Assert.Throws<InvalidOperationException>(
                 () => { new CompositeDataAttribute(attributes).GetData(this.method).ToList(); }
                 );
-            // Teardown
         }
 
         public IEnumerator<object[]> GetEnumerator()
@@ -87,7 +86,7 @@ namespace Ploeh.AutoFixture.NUnit2.UnitTest
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return GetEnumerator();
+            return this.GetEnumerator();
         }
 
         private static object[] CreateTestCase(object[] data)

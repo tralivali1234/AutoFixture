@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Creates specimens by returning the first specimen created by its children.
@@ -29,21 +29,13 @@ namespace Ploeh.AutoFixture.Kernel
         /// <param name="builders">The child builders.</param>
         public CompositeSpecimenBuilder(params ISpecimenBuilder[] builders)
         {
-            if (builders == null)
-            {
-                throw new ArgumentNullException(nameof(builders));
-            }
-
-            this.composedBuilders = builders;
+            this.composedBuilders = builders ?? throw new ArgumentNullException(nameof(builders));
         }
 
         /// <summary>
         /// Gets the child builders.
         /// </summary>
-        public IEnumerable<ISpecimenBuilder> Builders
-        {
-            get { return this.composedBuilders; }
-        }
+        public IEnumerable<ISpecimenBuilder> Builders => this.composedBuilders;
 
         /// <summary>
         /// Creates a new specimen by delegating to <see cref="Builders"/>.
@@ -55,15 +47,13 @@ namespace Ploeh.AutoFixture.Kernel
         {
             // This is performance-sensitive code when used repeatedly over many requests.
             // See discussion at https://github.com/AutoFixture/AutoFixture/pull/218
-            for (int i = 0; i < composedBuilders.Length; i++)
+            for (int i = 0; i < this.composedBuilders.Length; i++)
             {
-                var result = composedBuilders[i].Create(request, context);
+                var result = this.composedBuilders[i].Create(request, context);
                 if (!(result is NoSpecimen)) return result;
             }
-
-#pragma warning disable 618
-            return new NoSpecimen(request);
-#pragma warning restore 618
+            
+            return new NoSpecimen();
         }
 
         /// <summary>Composes the supplied builders.</summary>
@@ -86,14 +76,14 @@ namespace Ploeh.AutoFixture.Kernel
         /// </returns>
         public IEnumerator<ISpecimenBuilder> GetEnumerator()
         {
-            return this.composedBuilders.Cast<ISpecimenBuilder>().GetEnumerator();
+            return this.composedBuilders.AsEnumerable().GetEnumerator();
         }
 
         /// <summary>
         /// Returns an enumerator that iterates through a collection.
         /// </summary>
         /// <returns>
-        /// An <see cref="T:System.Collections.IEnumerator" /> object that can
+        /// An <see cref="System.Collections.IEnumerator" /> object that can
         /// be used to iterate through the collection.
         /// </returns>
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
@@ -156,8 +146,7 @@ namespace Ploeh.AutoFixture.Kernel
             var isSingle = c.composedBuilders.Length == 1;
             if (isSingle)
             {
-                var n = c.composedBuilders[0] as ISpecimenBuilderNode;
-                if (n != null)
+                if (c.composedBuilders[0] is ISpecimenBuilderNode n)
                     return n;
             }
             return node;

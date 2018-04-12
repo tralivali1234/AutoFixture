@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Reflection;
+using AutoFixture.AutoNSubstitute.Extensions;
+using AutoFixture.Kernel;
 using NSubstitute.Core;
 using NSubstitute.Exceptions;
-using Ploeh.AutoFixture.AutoNSubstitute.Extensions;
-using Ploeh.AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture.AutoNSubstitute
+namespace AutoFixture.AutoNSubstitute
 {
     /// <summary>
     /// If the type of the object being substituted contains any fields and/or non-virtual/sealed
@@ -13,7 +13,7 @@ namespace Ploeh.AutoFixture.AutoNSubstitute
     /// </summary>
     public class NSubstituteSealedPropertiesCommand : ISpecimenCommand
     {
-        private static readonly AutoPropertiesCommand autoPropertiesCommand =
+        private static readonly AutoPropertiesCommand AutoPropertiesCommand =
             new AutoPropertiesCommand(new NSubstituteSealedPropertySpecification());
 
         /// <summary>
@@ -24,8 +24,8 @@ namespace Ploeh.AutoFixture.AutoNSubstitute
         /// <param name="context">The context.</param>
         public void Execute(object specimen, ISpecimenContext context)
         {
-            if (specimen == null) throw new ArgumentNullException("specimen");
-            if (context == null) throw new ArgumentNullException("context");
+            if (specimen == null) throw new ArgumentNullException(nameof(specimen));
+            if (context == null) throw new ArgumentNullException(nameof(context));
 
             try
             {
@@ -36,7 +36,7 @@ namespace Ploeh.AutoFixture.AutoNSubstitute
                 return;
             }
 
-            autoPropertiesCommand.Execute(specimen, context);
+            AutoPropertiesCommand.Execute(specimen, context);
         }
 
         private class NSubstituteSealedPropertySpecification : IRequestSpecification
@@ -46,15 +46,16 @@ namespace Ploeh.AutoFixture.AutoNSubstitute
             /// </summary>
             public bool IsSatisfiedBy(object request)
             {
-                //exclude non-sealed properties
-                var pi = request as PropertyInfo;
-                if (pi != null)
-                    return pi.GetSetMethod().IsSealed();
-
-                //exclude interceptor fields
-                var fi = request as FieldInfo;
-                if (fi != null)
-                    return !IsDynamicProxyMember(fi);
+                switch (request)
+                {
+                    //exclude non-sealed properties
+                    case PropertyInfo pi:
+                        return pi.GetSetMethod().IsSealed();
+                        
+                    //exclude interceptor fields
+                    case FieldInfo fi:
+                        return !IsDynamicProxyMember(fi);
+                }
 
                 return false;
             }
@@ -64,8 +65,8 @@ namespace Ploeh.AutoFixture.AutoNSubstitute
             /// </summary>
             private static bool IsDynamicProxyMember(FieldInfo fi)
             {
-                return fi.Name == "__interceptors" || 
-                    fi.Name == "__mixin_NSubstitute_Core_ICallRouter";
+                return string.Equals(fi.Name, "__interceptors", StringComparison.Ordinal) ||
+                       string.Equals(fi.Name, "__mixin_NSubstitute_Core_ICallRouter", StringComparison.Ordinal);
             }
         }
     }

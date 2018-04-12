@@ -1,91 +1,80 @@
 ﻿using System;
-using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.AutoFixtureUnitTest.Kernel;
+using AutoFixture;
+using AutoFixture.Kernel;
+using AutoFixtureUnitTest.Kernel;
 using Xunit;
 
-namespace Ploeh.AutoFixtureUnitTest
+namespace AutoFixtureUnitTest
 {
     public class UriGeneratorTest
     {
         [Fact]
         public void SutIsSpecimenBuilder()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new UriGenerator();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<ISpecimenBuilder>(sut);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithNullRequestReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = new UriGenerator();
-            // Exercise system
+            // Act
             var dummyContext = new DelegatingSpecimenContext();
             var result = sut.Create(null, dummyContext);
-            // Verify outcome
+            // Assert
             Assert.Equal(new NoSpecimen(), result);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithNullContextThrows()
         {
-            // Fixture setup
+            // Arrange
             var sut = new UriGenerator();
             var dummyRequest = new object();
-            // Exercise system and verify outcome
+            // Act & assert
             Assert.Throws<ArgumentNullException>(() => sut.Create(dummyRequest, null));
-            // Teardown
         }
 
         [Fact]
         public void CreateWithNonUriRequestReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = new UriGenerator();
             var dummyRequest = new object();
-            // Exercise system
+            // Act
             var dummyContext = new DelegatingSpecimenContext();
             var result = sut.Create(dummyRequest, dummyContext);
-            // Verify outcome
-#pragma warning disable 618
-            var expectedResult = new NoSpecimen(dummyRequest);
-#pragma warning restore 618
+            // Assert
+            var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Fact]
         public void CreateWhenUriSchemeReceivedFromContextIsNullReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var request = typeof(Uri);
             object expectedValue = null;
             var context = new DelegatingSpecimenContext
             {
-#pragma warning disable 618
-                OnResolve = r => typeof(UriScheme).Equals(r) ? expectedValue : new NoSpecimen(r)
-#pragma warning restore 618
+                OnResolve = r => typeof(UriScheme).Equals(r) ? expectedValue : new NoSpecimen()
             };
             var sut = new UriGenerator();
-            // Exercise system and verify outcome
+            // Act & assert
             var result = sut.Create(request, context);
-#pragma warning disable 618
-            var expectedResult = new NoSpecimen(request);
-#pragma warning restore 618
+            var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Fact]
         public void CreateWhenStringReceivedFromContextIsNullReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var request = typeof(Uri);
             object expectedValue = null;
             var context = new DelegatingSpecimenContext
@@ -102,25 +91,20 @@ namespace Ploeh.AutoFixtureUnitTest
                         return expectedValue;
                     }
 
-#pragma warning disable 618
-                    return new NoSpecimen(r);
-#pragma warning restore 618
+                    return new NoSpecimen();
                 }
             };
             var sut = new UriGenerator();
-            // Exercise system and verify outcome
+            // Act & assert
             var result = sut.Create(request, context);
-#pragma warning disable 618
-            var expectedResult = new NoSpecimen(request);
-#pragma warning restore 618
+            var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Fact]
         public void CreateReturnsUriWithSchemeReceivedFromContext()
         {
-            // Fixture setup
+            // Arrange
             var request = typeof(Uri);
             string expectedScheme = "https";
             var context = new DelegatingSpecimenContext
@@ -131,29 +115,26 @@ namespace Ploeh.AutoFixtureUnitTest
                     {
                         return new UriScheme(expectedScheme);
                     }
-                    
+
                     if (typeof(string).Equals(r))
                     {
                         return Guid.NewGuid().ToString();
                     }
 
-#pragma warning disable 618
-                    return new NoSpecimen(r);
-#pragma warning restore 618
+                    return new NoSpecimen();
                 }
             };
             var sut = new UriGenerator();
-            // Exercise system
+            // Act
             var result = (Uri)sut.Create(request, context);
-            // Verify outcome
+            // Assert
             Assert.Equal(expectedScheme, result.Scheme);
-            // Teardown
         }
 
         [Fact]
         public void CreateReturnsUriWithAuthorityReceivedFromContext()
         {
-            // Fixture setup
+            // Arrange
             var request = typeof(Uri);
             object expectedAuthority = Guid.NewGuid().ToString();
             var context = new DelegatingSpecimenContext
@@ -170,23 +151,20 @@ namespace Ploeh.AutoFixtureUnitTest
                         return expectedAuthority;
                     }
 
-#pragma warning disable 618
-                    return new NoSpecimen(r);
-#pragma warning restore 618
+                    return new NoSpecimen();
                 }
             };
             var sut = new UriGenerator();
-            // Exercise system
+            // Act
             var result = (Uri)sut.Create(request, context);
-            // Verify outcome
+            // Assert
             Assert.Equal(expectedAuthority, result.Authority);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithUriRequestReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var request = typeof(Uri);
             object expectedUriScheme = new UriScheme("ftp");
             object expectedAuthority = Guid.NewGuid().ToString();
@@ -204,18 +182,15 @@ namespace Ploeh.AutoFixtureUnitTest
                         return expectedAuthority;
                     }
 
-#pragma warning disable 618
-                    return new NoSpecimen(r);
-#pragma warning restore 618
+                    return new NoSpecimen();
                 }
             };
             var sut = new UriGenerator();
-            // Exercise system
+            // Act
             var result = (Uri)sut.Create(request, context);
-            // Verify outcome
+            // Assert
             var expectedUri = new Uri(expectedUriScheme + "://" + expectedAuthority);
             Assert.Equal(expectedUri, result);
-            // Teardown
         }
     }
 }

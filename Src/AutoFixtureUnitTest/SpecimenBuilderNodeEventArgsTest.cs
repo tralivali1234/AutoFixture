@@ -1,38 +1,33 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using AutoFixture;
+using AutoFixture.Kernel;
 using Xunit;
-using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixtureUnitTest
+namespace AutoFixtureUnitTest
 {
     public class SpecimenBuilderNodeEventArgsTest
     {
         [Fact]
         public void SutIsEventArgs()
         {
-            // Fixture setup
+            // Arrange
             var dummyNode = new CompositeSpecimenBuilder();
-            // Exercise system
+            // Act
             var sut = new SpecimenBuilderNodeEventArgs(dummyNode);
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<EventArgs>(sut);
-            // Teardown
         }
 
         [Fact]
         public void GraphIsCorrect()
         {
-            // Fixture setup
+            // Arrange
             var expected = new CompositeSpecimenBuilder();
             var sut = new SpecimenBuilderNodeEventArgs(expected);
-            // Exercise system
+            // Act
             ISpecimenBuilderNode actual = sut.Graph;
-            // Verify outcome
+            // Assert
             Assert.Equal(expected, actual);
-            // Teardown
         }
 
         [Fact]

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class DelegatingMethod : IMethod
     {
@@ -25,7 +25,7 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         }
 
         internal Func<IEnumerable<ParameterInfo>> OnParameters { get; set; }
-        
+
         internal Func<IEnumerable<object>, object> OnInvoke { get; set; }
     }
 }

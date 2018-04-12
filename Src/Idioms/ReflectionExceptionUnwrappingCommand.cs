@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace Ploeh.AutoFixture.Idioms
+namespace AutoFixture.Idioms
 {
     /// <summary>
     /// Decorates another <see cref="IGuardClauseCommand" /> and unwraps
@@ -9,8 +9,6 @@ namespace Ploeh.AutoFixture.Idioms
     /// </summary>
     public class ReflectionExceptionUnwrappingCommand : IGuardClauseCommand
     {
-        private readonly IGuardClauseCommand command;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ReflectionExceptionUnwrappingCommand" />
         /// class.
@@ -18,16 +16,13 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="command">The decorated command.</param>
         public ReflectionExceptionUnwrappingCommand(IGuardClauseCommand command)
         {
-            this.command = command;
+            this.Command = command;
         }
 
         /// <summary>
         /// Gets the decorated command supplied via the constructor.
         /// </summary>
-        public IGuardClauseCommand Command
-        {
-            get { return this.command; }
-        }
+        public IGuardClauseCommand Command { get; }
 
         /// <summary>
         /// Gets the type of the requested value.
@@ -38,10 +33,18 @@ namespace Ploeh.AutoFixture.Idioms
         /// <see cref="IGuardClauseCommand.RequestedType" /> property.
         /// </para>
         /// </remarks>
-        public Type RequestedType
-        {
-            get { return this.command.RequestedType; }
-        }
+        public Type RequestedType => this.Command.RequestedType;
+
+        /// <summary>
+        /// Gets the parameter name of the requested value.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The return value is the return value of the decorated <see cref="Command" /> instance's
+        /// <see cref="IGuardClauseCommand.RequestedParameterName" /> property.
+        /// </para>
+        /// </remarks>
+        public string RequestedParameterName => this.Command.RequestedParameterName;
 
         /// <summary>
         /// Executes the action on the decorated <see cref="Command" />. If a

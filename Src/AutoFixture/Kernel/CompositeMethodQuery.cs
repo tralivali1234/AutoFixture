@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// An implementation of <see cref="IMethodQuery"/> that composes other IMethodQuery instances.
@@ -24,12 +24,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// <param name="queries">The queries.</param>
         public CompositeMethodQuery(params IMethodQuery[] queries)
         {
-            if (queries == null)
-            {
-                throw new ArgumentNullException(nameof(queries));
-            }
-            
-            this.Queries = queries;
+            this.Queries = queries ?? throw new ArgumentNullException(nameof(queries));
         }
 
         /// <summary>

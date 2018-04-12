@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// A specification that evaluates whether a request is a request for a type without public constructors.
@@ -15,7 +15,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// </summary>
         public NoConstructorsSpecification()
         {
-            modestConstructorQuery = new ModestConstructorQuery();
+            this.modestConstructorQuery = new ModestConstructorQuery();
         }
 
         /// <summary>
@@ -28,13 +28,10 @@ namespace Ploeh.AutoFixture.Kernel
         /// </returns>
         public bool IsSatisfiedBy(object request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            if (request == null) throw new ArgumentNullException(nameof(request));
 
             var type = request as Type;
-            return type != null && !modestConstructorQuery.SelectMethods(type).Any();
+            return type != null && !this.modestConstructorQuery.SelectMethods(type).Any();
         }
     }
 }

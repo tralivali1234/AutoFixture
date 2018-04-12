@@ -1,23 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.TestTypeFoundation;
+using AutoFixture.Kernel;
+using TestTypeFoundation;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
+    [Obsolete]
     public class SortedSetSpecificationTest
     {
         [Fact]
         public void SutIsRequestSpecification()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new SortedSetSpecification();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<IRequestSpecification>(sut);
-            // Teardown
         }
 
         [Theory]
@@ -38,13 +37,12 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [InlineData(typeof(EmptyEnum?[]))]
         public void IsSatisfiedByNonSortedSetRequestReturnsCorrectResult(object request)
         {
-            // Fixture setup.
+            // Arrange.
             var sut = new SortedSetSpecification();
-            // Exercise system
+            // Act
             var result = sut.IsSatisfiedBy(request);
-            // Verify outcome
+            // Assert
             Assert.False(result);
-            // Teardown
         }
 
         [Theory]
@@ -62,13 +60,12 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [InlineData(typeof(SortedSet<EmptyEnum?[]>))]
         public void IsSatisfiedBySortedSetRequestReturnsCorrectResult(object request)
         {
-            // Fixture setup
+            // Arrange
             var sut = new SortedSetSpecification();
-            // Exercise system
+            // Act
             var result = sut.IsSatisfiedBy(request);
-            // Verify outcome
+            // Assert
             Assert.True(result);
-            // Teardown
         }
     }
 }

@@ -1,126 +1,220 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using AutoFixture.Kernel;
 using NSubstitute;
-using Ploeh.AutoFixture.Kernel;
 using Xunit;
 
-namespace Ploeh.AutoFixture.AutoNSubstitute.UnitTest
+namespace AutoFixture.AutoNSubstitute.UnitTest
 {
     public class AutoNSubstituteCustomizationTest
     {
         [Fact]
         public void SutIsCustomization()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new AutoNSubstituteCustomization();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<ICustomization>(sut);
-            // Teardown
         }
 
         [Fact]
+        public void CustomizeMembersIsDisabledByDefault()
+        {
+            // Arrange
+            // Act
+            var sut = new AutoNSubstituteCustomization();
+            // Assert
+            Assert.False(sut.ConfigureMembers);
+        }
+
+        [Fact]
+        public void GenerateDelegatesIsDisabledByDefault()
+        {
+            // Arrange
+            // Act
+            var sut = new AutoNSubstituteCustomization();
+            // Assert
+            Assert.False(sut.GenerateDelegates);
+        }
+
+        [Fact, Obsolete]
         public void InitializeWithNullBuilderThrows()
         {
-            // Fixture setup
-            // Exercise system and verify outcome
+            // Arrange
+            // Act & Assert
             Assert.Throws<ArgumentNullException>(() =>
                 new AutoNSubstituteCustomization(null));
-            // Teardown
         }
 
         [Fact]
+        public void ThrowsIfNullRelayIsSet()
+        {
+            // Arrange
+            var sut = new AutoNSubstituteCustomization();
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() => sut.Relay = null);
+        }
+
+        [Fact]
+        public void ShouldPreserveTheSetRelay()
+        {
+            // Arrange
+            var sut = new AutoNSubstituteCustomization();
+            var relay = new CompositeSpecimenBuilder();
+            // Act
+            sut.Relay = relay;
+            // Assert
+            Assert.Equal(relay, sut.Relay);
+        }
+        [Fact, Obsolete]
         public void SpecificationIsCorrectWhenInitializedWithBuilder()
         {
-            // Fixture setup
+            // Arrange
             var expectedBuilder = new NSubstituteBuilder(Substitute.For<ISpecimenBuilder>());
             var sut = new AutoNSubstituteCustomization(expectedBuilder);
-            // Exercise system
+            // Act
             ISpecimenBuilder result = sut.Builder;
-            // Verify outcome
+            // Assert
             Assert.Equal(expectedBuilder, result);
-            // Teardown
         }
 
-        [Fact]
+        [Fact, Obsolete]
         public void BuilderIsNotNullWhenInitializedWithDefaultConstructor()
         {
-            // Fixture setup
+            // Arrange
             var sut = new AutoNSubstituteCustomization();
-            // Exercise system
+            // Act
             var result = sut.Builder;
-            // Verify outcome
+            // Assert
             Assert.NotNull(result);
-            // Teardown
         }
 
         [Fact]
-        public void BuilderIsSubstituteRelay_WhenInitializedWithDefaultConstructor()
+        public void RelayIsNotNullWhenInitializedWithDefaultConstructor()
         {
-            // Fixture setup
+            // Arrange
             var sut = new AutoNSubstituteCustomization();
-            // Exercise system
-            var result = sut.Builder;
-            // Verify outcome
-            Assert.IsType<SubstituteRelay>(result);
-            // Teardown
+            // Act
+            var result = sut.Relay;
+            // Assert
+            Assert.NotNull(result);
         }
 
+        [Fact, Obsolete]
+        public void BuilderIsSubstituteRelay_WhenInitializedWithDefaultConstructor()
+        {
+            // Arrange
+            var sut = new AutoNSubstituteCustomization();
+            // Act
+            var result = sut.Builder;
+            // Assert
+            Assert.IsType<SubstituteRelay>(result);
+        }
+
+        [Fact]
+        public void RelayIsSubstituteRelay_WhenInitializedWithDefaultConstructor()
+        {
+            // Arrange
+            var sut = new AutoNSubstituteCustomization();
+            // Act
+            var result = sut.Relay;
+            // Assert
+            Assert.IsType<SubstituteRelay>(result);
+        }
         [Fact]
         public void CustomizeNullFixtureThrows()
         {
-            // Fixture setup
+            // Arrange
             var sut = new AutoNSubstituteCustomization();
-            // Exercise system and verify outcome
+            // Act & Assert
             Assert.Throws<ArgumentNullException>(() =>
                 sut.Customize(null));
-            // Teardown
-        }
-
-        [Fact]
-        public void CustomizeInsertsSubstituteAttributeRelayInCustomizationsToOverrideDefaultConstructionWhenAttributeIsPresent()
-        {
-            // Fixture setup
-            var sut = new AutoNSubstituteCustomization();
-            var fixture = Substitute.For<IFixture>();
-            // Exercise system
-            sut.Customize(fixture);
-            // Verify outcome
-            fixture.Customizations.Received().Insert(0, Arg.Any<SubstituteAttributeRelay>());
-            // Teardown
-        }
-
-        [Fact]
-        public void CustomizeInsertsProperlyConfiguredSubstituteRequestHandlerInCustomizationsToHandleSubstituteRequests()
-        {
-            // Fixture setup
-            var sut = new AutoNSubstituteCustomization();
-            SubstituteRequestHandler builder = null;
-            var fixture = Substitute.For<IFixture>();
-            fixture.Customizations.Insert(Arg.Any<int>(), Arg.Do<SubstituteRequestHandler>(b => builder = b));
-            // Exercise system
-            sut.Customize(fixture);
-            // Verify outcome
-            Assert.NotNull(builder);
-            var substituteConstructor = Assert.IsType<MethodInvoker>(builder.SubstituteFactory);
-            Assert.IsType<NSubstituteMethodQuery>(substituteConstructor.Query);
-            // Teardown
         }
 
         [Fact]
         public void CustomizeAddsAppropriateResidueCollector()
         {
-            // Fixture setup
+            // Arrange
             var residueCollectors = new List<ISpecimenBuilder>();
             var fixtureStub = Substitute.For<IFixture>();
             fixtureStub.ResidueCollectors.Returns(residueCollectors);
-            
+
             var sut = new AutoNSubstituteCustomization();
-            // Exercise system
+            // Act
             sut.Customize(fixtureStub);
-            // Verify outcome
-            Assert.Contains(sut.Builder, residueCollectors);
-            // Teardown
+            // Assert
+            Assert.Contains(sut.Relay, residueCollectors);
+        }
+
+        [Fact]
+        public void CustomizeInsertsSubstituteAttributeRelayInCustomizationsToOverrideDefaultConstructionWhenAttributeIsPresent()
+        {
+            // Arrange
+            var sut = new AutoNSubstituteCustomization();
+            var fixture = Substitute.For<IFixture>();
+            // Act
+            sut.Customize(fixture);
+            // Assert
+            fixture.Customizations.Received().Insert(0, Arg.Any<SubstituteAttributeRelay>());
+        }
+
+        [Fact]
+        public void CustomizeInsertsProperlyConfiguredSubstituteRequestHandlerInCustomizationsToHandleSubstituteRequests()
+        {
+            // Arrange
+            var sut = new AutoNSubstituteCustomization();
+            var fixtureStub = new FixtureStub();
+            // Act
+            sut.Customize(fixtureStub);
+            // Assert
+            var substituteRequestHandler = fixtureStub.Customizations.OfType<SubstituteRequestHandler>().Single();
+            var substituteConstructor = Assert.IsType<MethodInvoker>(substituteRequestHandler.SubstituteFactory);
+            Assert.IsType<NSubstituteMethodQuery>(substituteConstructor.Query);
+        }
+
+        [Fact]
+        public void WithConfigureMembers_CustomizeAddsPostprocessorWithSubstituteRequestHandlerAndCommandsToCustomizations()
+        {
+            // Arrange
+            var fixtureStub = new FixtureStub();
+            var sut = new AutoNSubstituteCustomization { ConfigureMembers = true };
+            // Act
+            sut.Customize(fixtureStub);
+            // Assert
+            var postprocessor = fixtureStub.Customizations.OfType<Postprocessor>().Single();
+            var substituteRequestHandler = Assert.IsAssignableFrom<SubstituteRequestHandler>(postprocessor.Builder);
+            var substituteFactory = Assert.IsType<MethodInvoker>(substituteRequestHandler.SubstituteFactory);
+            Assert.IsType<NSubstituteMethodQuery>(substituteFactory.Query);
+            var compositeCommand = Assert.IsAssignableFrom<CompositeSpecimenCommand>(postprocessor.Command);
+            Assert.True(compositeCommand.Commands.OfType<NSubstituteRegisterCallHandlerCommand>().Any());
+            Assert.True(compositeCommand.Commands.OfType<NSubstituteSealedPropertiesCommand>().Any());
+        }
+
+        [Fact]
+        public void WithGenerateDelegates_CustomizeAddsRelayForDelegates()
+        {
+            // Arrange
+            var fixtureStub = new FixtureStub();
+            var sut = new AutoNSubstituteCustomization { GenerateDelegates = true };
+            // Act
+            sut.Customize(fixtureStub);
+            // Assert
+            var substituteRelay = fixtureStub.Customizations.OfType<SubstituteRelay>().Single();
+            Assert.IsType<DelegateSpecification>(substituteRelay.Specification);
+        }
+
+        [Fact]
+        public void WithoutGenerateDelegates_ShouldNotAddRelayForDelegates()
+        {
+            // Arrange
+            var fixtureStub = new FixtureStub();
+            var sut = new AutoNSubstituteCustomization { GenerateDelegates = false };
+            // Act
+            sut.Customize(fixtureStub);
+            // Assert
+            Assert.DoesNotContain(fixtureStub.Customizations, c => c is SubstituteRelay);
         }
     }
 }

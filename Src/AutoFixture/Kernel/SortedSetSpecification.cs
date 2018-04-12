@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Encapsulates logic that determines whether a request is a request for a
     /// <see cref="SortedSet{T}"/>.
     /// </summary>
+    [Obsolete("This specification is obsolete. Use ExactTypeSpecification(typeof(SortedSet<>)) instead.")]
     public class SortedSetSpecification : IRequestSpecification
     {
         /// <summary>
@@ -20,14 +22,8 @@ namespace Ploeh.AutoFixture.Kernel
         /// </returns>
         public bool IsSatisfiedBy(object request)
         {
-            var type = request as Type;
-
-            if (type == null)
-            {
-                return false;
-            }
-
-            return type.IsGenericType && typeof(SortedSet<>) == type.GetGenericTypeDefinition();
+            return request is Type type &&
+                   type.TryGetSingleGenericTypeArgument(typeof(SortedSet<>), out var _);
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// Creates a sequence of consecutive numbers, starting at 1.
@@ -23,6 +23,7 @@ namespace Ploeh.AutoFixture
         /// Creates an anonymous number.
         /// </summary>
         /// <returns>The next number in a consecutive sequence.</returns>
+        [Obsolete("Please use the Create(request, context) method as this overload will be removed to make API uniform.")]
         public float Create()
         {
             lock (this.syncRoot)
@@ -36,10 +37,10 @@ namespace Ploeh.AutoFixture
         /// </summary>
         /// <returns>The next number in a consecutive sequence.</returns>
         /// <remarks>Obsolete: Please move over to using <see cref="Create()">Create()</see> as this method will be removed in the next release</remarks>
-        [Obsolete("Please move over to using Create() as this method will be removed in the next release")]
+        [Obsolete("Please move over to using Create() as this method will be removed in the next release", true)]
         public float CreateAnonymous()
         {
-            return Create();
+            return this.Create();
         }
 
         /// <summary>
@@ -55,12 +56,12 @@ namespace Ploeh.AutoFixture
         {
             if (!typeof(float).Equals(request))
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
             }
 
+#pragma warning disable 618
             return this.Create();
+#pragma warning restore 618
         }
     }
 }

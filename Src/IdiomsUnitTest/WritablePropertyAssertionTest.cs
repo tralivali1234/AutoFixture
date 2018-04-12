@@ -1,116 +1,108 @@
 ﻿using System;
 using System.Reflection;
-using Ploeh.AutoFixture.Idioms;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.TestTypeFoundation;
+using AutoFixture.Idioms;
+using AutoFixture.Kernel;
+using TestTypeFoundation;
 using Xunit;
 
-namespace Ploeh.AutoFixture.IdiomsUnitTest
+namespace AutoFixture.IdiomsUnitTest
 {
     public class WritablePropertyAssertionTest
     {
         [Fact]
         public void SutIsIdiomaticAssertion()
         {
-            // Fixture setup
+            // Arrange
             var dummyComposer = new Fixture();
-            // Exercise system
+            // Act
             var sut = new WritablePropertyAssertion(dummyComposer);
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<IdiomaticAssertion>(sut);
-            // Teardown
         }
 
         [Fact]
         public void ComposerIsCorrect()
         {
-            // Fixture setup
+            // Arrange
             var expectedComposer = new Fixture();
             var sut = new WritablePropertyAssertion(expectedComposer);
-            // Exercise system
+            // Act
             ISpecimenBuilder result = sut.Builder;
-            // Verify outcome
+            // Assert
             Assert.Equal(expectedComposer, result);
-            // Teardown
         }
 
         [Fact]
         public void ConstructWithNullComposerThrows()
         {
-            // Fixture setup
-            // Exercise system and verify outcome
+            // Arrange
+            // Act & Assert
             Assert.Throws<ArgumentNullException>(() =>
                 new WritablePropertyAssertion(null));
-            // Teardown
         }
 
         [Fact]
         public void VerifyNullPropertyThrows()
         {
-            // Fixture setup
+            // Arrange
             var dummyComposer = new Fixture();
             var sut = new WritablePropertyAssertion(dummyComposer);
-            // Exercise system and verify outcome
+            // Act & Assert
             Assert.Throws<ArgumentNullException>(() =>
                 sut.Verify((PropertyInfo)null));
-            // Teardown
         }
 
         [Fact]
         public void VerifyIllBehavedPropertyGetterThrows()
         {
-            // Fixture setup
+            // Arrange
             var composer = new Fixture();
             var sut = new WritablePropertyAssertion(composer);
             
             var propertyInfo = typeof(IllBehavedPropertyHolder<object>).GetProperty("PropertyIllBehavedGet");
-            // Exercise system and verify outcome
+            // Act & Assert
             var e = Assert.Throws<WritablePropertyException>(() =>
                 sut.Verify(propertyInfo));
             Assert.Equal(propertyInfo, e.PropertyInfo);
-            // Teardown
         }
 
         [Fact]
         public void VerifyIllBehavedPropertySetterThrows()
         {
-            // Fixture setup
+            // Arrange
             var composer = new Fixture();
             var sut = new WritablePropertyAssertion(composer);
 
             var propertyInfo = typeof(IllBehavedPropertyHolder<object>).GetProperty("PropertyIllBehavedSet");
-            // Exercise system and verify outcome
+            // Act & Assert
             var e = Assert.Throws<WritablePropertyException>(() =>
                 sut.Verify(propertyInfo));
             Assert.Equal(propertyInfo, e.PropertyInfo);
-            // Teardown
         }
 
         [Fact]
         public void VerifyReadOnlyPropertyDoesNotThrow()
         {
-            // Fixture setup
+            // Arrange
             var dummyComposer = new Fixture();
             var sut = new WritablePropertyAssertion(dummyComposer);
             var propertyInfo = typeof(ReadOnlyPropertyHolder<object>).GetProperty("Property");
-            // Exercise system and verify outcome
-            Assert.DoesNotThrow(() =>
-                sut.Verify(propertyInfo));
-            // Teardown
+            // Act & Assert
+            Assert.Null(Record.Exception(() =>
+                sut.Verify(propertyInfo)));
         }
 
         [Fact]
         public void VerifyWellBehavedWritablePropertyDoesNotThrow()
         {
-            // Fixture setup
+            // Arrange
             var composer = new Fixture();
             var sut = new WritablePropertyAssertion(composer);
 
             var propertyInfo = typeof(PropertyHolder<object>).GetProperty("Property");
-            // Exercise system and verify outcome
-            Assert.DoesNotThrow(() =>
-                sut.Verify(propertyInfo));
-            // Teardown
+            // Act & Assert
+            Assert.Null(Record.Exception(() =>
+                sut.Verify(propertyInfo)));
         }
     }
 }

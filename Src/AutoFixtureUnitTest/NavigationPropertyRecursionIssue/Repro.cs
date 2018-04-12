@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
+using AutoFixture;
 using Xunit;
-using Ploeh.AutoFixture;
 
-namespace Ploeh.AutoFixtureUnitTest.NavigationPropertyRecursionIssue
-{    
+namespace AutoFixtureUnitTest.NavigationPropertyRecursionIssue
+{
     public class Repro
     {
         /// <summary>
@@ -16,18 +13,17 @@ namespace Ploeh.AutoFixtureUnitTest.NavigationPropertyRecursionIssue
         [Fact]
         public void Issue()
         {
-            // Fixture setup
-            var fixture = new Fixture().Customize(new MultipleCustomization());
+            // Arrange
+            var fixture = new Fixture();
             fixture.Behaviors
                 .OfType<ThrowingRecursionBehavior>()
                 .ToList()
                 .ForEach(b => fixture.Behaviors.Remove(b));
             fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-            // Exercise system
+            // Act
             var session = fixture.Create<Session>();
-            // Verify outcome
+            // Assert
             Assert.Empty(session.Language.Sessions);
-            // Teardown
         }
     }
 }

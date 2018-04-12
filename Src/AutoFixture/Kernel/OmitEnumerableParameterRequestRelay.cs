@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Relays requests for enumerable parameters, and returns an empty array
-    /// if the object returned from the context is an
-    /// <see cref="OmitSpecimen" /> instance.
+    /// if the object returned from the context is an <see cref="OmitSpecimen" /> instance.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -55,24 +52,14 @@ namespace Ploeh.AutoFixture.Kernel
         /// </exception>
         public object Create(object request, ISpecimenContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
+            if (context == null) throw new ArgumentNullException(nameof(context));
 
             var pi = request as ParameterInfo;
             if (pi == null)
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
 
-            if (!pi.ParameterType.IsGenericType)
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
-
-            if (IsNotEnumerable(pi))
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+            if (!pi.ParameterType.TryGetSingleGenericTypeArgument(typeof(IEnumerable<>), out Type enumerableType))
+                return new NoSpecimen();
 
             var returnValue = context.Resolve(
                 new SeededRequest(
@@ -80,17 +67,9 @@ namespace Ploeh.AutoFixture.Kernel
                     pi.Name));
 
             if (returnValue is OmitSpecimen)
-                return Array.CreateInstance(
-                    pi.ParameterType.GetGenericArguments().Single(),
-                    0);
+                return Array.CreateInstance(enumerableType, 0);
 
             return returnValue;
-        }
-
-        private static bool IsNotEnumerable(ParameterInfo pi)
-        {
-            var openGenericType = pi.ParameterType.GetGenericTypeDefinition();
-            return openGenericType != typeof(IEnumerable<>);
         }
     }
 }

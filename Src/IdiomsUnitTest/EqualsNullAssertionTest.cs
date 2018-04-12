@@ -1,111 +1,100 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using Ploeh.AutoFixture.Idioms;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Idioms;
+using AutoFixture.Kernel;
 using Xunit;
 
-namespace Ploeh.AutoFixture.IdiomsUnitTest
+namespace AutoFixture.IdiomsUnitTest
 {
     public class EqualsNullAssertionTest
     {
         [Fact]
         public void SutIsIdiomaticAssertion()
         {
-            // Fixture setup
+            // Arrange
             var dummyComposer = new Fixture();
-            // Exercise system
+            // Act
             var sut = new EqualsNullAssertion(dummyComposer);
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<IdiomaticAssertion>(sut);
-            // Teardown
         }
 
         [Fact]
         public void ComposerIsCorrect()
         {
-            // Fixture setup
+            // Arrange
             var expectedComposer = new Fixture();
             var sut = new EqualsNullAssertion(expectedComposer);
-            // Exercise system
+            // Act
             ISpecimenBuilder result = sut.Builder;
-            // Verify outcome
+            // Assert
             Assert.Equal(expectedComposer, result);
-            // Teardown
         }
 
         [Fact]
         public void ConstructWithNullComposerThrows()
         {
-            // Fixture setup
-            // Exercise system and verify outcome
+            // Arrange
+            // Act & Assert
             Assert.Throws<ArgumentNullException>(() =>
                 new EqualsNullAssertion(null));
-            // Teardown
         }
 
         [Fact]
         public void VerifyNullMethodThrows()
         {
-            // Fixture setup
+            // Arrange
             var dummyComposer = new Fixture();
             var sut = new EqualsNullAssertion(dummyComposer);
-            // Exercise system and verify outcome
+            // Act & Assert
             Assert.Throws<ArgumentNullException>(() =>
                 sut.Verify((MethodInfo)null));
-            // Teardown
         }
 
         [Fact]
         public void VerifyClassThatDoesNotOverrideObjectEqualsDoesNothing()
         {
-            // Fixture setup
+            // Arrange
             var dummyComposer = new Fixture();
             var sut = new EqualsNullAssertion(dummyComposer);
-            // Exercise system and verify outcome
-            Assert.DoesNotThrow(() =>
-                sut.Verify(typeof(ClassThatDoesNotOverrideObjectEquals)));
-            // Teardown
+            // Act & Assert
+            Assert.Null(Record.Exception(() =>
+                sut.Verify(typeof(ClassThatDoesNotOverrideObjectEquals))));
         }
 
         [Fact]
         public void VerifyWellBehavedEqualsNullOverrideDoesNotThrow()
         {
-            // Fixture setup
+            // Arrange
             var dummyComposer = new Fixture();
             var sut = new EqualsNullAssertion(dummyComposer);
-            // Exercise system and verify outcome
-            Assert.DoesNotThrow(() =>
-                sut.Verify(typeof(WellBehavedEqualsNullOverride)));
-            // Teardown            
+            // Act & Assert
+            Assert.Null(Record.Exception(() =>
+                sut.Verify(typeof(WellBehavedEqualsNullOverride))));
         }
 
         [Fact]
         public void VerifyIllbehavedEqualsNullBehaviourThrows()
         {
-            // Fixture setup
+            // Arrange
             var dummyComposer = new Fixture();
             var sut = new EqualsNullAssertion(dummyComposer);
-            // Exercise system and verify outcome
+            // Act & Assert
             Assert.Throws<EqualsOverrideException>(() =>
                 sut.Verify(typeof(IllbehavedEqualsNullOverride)));
-            // Teardown
         }
 
         [Fact]
         public void VerifyAnonymousMethodWithNoDeclaringOrReflectedTypeDoesNothing()
         {
-            // Fixture setup
+            // Arrange
             var dummyComposer = new Fixture();
             var sut = new EqualsNullAssertion(dummyComposer);
             var method = (MethodInfo)(new MethodInfoWithNullDeclaringAndReflectedType());
 
-            // Exercise system and verify outcome
-            Assert.DoesNotThrow(() =>
-                sut.Verify(method));
-            // Teardown
+            // Act & Assert
+            Assert.Null(Record.Exception(() =>
+                sut.Verify(method)));
         }
 
         class MethodInfoWithNullDeclaringAndReflectedType : MethodInfo

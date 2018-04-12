@@ -5,9 +5,9 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture.Idioms
+namespace AutoFixture.Idioms
 {
     /// <summary>
     /// Encapsulates a unit test that verifies that a method or constructor has appropriate Guard
@@ -94,12 +94,12 @@ namespace Ploeh.AutoFixture.Idioms
         public override void Verify(ConstructorInfo constructorInfo)
         {
             if (constructorInfo == null)
-                throw new ArgumentNullException("constructorInfo");
+                throw new ArgumentNullException(nameof(constructorInfo));
 
             constructorInfo = this.ResolveUnclosedGenericType(constructorInfo);
 
             var method = new ConstructorMethod(constructorInfo);
-            this.Verify(method, false, false);
+            this.DoVerify(method, false, false);
         }
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace Ploeh.AutoFixture.Idioms
         public override void Verify(MethodInfo methodInfo)
         {
             if (methodInfo == null)
-                throw new ArgumentNullException("methodInfo");
+                throw new ArgumentNullException(nameof(methodInfo));
 
             if (methodInfo.IsEqualsMethod() ||
                 methodInfo.IsGetHashCodeMethod() ||
@@ -139,7 +139,7 @@ namespace Ploeh.AutoFixture.Idioms
             var isReturnValueTask =
                 typeof(System.Threading.Tasks.Task).IsAssignableFrom(methodInfo.ReturnType);
 
-            this.Verify(method, isReturnValueDeferable, isReturnValueTask);
+            this.DoVerify(method, isReturnValueDeferable, isReturnValueTask);
         }
 
         private static bool IsNonDeferredEnumerable(Type t)
@@ -187,7 +187,7 @@ namespace Ploeh.AutoFixture.Idioms
         public override void Verify(PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
-                throw new ArgumentNullException("propertyInfo");
+                throw new ArgumentNullException(nameof(propertyInfo));
 
             if (propertyInfo.GetSetMethod() == null)
                 return;
@@ -202,10 +202,10 @@ namespace Ploeh.AutoFixture.Idioms
 
         private static bool IsMatched(MethodBase resolved, MethodBase method, AutoGenericType autoGenericType)
         {
-            return resolved.Name == method.Name &&
-                resolved.GetParameters()
-                    .Select(pi => pi.ParameterType)
-                    .SequenceEqual(autoGenericType.ResolveUnclosedParameterTypes(method.GetParameters()));
+            return string.Equals(resolved.Name, method.Name, StringComparison.Ordinal) &&
+                   resolved.GetParameters()
+                       .Select(pi => pi.ParameterType)
+                       .SequenceEqual(autoGenericType.ResolveUnclosedParameterTypes(method.GetParameters()));
         }
 
         private IMethod CreateMethod(MethodInfo methodInfo)
@@ -244,19 +244,19 @@ namespace Ploeh.AutoFixture.Idioms
             }
         }
 
-        private void Verify(IMethod method, bool isReturnValueDeferable, bool isReturnValueTask)
+        private void DoVerify(IMethod method, bool isReturnValueDeferable, bool isReturnValueTask)
         {
             if (isReturnValueDeferable)
-                VerifyDeferrableIterator(method);
+                this.VerifyDeferrableIterator(method);
             else if (isReturnValueTask)
-                VerifyDeferrableTask(method);
+                this.VerifyDeferrableTask(method);
             else
-                VerifyNormal(method);
+                this.VerifyNormal(method);
         }
 
         private void VerifyDeferrableIterator(IMethod method)
         {
-            foreach (var command in GetParameterGuardCommands(method))
+            foreach (var command in this.GetParameterGuardCommands(method))
             {
                 this.BehaviorExpectation.Verify(new IteratorMethodInvokeCommand(command));
             }
@@ -264,7 +264,7 @@ namespace Ploeh.AutoFixture.Idioms
 
         private void VerifyDeferrableTask(IMethod method)
         {
-            foreach (var command in GetParameterGuardCommands(method))
+            foreach (var command in this.GetParameterGuardCommands(method))
             {
                 this.BehaviorExpectation.Verify(new TaskReturnMethodInvokeCommand(command));
             }
@@ -272,7 +272,7 @@ namespace Ploeh.AutoFixture.Idioms
 
         private void VerifyNormal(IMethod method)
         {
-            foreach (var command in GetParameterGuardCommands(method))
+            foreach (var command in this.GetParameterGuardCommands(method))
             {
                 this.BehaviorExpectation.Verify(command);
             }
@@ -335,7 +335,7 @@ namespace Ploeh.AutoFixture.Idioms
                 ? new AutoGenericType(this.Builder, propertyInfo.ReflectedType)
                     .Value
                     .GetProperties()
-                    .Single(pi => pi.Name == propertyInfo.Name)
+                    .Single(pi => string.Equals(pi.Name, propertyInfo.Name, StringComparison.Ordinal))
                 : propertyInfo;
         }
 
@@ -366,7 +366,7 @@ namespace Ploeh.AutoFixture.Idioms
 
         private class TaskReturnMethodInvokeCommand : IGuardClauseCommand
         {
-            private const string message = @"A Guard Clause test was performed on a method that returns a Task, Task<T> (possibly in an 'async' method), but the test failed. See the inner exception for more details. However, because of the async nature of the task, this test failure may look like a false positive. Perhaps you already have a Guard Clause in place, but inside the Task or inside a method marked with the 'async' keyword (if you're using C#); if this is the case, the Guard Clause is dormant, and will first be triggered when a client accesses the Result of the Task. This doesn't adhere to the Fail Fast principle, so should be addressed.
+            private const string Message = @"A Guard Clause test was performed on a method that returns a Task, Task<T> (possibly in an 'async' method), but the test failed. See the inner exception for more details. However, because of the async nature of the task, this test failure may look like a false positive. Perhaps you already have a Guard Clause in place, but inside the Task or inside a method marked with the 'async' keyword (if you're using C#); if this is the case, the Guard Clause is dormant, and will first be triggered when a client accesses the Result of the Task. This doesn't adhere to the Fail Fast principle, so should be addressed.
 See https://github.com/AutoFixture/AutoFixture/issues/268 for more details.";
 
             private readonly IGuardClauseCommand command;
@@ -381,6 +381,11 @@ See https://github.com/AutoFixture/AutoFixture/issues/268 for more details.";
                 get { return this.command.RequestedType; }
             }
 
+            public string RequestedParameterName
+            {
+                get { return this.command.RequestedParameterName; }
+            }
+
             public void Execute(object value)
             {
                 this.command.Execute(value);
@@ -393,20 +398,20 @@ See https://github.com/AutoFixture/AutoFixture/issues/268 for more details.";
             public Exception CreateException(string value)
             {
                 var e = this.command.CreateException(value);
-                return new GuardClauseException(message, e);
+                return new GuardClauseException(Message, e);
             }
 
             [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "AutoFixture"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "github")]
             public Exception CreateException(string value, Exception innerException)
             {
                 var e = this.command.CreateException(value, innerException);
-                return new GuardClauseException(message, e);
+                return new GuardClauseException(Message, e);
             }
         }
 
         private class IteratorMethodInvokeCommand : IGuardClauseCommand
         {
-            private const string message = @"A Guard Clause test was performed on a method that may contain a deferred iterator block, but the test failed. See the inner exception for more details. However, because of the deferred nature of the iterator block, this test failure may look like a false positive. Perhaps you already have a Guard Clause in place, but in conjunction with the 'yield' keyword (if you're using C#); if this is the case, the Guard Clause is dormant, and will first be triggered when a client starts looping over the iterator. This doesn't adhere to the Fail Fast principle, so should be addressed.
+            private const string Message = @"A Guard Clause test was performed on a method that may contain a deferred iterator block, but the test failed. See the inner exception for more details. However, because of the deferred nature of the iterator block, this test failure may look like a false positive. Perhaps you already have a Guard Clause in place, but in conjunction with the 'yield' keyword (if you're using C#); if this is the case, the Guard Clause is dormant, and will first be triggered when a client starts looping over the iterator. This doesn't adhere to the Fail Fast principle, so should be addressed.
 See e.g. http://codeblog.jonskeet.uk/2008/03/02/c-4-idea-iterator-blocks-and-parameter-checking/ for more details.";
 
             private readonly IGuardClauseCommand command;
@@ -421,6 +426,11 @@ See e.g. http://codeblog.jonskeet.uk/2008/03/02/c-4-idea-iterator-blocks-and-par
                 get { return this.command.RequestedType; }
             }
 
+            public string RequestedParameterName
+            {
+                get { return this.command.RequestedParameterName; }
+            }
+
             public void Execute(object value)
             {
                 this.command.Execute(value);
@@ -432,7 +442,7 @@ See e.g. http://codeblog.jonskeet.uk/2008/03/02/c-4-idea-iterator-blocks-and-par
             public Exception CreateException(string value)
             {
                 var e = this.command.CreateException(value);
-                return new GuardClauseException(message, e);
+                return new GuardClauseException(Message, e);
             }
 
             [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "codeblog", Justification = "False Positive. Code Analysis really shouldn't attempt to spell check URLs.")]
@@ -441,7 +451,7 @@ See e.g. http://codeblog.jonskeet.uk/2008/03/02/c-4-idea-iterator-blocks-and-par
             public Exception CreateException(string value, Exception innerException)
             {
                 var e = this.command.CreateException(value, innerException);
-                return new GuardClauseException(message, e);
+                return new GuardClauseException(Message, e);
             }
         }
 
@@ -479,17 +489,17 @@ See e.g. http://codeblog.jonskeet.uk/2008/03/02/c-4-idea-iterator-blocks-and-par
             private Type ResolveUnclosedParameterType(Type parameterType)
             {
                 if (parameterType.IsArray)
-                    return ResolveNestedArrayParameterType(parameterType);
+                    return this.ResolveNestedArrayParameterType(parameterType);
 
                 if (parameterType.IsGenericType)
-                    return ReosolveNestedGenericParameterType(parameterType);
+                    return this.ReosolveNestedGenericParameterType(parameterType);
 
-                return ResolveGenericParameter(parameterType);
+                return this.ResolveGenericParameter(parameterType);
             }
 
             private Type ResolveNestedArrayParameterType(Type parameterType)
             {
-                var elementType = ResolveUnclosedParameterType(parameterType.GetElementType());
+                var elementType = this.ResolveUnclosedParameterType(parameterType.GetElementType());
                 var rank = parameterType.GetArrayRank();
                 return rank == 1 ? elementType.MakeArrayType() : elementType.MakeArrayType(rank);
             }
@@ -497,7 +507,7 @@ See e.g. http://codeblog.jonskeet.uk/2008/03/02/c-4-idea-iterator-blocks-and-par
             private Type ReosolveNestedGenericParameterType(Type parameterType)
             {
                 var genericArguments = parameterType.GetGenericArguments();
-                var typeArguments = genericArguments.Select(ResolveUnclosedParameterType).ToArray();
+                var typeArguments = genericArguments.Select(this.ResolveUnclosedParameterType).ToArray();
                 return parameterType.GetGenericTypeDefinition().MakeGenericType(typeArguments);
             }
 
@@ -568,10 +578,7 @@ See e.g. http://codeblog.jonskeet.uk/2008/03/02/c-4-idea-iterator-blocks-and-par
         {
             protected override string GetKeyForItem(AutoGenericArgument item)
             {
-                if (item == null)
-                {
-                    throw new ArgumentNullException("item");
-                }
+                if (item == null) throw new ArgumentNullException(nameof(item));
 
                 return item.GenericArgument.Name;
             }
@@ -648,17 +655,17 @@ See e.g. http://codeblog.jonskeet.uk/2008/03/02/c-4-idea-iterator-blocks-and-par
 
         private class DynamicDummyType
         {
-            private const string specimenBuilderFieldName = "specimenBuilder";
+            private const string SpecimenBuilderFieldName = "specimenBuilder";
 
-            private static readonly AssemblyBuilder assemblyBuilder =
-                AppDomain.CurrentDomain.DefineDynamicAssembly(
+            private static readonly AssemblyBuilder AssemblyBuilder =
+                AssemblyBuilder.DefineDynamicAssembly(
                     new AssemblyName("AutoFixture.DynamicProxyAssembly"),
                     AssemblyBuilderAccess.Run);
 
-            private static readonly ModuleBuilder moduleBuilder =
-                assemblyBuilder.DefineDynamicModule("DynamicProxyModule");
+            private static readonly ModuleBuilder ModuleBuilder =
+                AssemblyBuilder.DefineDynamicModule("DynamicProxyModule");
 
-            private static readonly MethodInfo fixtureCreateGenericMethod =
+            private static readonly MethodInfo FixtureCreateGenericMethod =
                 typeof(SpecimenFactory).GetMethod("Create", new[] { typeof(ISpecimenBuilder) });
 
             private readonly ISpecimenBuilder specimenBuilder;
@@ -686,7 +693,7 @@ See e.g. http://codeblog.jonskeet.uk/2008/03/02/c-4-idea-iterator-blocks-and-par
                     this.ImplementDefaultConstructor();
                     this.ImplementAbstractMethods();
                     this.ImplementInterfaceMethods();
-                    var dummyType = this.typeBuilder.CreateType();
+                    var dummyType = this.typeBuilder.CreateTypeInfo();
                     this.SetStaticSpecimenBuilderField(dummyType);
                     return dummyType;
                 }
@@ -694,9 +701,9 @@ See e.g. http://codeblog.jonskeet.uk/2008/03/02/c-4-idea-iterator-blocks-and-par
 
             private void DefineTypeBuilder()
             {
-                lock (moduleBuilder)
+                lock (ModuleBuilder)
                 {
-                    this.typeBuilder = moduleBuilder.DefineType(
+                    this.typeBuilder = ModuleBuilder.DefineType(
                         this.GetBaseTypeName(),
                         TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.Sealed,
                         this.baseType,
@@ -770,7 +777,7 @@ See e.g. http://codeblog.jonskeet.uk/2008/03/02/c-4-idea-iterator-blocks-and-par
                 }
 
                 this.specimenBuilderFieldBuilder = this.typeBuilder.DefineField(
-                    specimenBuilderFieldName,
+                    SpecimenBuilderFieldName,
                     typeof(IFixture),
                     FieldAttributes.Private | FieldAttributes.Static | FieldAttributes.InitOnly);
             }
@@ -789,7 +796,7 @@ See e.g. http://codeblog.jonskeet.uk/2008/03/02/c-4-idea-iterator-blocks-and-par
             private void EmitCallFixtureCreate(ILGenerator generator, Type returnType)
             {
                 generator.Emit(OpCodes.Ldsfld, this.specimenBuilderFieldBuilder);
-                generator.Emit(OpCodes.Call, fixtureCreateGenericMethod.MakeGenericMethod(returnType));
+                generator.Emit(OpCodes.Call, FixtureCreateGenericMethod.MakeGenericMethod(returnType));
             }
 
             private void ImplementAbstractMethods()
@@ -865,7 +872,7 @@ See e.g. http://codeblog.jonskeet.uk/2008/03/02/c-4-idea-iterator-blocks-and-par
                     return;
                 }
 
-                dummyType.GetField(specimenBuilderFieldName, BindingFlags.Static | BindingFlags.NonPublic)
+                dummyType.GetField(SpecimenBuilderFieldName, BindingFlags.Static | BindingFlags.NonPublic)
                     .SetValue(null, this.specimenBuilder);
             }
         }

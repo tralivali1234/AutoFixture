@@ -1,6 +1,7 @@
 ﻿using System;
+using System.Reflection;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// A specification that determines whether the request is a request
@@ -20,12 +21,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// </exception>
         public DirectBaseTypeSpecification(Type targetType)
         {
-            if (targetType == null)
-            {
-                throw new ArgumentNullException(nameof(targetType));
-            }
-
-            this.TargetType = targetType;
+            this.TargetType = targetType ?? throw new ArgumentNullException(nameof(targetType));
         }
 
         /// <summary>
@@ -44,13 +40,10 @@ namespace Ploeh.AutoFixture.Kernel
         /// </returns>
         public bool IsSatisfiedBy(object request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            if (request == null) throw new ArgumentNullException(nameof(request));
 
             return IsRequestForType(request) &&
-                   IsTargetTypeOrItsDirectBase(request);
+                   this.IsTargetTypeOrItsDirectBase(request);
         }
 
         private static bool IsRequestForType(object request)
@@ -60,8 +53,8 @@ namespace Ploeh.AutoFixture.Kernel
 
         private bool IsTargetTypeOrItsDirectBase(object request)
         {
-            return IsSameAsTargetType(request) ||
-                   IsDirectBaseOfTargetType(request);
+            return this.IsSameAsTargetType(request) ||
+                   this.IsDirectBaseOfTargetType(request);
         }
 
         private bool IsSameAsTargetType(object request)
@@ -71,7 +64,7 @@ namespace Ploeh.AutoFixture.Kernel
 
         private bool IsDirectBaseOfTargetType(object request)
         {
-            return (Type)request == this.TargetType.BaseType;
+            return (Type)request == this.TargetType.GetTypeInfo().BaseType;
         }
     }
 }

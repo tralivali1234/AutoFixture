@@ -1,7 +1,7 @@
 ﻿using System;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// Creates random value <see langword="true"/> or <see langword="false"/>.
@@ -16,8 +16,7 @@ namespace Ploeh.AutoFixture
         /// </summary>
         public RandomBooleanSequenceGenerator()
         {
-            this.randomBooleanNumbers =
-                new RandomNumericSequenceGenerator(0, 1);
+            this.randomBooleanNumbers = new RandomNumericSequenceGenerator(0, 1);
         }
 
         /// <summary>
@@ -33,9 +32,7 @@ namespace Ploeh.AutoFixture
         {
             if (!typeof(bool).Equals(request))
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
             }
 
             return this.GenerateBoolean(context);

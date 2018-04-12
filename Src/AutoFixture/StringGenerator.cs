@@ -1,7 +1,7 @@
 ﻿using System;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// Creates string values based on a supplied factory.
@@ -19,12 +19,7 @@ namespace Ploeh.AutoFixture
         /// </param>
         public StringGenerator(Func<object> specimenFactory)
         {
-            if (specimenFactory == null)
-            {
-                throw new ArgumentNullException(nameof(specimenFactory));
-            }
-
-            this.Factory = specimenFactory;
+            this.Factory = specimenFactory ?? throw new ArgumentNullException(nameof(specimenFactory));
         }
 
         /// <summary>
@@ -46,17 +41,13 @@ namespace Ploeh.AutoFixture
         {
             if (!typeof(string).Equals(request))
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
             }
 
             var specimen = this.Factory();
             if (specimen == null)
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
             }
             if (specimen is NoSpecimen)
             {

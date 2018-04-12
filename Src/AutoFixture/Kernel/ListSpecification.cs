@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Encapsulates logic that determines whether a request is a request for a
     /// <see cref="List{T}"/>.
     /// </summary>
+    [Obsolete("This specification is obsolete. Use ExactTypeSpecification(typeof(List<>)) instead.")]
     public class ListSpecification : IRequestSpecification
     {
         /// <summary>
@@ -20,14 +21,8 @@ namespace Ploeh.AutoFixture.Kernel
         /// </returns>
         public bool IsSatisfiedBy(object request)
         {
-            var type = request as Type;
-            if (type == null)
-            {
-                return false;
-            }
-
-            return type.IsGenericType
-                && typeof(List<>) == type.GetGenericTypeDefinition();
+            return request is Type type &&
+                   type.TryGetSingleGenericTypeArgument(typeof(List<>), out var _);
         }
     }
 }

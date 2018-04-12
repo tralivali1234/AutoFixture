@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Encapsulates a pattern for a regular expression.
@@ -13,12 +13,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// <param name="pattern">The pattern.</param>
         public RegularExpressionRequest(string pattern)
         {
-            if (pattern == null)
-            {
-                throw new ArgumentNullException(nameof(pattern));
-            }
-
-            this.Pattern = pattern;
+            this.Pattern = pattern ?? throw new ArgumentNullException(nameof(pattern));
         }
 
         /// <summary>
@@ -33,13 +28,12 @@ namespace Ploeh.AutoFixture.Kernel
         /// <returns>
         ///   <c>true</c> if the specified <see cref="System.Object"/> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
-        /// <exception cref="T:System.NullReferenceException">
+        /// <exception cref="System.NullReferenceException">
         /// The <paramref name="obj"/> parameter is null.
         ///   </exception>
         public override bool Equals(object obj)
         {
-            var other = obj as RegularExpressionRequest;
-            if (other != null)
+            if (obj is RegularExpressionRequest other)
             {
                 return this.Equals(other);
             }
@@ -72,7 +66,7 @@ namespace Ploeh.AutoFixture.Kernel
                 return false;
             }
 
-            return this.Pattern == other.Pattern;
+            return string.Equals(this.Pattern, other.Pattern, StringComparison.Ordinal);
         }
     }
 }

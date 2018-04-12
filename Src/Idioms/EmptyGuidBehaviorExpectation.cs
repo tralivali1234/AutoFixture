@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Ploeh.AutoFixture.Idioms
+namespace AutoFixture.Idioms
 {
     /// <summary>
     /// Encapsulates the expected behavior when an <see cref="IGuardClauseCommand" /> (typically
@@ -25,8 +25,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// </remarks>
         public void Verify(IGuardClauseCommand command)
         {
-            if (command == null)
-                throw new ArgumentNullException("command");
+            if (command == null) throw new ArgumentNullException(nameof(command));
             
             if (command.RequestedType != typeof(Guid))
                 return;

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// Decorates an <see cref="ISpecimenBuilder"/> with a <see cref="TraceWriter"/> to enable
@@ -26,12 +26,7 @@ namespace Ploeh.AutoFixture
         /// <param name="writer">The writer to which diagnostics is written.</param>
         public TracingBehavior(TextWriter writer)
         {
-            if (writer == null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
-
-            this.Writer = writer;
+            this.Writer = writer ?? throw new ArgumentNullException(nameof(writer));
         }
 
         /// <summary>
@@ -47,12 +42,9 @@ namespace Ploeh.AutoFixture
         /// A new <see cref="TraceWriter"/> that decorates <paramref name="builder"/> using
         /// <see cref="Writer"/>.
         /// </returns>
-        public ISpecimenBuilder Transform(ISpecimenBuilder builder)
+        public ISpecimenBuilderNode Transform(ISpecimenBuilder builder)
         {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
 
             return new TraceWriter(this.Writer, new TracingBuilder(builder));
         }

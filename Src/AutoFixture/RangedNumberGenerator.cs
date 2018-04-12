@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Globalization;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// Creates a strictly increasing sequence of ranged numbers, starting at range minimum.  
@@ -32,30 +32,23 @@ namespace Ploeh.AutoFixture
         /// </returns>
         public object Create(object request, ISpecimenContext context)
         {
-            if (request == null)
-            {
-                return new NoSpecimen();
-            }
-
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
+            if (context == null) throw new ArgumentNullException(nameof(context));
 
             var range = request as RangedNumberRequest;
             if (range == null)
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
+            }
+
+            if (range.Minimum.Equals(range.Maximum))
+            {
+                return range.Minimum;
             }
 
             var value = context.Resolve(range.OperandType) as IComparable;
             if (value == null)
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
             }
 
             try
@@ -64,9 +57,7 @@ namespace Ploeh.AutoFixture
             }
             catch (InvalidOperationException)
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
             }
 
             return this.rangedValue;

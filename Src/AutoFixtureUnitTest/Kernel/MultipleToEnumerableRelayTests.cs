@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using AutoFixture.Kernel;
 using Xunit;
-using Ploeh.AutoFixture.Kernel;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class MultipleToEnumerableRelayTests
     {
@@ -27,17 +25,14 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         public void CreateFromNonMultipleRequestReturnsCorrectResult(
             object request)
         {
-            // Fixture setup
+            // Arrange
             var sut = new MultipleToEnumerableRelay();
-            // Exercise system
+            // Act
             var dummyContext = new DelegatingSpecimenContext();
             var actual = sut.Create(request, dummyContext);
-            // Verify outcome
-#pragma warning disable 618
-            var expected = new NoSpecimen(request);
-#pragma warning restore 618
+            // Assert
+            var expected = new NoSpecimen();
             Assert.Equal(expected, actual);
-            // Teardown
         }
 
         [Theory]
@@ -48,7 +43,7 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
             Type itemType,
             int arrayLength)
         {
-            // Fixture setup
+            // Arrange
             var sut = new MultipleToEnumerableRelay();
             var context = new DelegatingSpecimenContext
             {
@@ -60,17 +55,16 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
                     return Array.CreateInstance((Type)itemType, arrayLength);
                 }
             };
-            // Exercise system
+            // Act
             var request = new MultipleRequest(itemType);
             var actual = sut.Create(request, context);
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom(
                 typeof(IEnumerable<>).MakeGenericType(itemType),
                 actual);
             var enumerable =
                 Assert.IsAssignableFrom<System.Collections.IEnumerable>(actual);
             Assert.Equal(arrayLength, enumerable.Cast<object>().Count());
-            // Teardown
         }
 
         [Theory]
@@ -80,18 +74,15 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         public void CreateFromMultipleRequestWithNonTypeRequestReturnsCorrectResult(
             object innerRequest)
         {
-            // Fixture setup
+            // Arrange
             var sut = new MultipleToEnumerableRelay();
             var request = new MultipleRequest(innerRequest);
-            // Exercise system
+            // Act
             var dummyContext = new DelegatingSpecimenContext();
             var actual = sut.Create(request, dummyContext);
-            // Verify outcome
-#pragma warning disable 618
-            var expected = new NoSpecimen(request);
-#pragma warning restore 618
+            // Assert
+            var expected = new NoSpecimen();
             Assert.Equal(expected, actual);
-            // Teardown
         }
 
         [Theory]
@@ -103,7 +94,7 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
             object seed,
             int arrayLength)
         {
-            // Fixture setup
+            // Arrange
             var sut = new MultipleToEnumerableRelay();
             var context = new DelegatingSpecimenContext
             {
@@ -115,17 +106,16 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
                     return Array.CreateInstance((Type)itemType, arrayLength);
                 }
             };
-            // Exercise system
+            // Act
             var request = new MultipleRequest(new SeededRequest(itemType, seed));
             var actual = sut.Create(request, context);
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom(
                 typeof(IEnumerable<>).MakeGenericType(itemType),
                 actual);
             var enumerable =
                 Assert.IsAssignableFrom<System.Collections.IEnumerable>(actual);
             Assert.Equal(arrayLength, enumerable.Cast<object>().Count());
-            // Teardown
         }
 
         [Theory]
@@ -135,33 +125,29 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         public void CreateFromMultipleSeededRequestWithNonTypeRequestReturnsCorrectResult(
             object innerRequest)
         {
-            // Fixture setup
+            // Arrange
             var sut = new MultipleToEnumerableRelay();
             var request = new MultipleRequest(
                 new SeededRequest(
                     innerRequest,
                     new object()));
-            // Exercise system
+            // Act
             var dummyContext = new DelegatingSpecimenContext();
             var actual = sut.Create(request, dummyContext);
-            // Verify outcome
-#pragma warning disable 618
-            var expected = new NoSpecimen(request);
-#pragma warning restore 618
+            // Assert
+            var expected = new NoSpecimen();
             Assert.Equal(expected, actual);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithNullContextThrows()
         {
-            // Fixture setup
+            // Arrange
             var sut = new MultipleToEnumerableRelay();
-            // Exercise system and verify outcome
+            // Act & assert
             var dummyRequest = new object();
             Assert.Throws<ArgumentNullException>(
                 () => sut.Create(dummyRequest, null));
-            // Teardown
         }
     }
 }

@@ -1,17 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using AutoFixture.Kernel;
 using FakeItEasy;
-using Ploeh.AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture.AutoFakeItEasy
+namespace AutoFixture.AutoFakeItEasy
 {
     /// <summary>
     /// Selects appropriate methods to create <see cref="FakeItEasy.Fake{T}"/> instances.
     /// </summary>
     public class FakeItEasyMethodQuery : IMethodQuery
     {
+        private static readonly DelegateSpecification delegateSpecification = new DelegateSpecification();
+
         /// <summary>
         /// Selects constructors for the supplied type.
         /// </summary>
@@ -33,7 +36,7 @@ namespace Ploeh.AutoFixture.AutoFakeItEasy
             }
 
             var fakeType = type.GetFakedType();
-            if (fakeType.IsInterface)
+            if (fakeType.GetTypeInfo().IsInterface || delegateSpecification.IsSatisfiedBy(fakeType))
             {
                 return new[] { new ConstructorMethod(type.GetDefaultConstructor()) };
             }
@@ -58,19 +61,16 @@ namespace Ploeh.AutoFixture.AutoFakeItEasy
             }
         }
 
+        [SuppressMessage("Microsoft.Performance", "CA1812:AvoidUninstantiatedInternalClasses",
+            Justification = "It's activated via reflection.")]
         private class FakeMethod<T> : IMethod
         {
-            private readonly IEnumerable<ParameterInfo> parameterInfos;
-
             public FakeMethod(IEnumerable<ParameterInfo> parameterInfos)
             {
-                this.parameterInfos = parameterInfos;
+                this.Parameters = parameterInfos;
             }
 
-            public IEnumerable<ParameterInfo> Parameters
-            {
-                get { return this.parameterInfos; }
-            }
+            public IEnumerable<ParameterInfo> Parameters { get; }
 
             public object Invoke(IEnumerable<object> parameters)
             {
@@ -85,7 +85,7 @@ namespace Ploeh.AutoFixture.AutoFakeItEasy
                     }
 
                     var parameterType = constructorParameterInfos[0].ParameterType;
-                    if (!parameterType.IsGenericType ||
+                    if (!parameterType.GetTypeInfo().IsGenericType ||
                         parameterType.GetGenericTypeDefinition() != typeof (Action<>))
                     {
                         continue;

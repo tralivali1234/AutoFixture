@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Contains extension methods for working with
@@ -40,10 +39,8 @@ namespace Ploeh.AutoFixture.Kernel
         /// <seealso cref="GraphEquals(ISpecimenBuilderNode, ISpecimenBuilderNode, IEqualityComparer{ISpecimenBuilder})"/>
         public static bool GraphEquals(this ISpecimenBuilderNode first, ISpecimenBuilderNode second)
         {
-            if (first == null)
-                throw new ArgumentNullException(nameof(first));
-            if (second == null)
-                throw new ArgumentNullException(nameof(second));
+            if (first == null) throw new ArgumentNullException(nameof(first));
+            if (second == null) throw new ArgumentNullException(nameof(second));
 
             return first.GraphEquals(second, EqualityComparer<ISpecimenBuilder>.Default);
         }
@@ -82,12 +79,9 @@ namespace Ploeh.AutoFixture.Kernel
         /// <seealso cref="GraphEquals(ISpecimenBuilderNode, ISpecimenBuilderNode)"/>
         public static bool GraphEquals(this ISpecimenBuilderNode first, ISpecimenBuilderNode second, IEqualityComparer<ISpecimenBuilder> comparer)
         {
-            if (first == null)
-                throw new ArgumentNullException(nameof(first));
-            if (second == null)
-                throw new ArgumentNullException(nameof(second));
-            if (comparer == null)
-                throw new ArgumentNullException(nameof(comparer));
+            if (first == null) throw new ArgumentNullException(nameof(first));
+            if (second == null) throw new ArgumentNullException(nameof(second));
+            if (comparer == null) throw new ArgumentNullException(nameof(comparer));
 
             if (!comparer.Equals(first, second))
                 return false;
@@ -162,24 +156,6 @@ namespace Ploeh.AutoFixture.Kernel
                         let n = b as ISpecimenBuilderNode
                         select n != null ? n.ReplaceNodes(with, when) : b;
             return graph.Compose(nodes);
-        }
-
-        internal static IEnumerable<ISpecimenBuilderNode> Parents(
-            this ISpecimenBuilderNode graph,
-            Func<ISpecimenBuilder, bool> predicate)
-        {
-            foreach (var b in graph)
-            {
-                if (predicate(b))
-                    yield return graph;
-
-                var n = b as ISpecimenBuilderNode;
-                if (n != null)
-                {
-                    foreach (var n1 in n.Parents(predicate))
-                        yield return n1;
-                }
-            }
         }
 
         /// <summary>

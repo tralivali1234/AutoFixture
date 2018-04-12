@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Default implementation of <see cref="ISpecimenContext"/>.
@@ -14,12 +14,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// <param name="builder">The builder that will handle requests.</param>
         public SpecimenContext(ISpecimenBuilder builder)
         {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            this.Builder = builder;
+            this.Builder = builder ?? throw new ArgumentNullException(nameof(builder));
         }
 
         /// <summary>

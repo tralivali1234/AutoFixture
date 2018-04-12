@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
+using AutoFixture.Kernel;
 using Moq;
-using Ploeh.AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture.AutoMoq
+namespace AutoFixture.AutoMoq
 {
     /// <summary>
     /// A command that populates all public writable properties/fields of a mock object with anonymous values.
@@ -23,13 +20,13 @@ namespace Ploeh.AutoFixture.AutoMoq
         /// <param name="context">The context that is used to create anonymous values.</param>
         public void Execute(object specimen, ISpecimenContext context)
         {
-            if (context == null) throw new ArgumentNullException("context");
+            if (context == null) throw new ArgumentNullException(nameof(context));
 
             var mock = specimen as Mock;
             if (mock == null)
                 return;
 
-            autoPropertiesCommand.Execute(mock.Object, context);
+            this.autoPropertiesCommand.Execute(mock.Object, context);
         }
 
         /// <summary>
@@ -41,16 +38,23 @@ namespace Ploeh.AutoFixture.AutoMoq
         {
             public bool IsSatisfiedBy(object request)
             {
-                var fi = request as FieldInfo;
-                if (fi != null)
-                    return !IsProxyMember(fi);
+                switch (request)
+                {
+                    case FieldInfo fi:
+                        return !IsProxyMember(fi);
 
-                return request is PropertyInfo;
+                    case PropertyInfo _:
+                        return true;
+
+                    default:
+                        return false;
+                }
             }
 
             private static bool IsProxyMember(FieldInfo fi)
             {
-                return fi.Name == "__interceptors" || fi.Name == "__target";
+                return string.Equals(fi.Name, "__interceptors", StringComparison.Ordinal) ||
+                       string.Equals(fi.Name, "__target", StringComparison.Ordinal);
             }
         }
     }

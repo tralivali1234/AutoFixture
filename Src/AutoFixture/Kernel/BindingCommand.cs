@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Encapsulates a command that binds a property or a field to a value.
@@ -14,7 +14,7 @@ namespace Ploeh.AutoFixture.Kernel
     /// </typeparam>
     /// <typeparam name="TProperty">The type of property or field.</typeparam>
 #pragma warning disable 618
-    public class BindingCommand<T, TProperty> : ISpecifiedSpecimenCommand<T>, ISpecimenCommand
+    public class BindingCommand<T, TProperty> : ISpecimenCommand, ObsoletedMemberShims.ISpecifiedSpecimenCommand<T>
 #pragma warning restore 618
     {
         /// <summary>
@@ -30,10 +30,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// </remarks>
         public BindingCommand(Expression<Func<T, TProperty>> propertyPicker)
         {
-            if (propertyPicker == null)
-            {
-                throw new ArgumentNullException(nameof(propertyPicker));
-            }
+            if (propertyPicker == null) throw new ArgumentNullException(nameof(propertyPicker));
 
             this.Member = propertyPicker.GetWritableMember().Member;
             this.ValueCreator = this.CreateAnonymousValue;
@@ -51,10 +48,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// </param>
         public BindingCommand(Expression<Func<T, TProperty>> propertyPicker, TProperty propertyValue)
         {
-            if (propertyPicker == null)
-            {
-                throw new ArgumentNullException(nameof(propertyPicker));
-            }
+            if (propertyPicker == null) throw new ArgumentNullException(nameof(propertyPicker));
 
             this.Member = propertyPicker.GetWritableMember().Member;
             this.ValueCreator = c => propertyValue;
@@ -72,14 +66,8 @@ namespace Ploeh.AutoFixture.Kernel
         /// </param>
         public BindingCommand(Expression<Func<T, TProperty>> propertyPicker, Func<ISpecimenContext, TProperty> valueCreator)
         {
-            if (propertyPicker == null)
-            {
-                throw new ArgumentNullException(nameof(propertyPicker));
-            }
-            if (valueCreator == null)
-            {
-                throw new ArgumentNullException(nameof(valueCreator));
-            }
+            if (propertyPicker == null) throw new ArgumentNullException(nameof(propertyPicker));
+            if (valueCreator == null) throw new ArgumentNullException(nameof(valueCreator));
 
             this.Member = propertyPicker.GetWritableMember().Member;
             this.ValueCreator = valueCreator;
@@ -114,16 +102,11 @@ namespace Ploeh.AutoFixture.Kernel
         /// constructor, <paramref name="context"/> will be used to create the value.
         /// </para>
         /// </remarks>
+        [Obsolete("This method is no longer used and will be removed in future versions. Please use the Execute(object, ISpecimenContext) overload instead.")]
         public void Execute(T specimen, ISpecimenContext context)
         {
-            if (specimen == null)
-            {
-                throw new ArgumentNullException(nameof(specimen));
-            }
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
+            if (specimen == null) throw new ArgumentNullException(nameof(specimen));
+            if (context == null) throw new ArgumentNullException(nameof(context));
 
             var bindingValue = this.ValueCreator(context);
 
@@ -149,12 +132,10 @@ namespace Ploeh.AutoFixture.Kernel
         /// or <see cref="FieldInfo"/> that identifies the property or field affected by this
         /// <see cref="BindingCommand{T, TProperty}"/>; otherwise, <see langword="false"/>.
         /// </returns>
+        [Obsolete("This method is no longer used and will be removed in future versions. Please use this.Member property for specification instead.")]
         public bool IsSatisfiedBy(object request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            if (request == null) throw new ArgumentNullException(nameof(request));
 
             IEqualityComparer comparer = new MemberInfoEqualityComparer();
             return comparer.Equals(this.Member, request);
@@ -192,10 +173,8 @@ namespace Ploeh.AutoFixture.Kernel
         /// </remarks>
         public void Execute(object specimen, ISpecimenContext context)
         {
-            if (specimen == null)
-                throw new ArgumentNullException(nameof(specimen));
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
+            if (specimen == null) throw new ArgumentNullException(nameof(specimen));
+            if (context == null) throw new ArgumentNullException(nameof(context));
 
             var bindingValue = this.ValueCreator(context);
 

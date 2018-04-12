@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.AutoFixtureUnitTest.Kernel;
+using AutoFixture;
+using AutoFixtureUnitTest.Kernel;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest
+namespace AutoFixtureUnitTest
 {
     public class SpecimenCommandTests
     {
@@ -26,18 +22,17 @@ namespace Ploeh.AutoFixtureUnitTest
         public void SingleParameterDoWillInvokeMethodWithCorrectParameter(
             int expected)
         {
-            // Fixture setup
+            // Arrange
             var builder = new DelegatingSpecimenBuilder();
             builder.OnCreate = (r, c) => expected;
 
             var verified = false;
             var mock = new CommandMock<int>();
             mock.OnCommand = x => verified = expected == x;
-            // Exercise system
+            // Act
             builder.Do((int i) => mock.Command(i));
-            // Verify outcome
+            // Assert
             Assert.True(verified, "Mock wasn't verified.");
-            // Teardown
         }
 
         [Fact]
@@ -63,7 +58,7 @@ namespace Ploeh.AutoFixtureUnitTest
             int expectedNumber,
             string expectedText)
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             fixture.Inject(expectedNumber);
             fixture.Inject(expectedText);
@@ -73,11 +68,10 @@ namespace Ploeh.AutoFixtureUnitTest
             mock.OnCommand = (x, y) => verified =
                 expectedNumber == x &&
                 expectedText == y;
-            // Exercise system
+            // Act
             fixture.Do((int x, string y) => mock.Command(x, y));
-            // Verify outcome
+            // Assert
             Assert.True(verified, "Mock wasn't verified.");
-            // Teardown
         }
 
         [Fact]
@@ -106,7 +100,7 @@ namespace Ploeh.AutoFixtureUnitTest
             int expectedNumber,
             bool expectedBool)
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             fixture.Inject(expectedText);
             fixture.Inject(expectedNumber);
@@ -118,11 +112,10 @@ namespace Ploeh.AutoFixtureUnitTest
                 expectedText == x &&
                 expectedNumber == y &&
                 expectedBool == z;
-            // Exercise system
+            // Act
             fixture.Do((string x, int y, bool z) => mock.Command(x, y, z));
-            // Verify outcome
+            // Assert
             Assert.True(verified, "Mock wasn't verified.");
-            // Teardown
         }
 
         [Fact]
@@ -152,7 +145,7 @@ namespace Ploeh.AutoFixtureUnitTest
             Type expectedType,
             bool expectedBool)
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             fixture.Inject(expectedNumber);
             fixture.Inject(expectedText);
@@ -166,12 +159,11 @@ namespace Ploeh.AutoFixtureUnitTest
                 expectedText == y &&
                 expectedType == z &&
                 expectedBool == æ;
-            // Exercise system
+            // Act
             fixture.Do(
                 (int x, string y, Type z, bool æ) => mock.Command(x, y, z, æ));
-            // Verify outcome
+            // Assert
             Assert.True(verified, "Mock wasn't verified.");
-            // Teardown
         }
 
         [Fact]

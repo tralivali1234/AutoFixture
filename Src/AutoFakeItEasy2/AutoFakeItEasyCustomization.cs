@@ -1,12 +1,12 @@
 ﻿using System;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture.AutoFakeItEasy2
+namespace AutoFixture.AutoFakeItEasy2
 {
     /// <summary>
     /// Enables auto-mocking with FakeItEasy.
     /// </summary>
-    [Obsolete("The AutoFakeItEasy2 package has been retired; use the AutoFakeItEasy (without the trailing \"2\") package instead. Details: it's turned out that it's possible to enable AutoFakeItEasy to also work with FakeItEasy 2. From version 3.49.1, you should be able to use AutoFakeItEasy with FakeItEasy 2 by adding an assembly binding redirect. This enables us, the maintainers of AutoFixture, to maintain only one code base for FakeItEasy, instead of two. If this causes problems, please create an issue at https://github.com/AutoFixture/AutoFixture/issues. We apologise for any inconvenience this may cause.")]
+    [Obsolete("The AutoFakeItEasy2 package has been retired; use the AutoFakeItEasy (without the trailing \"2\") package instead. Details: it's turned out that it's possible to enable AutoFakeItEasy to also work with FakeItEasy 2. From version 3.49.1, you should be able to use AutoFakeItEasy with FakeItEasy 2 by adding an assembly binding redirect. This enables us, the maintainers of AutoFixture, to maintain only one code base for FakeItEasy, instead of two. If this causes problems, please create an issue at https://github.com/AutoFixture/AutoFixture/issues. We apologise for any inconvenience this may cause.", true)]
     public class AutoFakeItEasyCustomization : ICustomization
     {
         private readonly ISpecimenBuilder relay;
@@ -26,12 +26,7 @@ namespace Ploeh.AutoFixture.AutoFakeItEasy2
         /// <param name="relay">The relay.</param>
         public AutoFakeItEasyCustomization(ISpecimenBuilder relay)
         {
-            if (relay == null)
-            {
-                throw new ArgumentNullException("relay");
-            }
-
-            this.relay = relay;
+            this.relay = relay ?? throw new ArgumentNullException(nameof(relay));
         }
 
         /// <summary>
@@ -50,10 +45,7 @@ namespace Ploeh.AutoFixture.AutoFakeItEasy2
         /// <param name="fixture">The fixture upon which to enable auto-mocking.</param>
         public void Customize(IFixture fixture)
         {
-            if (fixture == null)
-            {
-                throw new ArgumentNullException("fixture");
-            }
+            if (fixture == null) throw new ArgumentNullException(nameof(fixture));
 
             fixture.Customizations.Add(
                 new FakeItEasyBuilder(

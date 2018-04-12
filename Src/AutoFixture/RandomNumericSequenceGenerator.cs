@@ -1,9 +1,9 @@
-﻿using Ploeh.AutoFixture.Kernel;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// Creates a sequence of random, unique, numbers starting at 1.
@@ -44,15 +44,9 @@ namespace Ploeh.AutoFixture
         /// <exception cref="System.ArgumentException"></exception>
         public RandomNumericSequenceGenerator(params long[] limits)
         {
-            if (limits == null)
-            {
-                throw new ArgumentNullException(nameof(limits));
-            }
-
-            if (limits.Length < 2)
-            {
+            if (limits == null) throw new ArgumentNullException(nameof(limits));
+            if (limits.Length < 2) 
                 throw new ArgumentException("Limits must be at least two ascending numbers.", nameof(limits));
-            }
 
             ValidateThatLimitsAreStrictlyAscending(limits);
 
@@ -88,9 +82,7 @@ namespace Ploeh.AutoFixture
             var type = request as Type;
             if (type == null)
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
             }
 
             return this.CreateRandom(type);
@@ -153,9 +145,7 @@ namespace Ploeh.AutoFixture
                         this.GetNextRandom();
 
                 default:
-#pragma warning disable 618
-                    return new NoSpecimen(request);
-#pragma warning restore 618
+                    return new NoSpecimen();
             }
         }
 
@@ -206,7 +196,7 @@ namespace Ploeh.AutoFixture
             }
             else
             {
-                this.lower = limits[0];
+                this.lower = this.limits[0];
                 this.upper = this.GetUpperRangeFromLimits();
             }
 
@@ -222,9 +212,9 @@ namespace Ploeh.AutoFixture
         /// <returns></returns>
         private long GetUpperRangeFromLimits()
         {
-            return limits[1] >= Int32.MaxValue
-                    ? limits[1]
-                    : limits[1] + 1;
+            return this.limits[1] >= Int32.MaxValue
+                    ? this.limits[1]
+                    : this.limits[1] + 1;
         }
 
         private long GetNextInt64InRange()

@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using AutoFixture.AutoMoq.UnitTest.TestTypes;
+using AutoFixture.Kernel;
 using Moq;
-using Ploeh.AutoFixture.AutoMoq.UnitTest.TestTypes;
-using Ploeh.AutoFixture.Kernel;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixture.AutoMoq.UnitTest
+namespace AutoFixture.AutoMoq.UnitTest
 {
     public class StubPropertiesCommandTest
     {
@@ -17,35 +12,35 @@ namespace Ploeh.AutoFixture.AutoMoq.UnitTest
         [ClassData(typeof (ValidNonMockSpecimens))]
         public void ExecuteDoesNotThrowsWhenSpecimenIsValidNonMockSpecimen(object validNonMockSpecimen)
         {
-            // Fixture setup
+            // Arrange
             var context = new Mock<ISpecimenContext>().Object;
             var sut = new StubPropertiesCommand();
-            // Exercise system and verify outcome
-            Assert.DoesNotThrow(() => sut.Execute(validNonMockSpecimen, context));
+            // Act & Assert
+            Assert.Null(Record.Exception(() => sut.Execute(validNonMockSpecimen, context)));
         }
 
         [Fact]
         public void IgnoresNonMockSpecimens()
         {
-            // Fixture setup
+            // Arrange
             var request = new object();
             var context = new Mock<ISpecimenContext>().Object;
             var sut = new StubPropertiesCommand();
-            // Exercise system and verify outcome
-            Assert.DoesNotThrow(() => sut.Execute(request, context));
+            // Act & Assert
+            Assert.Null(Record.Exception(() => sut.Execute(request, context)));
         }
 
         [Fact]
         public void StubsProperties()
         {
-            // Fixture setup
+            // Arrange
             const string expectedPropertyValue = "a string";
             var request = new Mock<IInterfaceWithProperty>();
             var context = new Mock<ISpecimenContext>().Object;
             var sut = new StubPropertiesCommand();
-            // Exercise system
+            // Act
             sut.Execute(request, context);
-            // Verify outcome
+            // Assert
             request.Object.Property = expectedPropertyValue;
             Assert.Equal(expectedPropertyValue, request.Object.Property);
         }
@@ -53,17 +48,17 @@ namespace Ploeh.AutoFixture.AutoMoq.UnitTest
         [Fact]
         public void DoesNotHangIfMockedTypeHasPropertiesWithCircularDependencies()
         {
-            // Fixture setup
+            // Arrange
             var request = new Mock<IInterfaceWithPropertyWithCircularDependency>()
             {
                 DefaultValue = DefaultValue.Mock
             };
             var context = new Mock<ISpecimenContext>().Object;
             var sut = new StubPropertiesCommand();
-            // Exercise system
-            var task = Task.Factory.StartNew(() => sut.Execute(request, context));
-            bool ranToCompletion = task.Wait(1000) && task.Status == TaskStatus.RanToCompletion;
-            // Verify outcome
+            // Act
+            var task = Task.Run(() => sut.Execute(request, context));
+            bool ranToCompletion = task.Wait(5000) && task.Status == TaskStatus.RanToCompletion;
+            // Assert
             Assert.True(ranToCompletion);
         }
 
@@ -72,16 +67,16 @@ namespace Ploeh.AutoFixture.AutoMoq.UnitTest
         [InlineData(DefaultValue.Mock)]
         public void DoesNotAffectMockDefaultValueSetting(DefaultValue defaultValue)
         {
-            // Fixture setup
+            // Arrange
             var request = new Mock<IInterfaceWithProperty>()
             {
                 DefaultValue = defaultValue
             };
             var context = new Mock<ISpecimenContext>().Object;
             var sut = new StubPropertiesCommand();
-            // Exercise system
+            // Act
             sut.Execute(request, context);
-            // Verify outcome
+            // Assert
             Assert.Equal(defaultValue, request.DefaultValue);
         }
     }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// A specification that determines whether the request is a request
@@ -68,31 +68,22 @@ namespace Ploeh.AutoFixture.Kernel
         /// </exception>
         public PropertySpecification(IEquatable<PropertyInfo> target)
         {
-            if (target == null)
-                throw new ArgumentNullException(nameof(target));
-
-            this.target = target;
+            this.target = target ?? throw new ArgumentNullException(nameof(target));
         }
 
         /// <summary>
         /// The <see cref="Type"/> with which the requested
         /// <see cref="PropertyInfo"/> type should be compatible.
         /// </summary>
-        [Obsolete("This value is only available if the constructor taking a target type and name is used. Otherwise, it'll be null. Use with caution. This property will be removed in a future version of AutoFixture.", false)]
-        public Type TargetType
-        {
-            get { return this.targetType; }
-        }
+        [Obsolete("This value is only available if the constructor taking a target type and name is used. Otherwise, it'll be null. Use with caution. This property will be removed in a future version of AutoFixture.", true)]
+        public Type TargetType => this.targetType;
 
         /// <summary>
         /// The name which the requested <see cref="PropertyInfo"/> name
         /// should match exactly.
         /// </summary>
-        [Obsolete("This value is only available if the constructor taking a target type and name is used. Otherwise, it'll be null. Use with caution. This property will be removed in a future version of AutoFixture.", false)]
-        public string TargetName
-        {
-            get { return this.targetName; }
-        }
+        [Obsolete("This value is only available if the constructor taking a target type and name is used. Otherwise, it'll be null. Use with caution. This property will be removed in a future version of AutoFixture.", true)]
+        public string TargetName => this.targetName;
 
         /// <summary>
         /// Evaluates a request for a specimen.
@@ -122,7 +113,7 @@ namespace Ploeh.AutoFixture.Kernel
                     return true;
                 if (y == null)
                     return false;
-                return y.IsAssignableFrom(x);
+                return y.GetTypeInfo().IsAssignableFrom(x);
             }
 
             public int GetHashCode(Type obj)

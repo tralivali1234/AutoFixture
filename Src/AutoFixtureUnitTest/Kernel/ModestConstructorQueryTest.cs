@@ -1,47 +1,44 @@
 ﻿using System;
 using System.Linq;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.TestTypeFoundation;
+using System.Reflection;
+using AutoFixture.Kernel;
+using TestTypeFoundation;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class ModestConstructorQueryTest
     {
         [Fact]
         public void SutIsMethodQuery()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new ModestConstructorQuery();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<IMethodQuery>(sut);
-            // Teardown
         }
 
         [Fact]
         public void SelectMethodsFromNullTypeThrows()
         {
-            // Fixture setup
+            // Arrange
             var sut = new ModestConstructorQuery();
-            // Exercise system and verify outcome
+            // Act & assert
             Assert.Throws<ArgumentNullException>(() =>
                 sut.SelectMethods(null));
-            // Teardown
         }
 
         [Fact]
         public void SelectMethodsFromTypeWithNoPublicConstructorReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = new ModestConstructorQuery();
             var typeWithNoPublicConstructors = typeof(AbstractType);
-            // Exercise system
+            // Act
             var result = sut.SelectMethods(typeWithNoPublicConstructors);
-            // Verify outcome
+            // Assert
             Assert.False(result.Any());
-            // Teardown
         }
 
         [Theory]
@@ -50,18 +47,43 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [InlineData(typeof(MultiUnorderedConstructorType))]
         public void SelectMethodsFromTypeReturnsCorrectResult(Type type)
         {
-            // Fixture setup
+            // Arrange
             var expectedConstructors = from ci in type.GetConstructors()
                                        let parameters = ci.GetParameters()
                                        orderby parameters.Length ascending
                                        select new ConstructorMethod(ci) as IMethod;
 
             var sut = new ModestConstructorQuery();
-            // Exercise system
+            // Act
             var result = sut.SelectMethods(type);
-            // Verify outcome
+            // Assert
             Assert.True(expectedConstructors.SequenceEqual(result));
-            // Teardown
+        }
+
+        [Fact]
+        public void DoesNotReturnConstructorsWithParametersOfEnclosingType()
+        {
+            // Arrange
+            var sut = new ModestConstructorQuery();
+            // Act
+            var result = sut.SelectMethods(typeof(TypeWithCopyConstructorsOnly));
+            // Assert
+            Assert.Empty(result);
+        }
+
+        public class TypeWithCopyConstructorsOnly
+        {
+            public TypeWithCopyConstructorsOnly(TypeWithCopyConstructorsOnly other)
+            {
+            }
+
+            public TypeWithCopyConstructorsOnly(TypeWithCopyConstructorsOnly other, int num)
+            {
+            }
+
+            public TypeWithCopyConstructorsOnly(TypeWithCopyConstructorsOnly other, string str)
+            {
+            }
         }
     }
 }

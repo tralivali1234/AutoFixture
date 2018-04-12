@@ -1,70 +1,48 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Decorates an <see cref="ISpecimenBuilder"/> with a node which tracks specimen requests, and
-    /// when <see cref="NoSpecimen"/> is detected, throws an <see cref="ObjectCreationException"/>, which
-    /// includes a description of the request path.
+    /// when <see cref="NoSpecimen"/> is detected or creation fails with exception, throws an 
+    /// <see cref="ObjectCreationException"/>, which  includes a description of the request path.
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1710:IdentifiersShouldHaveCorrectSuffix",
+    [SuppressMessage("Microsoft.Naming", "CA1710:IdentifiersShouldHaveCorrectSuffix",
         Justification = "The main responsibility of this class isn't to be a 'collection' (which, by the way, it isn't - it's just an Iterator).")]
+    [SuppressMessage("Microsoft.Design", "CA1001:TypesThatOwnDisposableFieldsShouldBeDisposable",
+        Justification = "Fixture doesn't support disposal, so we cannot dispose current builder somehow.")]
     public class TerminatingWithPathSpecimenBuilder : ISpecimenBuilderNode
     {
-        private readonly ConcurrentDictionary<Thread, Stack<object>>
-            _requestPathsByThread = new ConcurrentDictionary<Thread, Stack<object>>();
+        private readonly ThreadLocal<Stack<object>> requestsByThread
+            = new ThreadLocal<Stack<object>>(() => new Stack<object>());
 
-        private Stack<object> GetPathForCurrentThread()
+        private Stack<object> GetPathForCurrentThread() => this.requestsByThread.Value;
+
+        /// <summary>
+        /// Creates a new <see cref="TerminatingWithPathSpecimenBuilder"/> instance.
+        /// </summary>
+        /// <param name="builder">The specimen builder which creation requests are redirected to.</param>
+        public TerminatingWithPathSpecimenBuilder(ISpecimenBuilder builder)
         {
-            return _requestPathsByThread.GetOrAdd(Thread.CurrentThread, _ => new Stack<object>());
+            this.Builder = builder ?? throw new ArgumentNullException(nameof(builder));
         }
 
         /// <summary>
-        /// Creates a new <see cref="TerminatingWithPathSpecimenBuilder"/> using the
-        /// supplied <see cref="TracingBuilder"/> to track specimen requests.
+        /// Gets the <see cref="ISpecimenBuilder"/> decorated by this instance.
         /// </summary>
-        /// <param name="tracer"></param>
-        public TerminatingWithPathSpecimenBuilder(TracingBuilder tracer)
-        {
-            if (tracer == null)
-                throw new ArgumentNullException(nameof(tracer));
-
-            this.Tracer = tracer;
-            this.Tracer.SpecimenRequested += OnSpecimenRequested;
-            this.Tracer.SpecimenCreated += OnSpecimenCreated;
-        }
-
-        private void OnSpecimenCreated(object sender, SpecimenCreatedEventArgs e)
-        {
-            // Keep the final NoSpecimen in the list, even though we're about to throw
-            if (!(e.Specimen is NoSpecimen))
-                GetPathForCurrentThread().Pop();
-        }
-
-        private void OnSpecimenRequested(object sender, RequestTraceEventArgs e)
-        {
-            GetPathForCurrentThread().Push(e.Request);
-        }
-
-        /// <summary>
-        /// Gets the <see cref="TracingBuilder"/> decorated by this instance.
-        /// </summary>
-        public TracingBuilder Tracer { get; }
+        public ISpecimenBuilder Builder { get; }
 
         /// <summary>
         /// Gets the observed specimen requests, in the order they were requested.
         /// </summary>
-        public IEnumerable<object> SpecimenRequests
-        {
-            get { return this.GetPathForCurrentThread().Reverse(); }
-        }
+        public IEnumerable<object> SpecimenRequests => this.GetPathForCurrentThread().Reverse();
 
         /// <summary>
         /// Creates a new specimen based on a request by delegating to its decorated builder.
@@ -72,36 +50,61 @@ namespace Ploeh.AutoFixture.Kernel
         /// <param name="request">The request that describes what to create.</param>
         /// <param name="context">A context that can be used to create other specimens.</param>
         /// <returns>
-        /// The requested specimen if possible; otherwise a <see cref="NoSpecimen"/> instance.
+        /// The requested specimen if possible; otherwise a creation exception is thrown.
         /// </returns>
         [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "AutoFixture", Justification = "Workaround for a bug in CA: https://connect.microsoft.com/VisualStudio/feedback/details/521030/")]
         public object Create(object request, ISpecimenContext context)
         {
-            var result = this.Tracer.Create(request, context);
-            if (result is NoSpecimen)
+            this.GetPathForCurrentThread().Push(request);
+            try
             {
-                try
+                var result = this.Builder.Create(request, context);
+                if (result is NoSpecimen)
                 {
-                    throw new ObjectCreationException(string.Format(
-                        CultureInfo.CurrentCulture,
-                        BuildCoreMessageTemplate(request),
-                        request,
-                        Environment.NewLine,
-                        BuildRequestPathText(this.SpecimenRequests)));
+                    throw new ObjectCreationExceptionWithPath(
+                        string.Format(
+                            CultureInfo.CurrentCulture,
+                            BuildCoreMessageTemplate(request, null),
+                            request,
+                            Environment.NewLine),
+                        this.SpecimenRequests);
                 }
-                finally
-                {
-                    this.GetPathForCurrentThread().Clear();
-                }
+
+                return result;
             }
-            return result;
+            catch (ObjectCreationExceptionWithPath)
+            {
+                // Do not modify exception thrown before as it already contains the full requests path. 
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new ObjectCreationExceptionWithPath(
+                    string.Format(
+                        CultureInfo.CurrentCulture,
+                        BuildCoreMessageTemplate(request, ex),
+                        request,
+                        Environment.NewLine),
+                    this.SpecimenRequests,
+                    ex);
+            }
+            finally
+            {
+                this.GetPathForCurrentThread().Pop();
+            }
         }
 
-        private static string BuildCoreMessageTemplate(object request)
+        private static string BuildCoreMessageTemplate(object request, Exception innerException)
         {
+            if (innerException != null)
+                return
+                    "AutoFixture was unable to create an instance from {0} " +
+                    "because creation unexpectedly failed with exception. " +
+                    "Please refer to the inner exception to investigate the root cause of the failure.";
+
             var t = request as Type;
 
-            if (t != null && t.IsInterface)
+            if (t != null && t.GetTypeInfo().IsInterface)
                 return
                     "AutoFixture was unable to create an instance from {0} " +
                     "because it's an interface. There's no single, most " +
@@ -111,12 +114,9 @@ namespace Ploeh.AutoFixture.Kernel
                     "{1}" +
                     "If you have a concrete class implementing the " +
                     "interface, you can map the interface to that class:" +
-                    typeMappingOptionsHelp +
-                    "{1}" +
-                    "{1}" +
-                    "Request path:{1}{2}{1}";
+                    TypeMappingOptionsHelp;
 
-            if (t != null && t.IsAbstract)
+            if (t != null && t.GetTypeInfo().IsAbstract)
                 return
                     "AutoFixture was unable to create an instance from {0} " +
                     "because it's an abstract class. There's no single, " +
@@ -127,18 +127,15 @@ namespace Ploeh.AutoFixture.Kernel
                     "If you have a concrete class deriving from the abstract " +
                     "class, you can map the abstract class to that derived " + 
                     "class:" +
-                    typeMappingOptionsHelp +
-                    "{1}" +
-                    "{1}" +
-                    "Request path:{1}{2}{1}";
+                    TypeMappingOptionsHelp;
 
             return
                 "AutoFixture was unable to create an instance from {0}, " +
                 "most likely because it has no public constructor, is an " +
-                "abstract or non-public type.{1}{1}Request path:{1}{2}";
+                "abstract or non-public type.";
         }
 
-        private const string typeMappingOptionsHelp =
+        private const string TypeMappingOptionsHelp =
             "{1}" +
             "{1}" +
             "fixture.Customizations.Add({1}" +
@@ -159,15 +156,6 @@ namespace Ploeh.AutoFixture.Kernel
             "See http://blog.ploeh.dk/2010/08/19/AutoFixtureasanauto-mockingcontainer " +
             "for more details.";
 
-        private static string BuildRequestPathText(IEnumerable<object> recordedRequests)
-        {
-            var thisAssembly = MethodBase.GetCurrentMethod().DeclaringType.Assembly;
-            return recordedRequests
-                .Where(r => r.GetType().Assembly != thisAssembly)
-                .Select((r, i) => string.Format(CultureInfo.CurrentCulture, "\t{0} {1}", " ".PadLeft(i+1), r))
-                .Aggregate((s1, s2) => s1 + " --> " + Environment.NewLine + s2);
-        }
-
         /// <summary>Composes the supplied builders.</summary>
         /// <param name="builders">The builders to compose.</param>
         /// <returns>
@@ -176,8 +164,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// </returns>
         public virtual ISpecimenBuilderNode Compose(IEnumerable<ISpecimenBuilder> builders)
         {
-            var builder = CompositeSpecimenBuilder.ComposeIfMultiple(builders);
-            return new TerminatingWithPathSpecimenBuilder(new TracingBuilder(builder));
+            return new TerminatingWithPathSpecimenBuilder(CompositeSpecimenBuilder.ComposeIfMultiple(builders));
         }
 
         /// <summary>
@@ -189,12 +176,9 @@ namespace Ploeh.AutoFixture.Kernel
         /// </returns>
         public IEnumerator<ISpecimenBuilder> GetEnumerator()
         {
-            yield return this.Tracer.Builder;
+            yield return this.Builder;
         }
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return this.GetEnumerator();
-        }
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => this.GetEnumerator();
     }
 }

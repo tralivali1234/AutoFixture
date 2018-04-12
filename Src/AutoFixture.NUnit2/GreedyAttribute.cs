@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Reflection;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture.NUnit2
+namespace AutoFixture.NUnit2
 {
     /// <summary>
     /// An attribute that can be applied to parameters in an <see cref="AutoDataAttribute"/>-driven
@@ -23,10 +23,7 @@ namespace Ploeh.AutoFixture.NUnit2
         /// </returns>
         public override ICustomization GetCustomization(ParameterInfo parameter)
         {
-            if (parameter == null)
-            {
-                throw new ArgumentNullException("parameter");
-            }
+            if (parameter == null) throw new ArgumentNullException(nameof(parameter));
 
             return new ConstructorCustomization(parameter.ParameterType, new GreedyConstructorQuery());
         }

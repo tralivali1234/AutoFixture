@@ -1,13 +1,13 @@
 using System;
+using System.Reflection;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// A specification that evaluates whether a request is a request for a value type such as a structure.
     /// </summary>
     public class ValueTypeSpecification : IRequestSpecification
     {
-
         /// <summary>
         /// Evaluates a request for a specimen.
         /// </summary>
@@ -18,13 +18,19 @@ namespace Ploeh.AutoFixture.Kernel
         /// </returns>
         public bool IsSatisfiedBy(object request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            if (request == null) throw new ArgumentNullException(nameof(request));
 
-            var type = request as Type;
-            return type != null && type.IsValueTypeButNotPrimitiveOrEnum();
+            return request is Type typeRequest && IsValueTypeButNotPrimitiveOrEnum(typeRequest);
+        }
+        
+        /// <summary>
+        /// Checks if type is a struct. This will exclude primitive types (int, char etc.) considered as IsPrimitive as 
+        /// well as enums but not .NET structs. 
+        /// </summary>
+        private static bool IsValueTypeButNotPrimitiveOrEnum(Type type)
+        {
+            var ti = type.GetTypeInfo();
+            return ti.IsValueType && !ti.IsEnum && !ti.IsPrimitive;
         }
     }
 }

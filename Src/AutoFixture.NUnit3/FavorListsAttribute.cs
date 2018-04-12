@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture.NUnit3
+namespace AutoFixture.NUnit3
 {
     /// <summary>
     /// An attribute that can be applied to parameters in an <see cref="AutoDataAttribute"/>-driven
@@ -24,8 +24,7 @@ namespace Ploeh.AutoFixture.NUnit3
         /// </returns>
         public override ICustomization GetCustomization(ParameterInfo parameter)
         {
-            if (parameter == null)
-                throw new ArgumentNullException("parameter");
+            if (parameter == null) throw new ArgumentNullException(nameof(parameter));
 
             return new ConstructorCustomization(parameter.ParameterType, new ListFavoringConstructorQuery());
         }

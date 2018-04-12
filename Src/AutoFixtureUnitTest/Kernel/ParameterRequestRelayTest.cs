@@ -1,107 +1,96 @@
 ﻿using System;
 using System.Linq;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.TestTypeFoundation;
+using System.Reflection;
+using AutoFixture.Kernel;
+using TestTypeFoundation;
 using Xunit;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class ParameterRequestRelayTest
     {
         [Fact]
         public void SutIsSpecimenBuilder()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new ParameterRequestRelay();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<ISpecimenBuilder>(sut);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithNullRequestWillReturnCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = new ParameterRequestRelay();
-            // Exercise system
+            // Act
             var dummyContainer = new DelegatingSpecimenContext();
             var result = sut.Create(null, dummyContainer);
-            // Verify outcome
+            // Assert
             var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithNullContainerWillThrow()
         {
-            // Fixture setup
+            // Arrange
             var sut = new ParameterRequestRelay();
             var dummyRequest = new object();
-            // Exercise system and verify outcome
+            // Act & assert
             Assert.Throws<ArgumentNullException>(() =>
                 sut.Create(dummyRequest, null));
-            // Teardown
         }
 
         [Fact]
         public void CreateFromNonParameterRequestWillReturnCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var nonParameterRequest = new object();
             var sut = new ParameterRequestRelay();
-            // Exercise system
+            // Act
             var dummyContainer = new DelegatingSpecimenContext();
             var result = sut.Create(nonParameterRequest, dummyContainer);
-            // Verify outcome
-#pragma warning disable 618
-            var expectedResult = new NoSpecimen(nonParameterRequest);
-#pragma warning restore 618
+            // Assert
+            var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Fact]
         public void CreateFromParameterRequestWillReturnNullWhenContainerCannotSatisfyRequest()
         {
-            // Fixture setup
-            var parameterInfo = typeof(SingleParameterType<string>).GetConstructors().First().GetParameters().First();
-#pragma warning disable 618
-            var container = new DelegatingSpecimenContext { OnResolve = r => new NoSpecimen(parameterInfo) };
-#pragma warning restore 618
+            // Arrange
+            var parameterInfo = typeof(SingleParameterType<string>).GetTypeInfo().GetConstructors().First().GetParameters().First();
+            var container = new DelegatingSpecimenContext { OnResolve = r => new NoSpecimen() };
             var sut = new ParameterRequestRelay();
-            // Exercise system
+            // Act
             var result = sut.Create(parameterInfo, container);
-            // Verify outcome
-#pragma warning disable 618
-            var expectedResult = new NoSpecimen(parameterInfo);
-#pragma warning restore 618
+            // Assert
+            var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Fact]
         public void CreateFromParameterRequestWillReturnCorrectResultWhenContainerCanSatisfyRequest()
         {
-            // Fixture setup
+            // Arrange
             var expectedSpecimen = new object();
-            var parameterInfo = typeof(SingleParameterType<string>).GetConstructors().First().GetParameters().First();
+            var parameterInfo = typeof(SingleParameterType<string>).GetTypeInfo().GetConstructors().First().GetParameters().First();
             var container = new DelegatingSpecimenContext { OnResolve = r => expectedSpecimen };
             var sut = new ParameterRequestRelay();
-            // Exercise system
+            // Act
             var result = sut.Create(parameterInfo, container);
-            // Verify outcome
+            // Assert
             Assert.Equal(expectedSpecimen, result);
-            // Teardown
         }
 
         [Fact]
         public void CreateFromParameterRequestWillCorrectlyInvokeContainer()
         {
-            // Fixture setup
+            // Arrange
             var sut = new ParameterRequestRelay();
-            var parameterInfo = typeof(SingleParameterType<string>).GetConstructors().First().GetParameters().First();
+            var parameterInfo = typeof(SingleParameterType<string>).GetTypeInfo().GetConstructors().First().GetParameters().First();
             var expectedRequest = new SeededRequest(parameterInfo.ParameterType, parameterInfo.Name);
 
             var mockVerified = false;
@@ -112,11 +101,10 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
                 mockVerified = true;
                 return null;
             };
-            // Exercise system
+            // Act
             sut.Create(parameterInfo, containerMock);
-            // Verify outcome
+            // Assert
             Assert.True(mockVerified, "Mock verification");
-            // Teardown
         }
     }
 }

@@ -1,9 +1,10 @@
 ﻿using System;
-using Ploeh.AutoFixture.Kernel;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// A customization that will freeze a specimen of a given <see cref="Type"/>.
@@ -37,17 +38,10 @@ namespace Ploeh.AutoFixture
         /// </exception>
         public FreezingCustomization(Type targetType, Type registeredType)
         {
-            if (targetType == null)
-            {
-                throw new ArgumentNullException(nameof(targetType));
-            }
+            if (targetType == null) throw new ArgumentNullException(nameof(targetType));
+            if (registeredType == null) throw new ArgumentNullException(nameof(registeredType));
 
-            if (registeredType == null)
-            {
-                throw new ArgumentNullException(nameof(registeredType));
-            }
-
-            if (!registeredType.IsAssignableFrom(targetType))
+            if (!registeredType.GetTypeInfo().IsAssignableFrom(targetType))
             {
                 var message = String.Format(
                     CultureInfo.CurrentCulture,
@@ -81,10 +75,7 @@ namespace Ploeh.AutoFixture
         /// </exception>
         public void Customize(IFixture fixture)
         {
-            if (fixture == null)
-            {
-                throw new ArgumentNullException(nameof(fixture));
-            }
+            if (fixture == null) throw new ArgumentNullException(nameof(fixture));
 
             var specimen = fixture.Create(
                     this.TargetType);

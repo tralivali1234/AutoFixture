@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Creates a new instance of the requested type by invoking the first method it can
@@ -19,12 +19,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// </param>
         public MethodInvoker(IMethodQuery query)
         {
-            if (query == null)
-            {
-                throw new ArgumentNullException(nameof(query));
-            }
-
-            this.Query = query;
+            this.Query = query ?? throw new ArgumentNullException(nameof(query));
         }
 
         /// <summary>
@@ -51,25 +46,20 @@ namespace Ploeh.AutoFixture.Kernel
         /// </remarks>
         public object Create(object request, ISpecimenContext context)
         {
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
+            if (context == null) throw new ArgumentNullException(nameof(context));
 
             foreach (var ci in this.GetConstructors(request))
             {
                 var paramValues = (from pi in ci.Parameters
                                    select context.Resolve(pi)).ToList();
 
-                if (paramValues.All(MethodInvoker.IsValueValid))
+                if (paramValues.All(IsValueValid))
                 {
                     return ci.Invoke(paramValues.ToArray());
                 }
             }
 
-#pragma warning disable 618
-            return new NoSpecimen(request);
-#pragma warning restore 618
+            return new NoSpecimen();
         }
 
         private IEnumerable<IMethod> GetConstructors(object request)

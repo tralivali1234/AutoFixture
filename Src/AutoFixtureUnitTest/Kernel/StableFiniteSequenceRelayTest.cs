@@ -1,52 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class StableFiniteSequenceRelayTest
     {
         [Fact]
         public void SutIsSpecimenBuilder()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new StableFiniteSequenceRelay();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<ISpecimenBuilder>(sut);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithNullContextThrows()
         {
-            // Fixture setup
+            // Arrange
             var sut = new StableFiniteSequenceRelay();
             var dummyRequest = new object();
-            // Exercise system and verify outcome
+            // Act & assert
             Assert.Throws<ArgumentNullException>(() =>
                 sut.Create(dummyRequest, null));
-            // Teardown
         }
 
         [Fact]
         public void CreateWithAnonymousRequestReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = new StableFiniteSequenceRelay();
             var request = new object();
-            // Exercise system
+            // Act
             var dummyContext = new DelegatingSpecimenContext();
             var result = sut.Create(request, dummyContext);
-            // Verify outcome
-#pragma warning disable 618
-            var expectedResult = new NoSpecimen(request);
-#pragma warning restore 618
+            // Assert
+            var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Theory]
@@ -55,23 +49,20 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [InlineData("foo")]
         public void CreateWithInvalidRequestReturnsCorrectResult(object request)
         {
-            // Fixture setup
+            // Arrange
             var sut = new StableFiniteSequenceRelay();
-            // Exercise system
+            // Act
             var dummyContext = new DelegatingSpecimenContext();
             var result = sut.Create(request, dummyContext);
-            // Verify outcome
-#pragma warning disable 618
-            var expectedResult = new NoSpecimen(request);
-#pragma warning restore 618
+            // Assert
+            var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithFiniteSequenceRequestReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var request = new object();
             var count = 3;
             var manyRequest = new FiniteSequenceRequest(request, count);
@@ -80,39 +71,35 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
             var context = new DelegatingSpecimenContext { OnResolve = r => request.Equals(r) ? expectedResult : new NoSpecimen() };
 
             var sut = new StableFiniteSequenceRelay();
-            // Exercise system
+            // Act
             var result = sut.Create(manyRequest, context);
-            // Verify outcome
+            // Assert
             var actual = Assert.IsAssignableFrom<IEnumerable<object>>(result);
             Assert.True(actual.All(expectedResult.Equals));
-            // Teardown
         }
 
         [Fact]
         public void CreateReturnsStableSequence()
         {
-            // Fixture setup
+            // Arrange
             var request = new object();
             var count = 3;
             var manyRequest = new FiniteSequenceRequest(request, count);
 
-#pragma warning disable 618
-            var context = new DelegatingSpecimenContext { OnResolve = r => request.Equals(r) ? new object() : new NoSpecimen(r) };
-#pragma warning restore 618
+            var context = new DelegatingSpecimenContext { OnResolve = r => request.Equals(r) ? new object() : new NoSpecimen() };
 
             var sut = new StableFiniteSequenceRelay();
-            // Exercise system
+            // Act
             var result = sut.Create(manyRequest, context);
-            // Verify outcome
+            // Assert
             var expected = Assert.IsAssignableFrom<IEnumerable<object>>(result);
             Assert.True(expected.SequenceEqual(expected));
-            // Teardown
         }
 
         [Fact]
         public void CreateFiltersOmitSpecimenInstances()
         {
-            // Fixture setup
+            // Arrange
             var request = new object();
             var count = 3;
             var manyRequest = new FiniteSequenceRequest(request, count);
@@ -126,20 +113,17 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
             var q = new Queue<object>(results);
             var context = new DelegatingSpecimenContext
             {
-#pragma warning disable 618
-                OnResolve = r => request.Equals(r) ? q.Dequeue() : new NoSpecimen(r)
-#pragma warning restore 618
+                OnResolve = r => request.Equals(r) ? q.Dequeue() : new NoSpecimen()
             };
 
             var sut = new StableFiniteSequenceRelay();
-            // Exercise system
+            // Act
             var actual = sut.Create(manyRequest, context);
-            // Verify outcome
+            // Assert
             var iter = Assert.IsAssignableFrom<IEnumerable<object>>(actual);
             Assert.True(
                 results.Where(x => !(x is OmitSpecimen)).SequenceEqual(iter),
                 "Actual sequence is not equal to expected sequence.");
-            // Teardown
         }
     }
 }

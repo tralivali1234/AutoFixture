@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Reflection;
+using AutoFixture.Kernel;
 using Moq;
-using Ploeh.AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture.AutoMoq
+namespace AutoFixture.AutoMoq
 {
     /// <summary>
     /// Stubs a mocked object's properties, giving them "property behavior".
@@ -25,7 +22,7 @@ namespace Ploeh.AutoFixture.AutoMoq
             if (mock == null)
                 return;
 
-            //disable generation of default values (if enabled), otherwise SetupAllProperties will hang if there's a circular dependency
+            // Disable generation of default values (if enabled), otherwise SetupAllProperties will hang if there's a circular dependency
             var mockDefaultValueSetting = mock.DefaultValue;
             mock.DefaultValue = DefaultValue.Empty;
 

@@ -1,10 +1,10 @@
 using System;
 using System.Linq;
-using Ploeh.AutoFixture.Kernel;
+using System.Reflection;
+using AutoFixture.Kernel;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class MissingParametersSupplyingMethodTests
     {
@@ -38,8 +38,8 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         public void ParametersIsCorrect()
         {
             Action<int, double> dummy = delegate { };
-            var expectedParameters = dummy.Method.GetParameters();
-            var method = new DelegatingMethod {OnParameters = () => expectedParameters};
+            var expectedParameters = dummy.GetMethodInfo().GetParameters();
+            var method = new DelegatingMethod { OnParameters = () => expectedParameters };
             var sut = new MissingParametersSupplyingMethod(method);
 
             var result = sut.Parameters;
@@ -50,11 +50,11 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [Fact]
         public void InvokeWithCorrectArgumentsReturnsCorrectResult()
         {
-            var arguments = new[] {new object(), new object()};
+            var arguments = new[] { new object(), new object() };
             var expected = new object();
             Action<object, object> dummy = delegate { };
             var method = new DelegatingMethod();
-            method.OnParameters = () => dummy.Method.GetParameters();
+            method.OnParameters = () => dummy.GetMethodInfo().GetParameters();
             method.OnInvoke = args => arguments.SequenceEqual(args) ? expected : null;
             var sut = new MissingParametersSupplyingMethod(method);
 
@@ -64,26 +64,26 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         }
 
         [Theory]
-        [InlineData(typeof (TypeWithMethodsWithOptionalArguments), "MethodWithOptionalArgument", new object[] {}, new[] {0, 100})]
-        [InlineData(typeof (TypeWithMethodsWithOptionalArguments), "MethodWithOptionalArgument", new object[] {1}, new[] {1, 100})]
-        [InlineData(typeof (TypeWithMethodsWithOptionalArguments), "MethodWithOptionalArgument", new object[] {1, 2}, new[] {1, 2})]
-        [InlineData(typeof (TypeWithMethodsWithOptionalArguments), "MethodWithOptionalArgumentString", new object[] {}, new[] {null, "100"})]
-        [InlineData(typeof (TypeWithMethodsWithOptionalArguments), "MethodWithOptionalArgumentString", new object[] {"1"}, new[] {"1", "100"})]
-        [InlineData(typeof (TypeWithMethodsWithOptionalArguments), "MethodWithOptionalArgumentString", new object[] {"1", "2"}, new[] {"1", "2"})]
-        [InlineData(typeof (TypeWithMethodsWithOptionalArguments), "MethodWithParamsArgument", new object[] {}, new[] {0})]
-        [InlineData(typeof (TypeWithMethodsWithOptionalArguments), "MethodWithParamsArgument", new object[] {1}, new[] {1})]
-        [InlineData(typeof (TypeWithMethodsWithOptionalArguments), "MethodWithParamsArgument", new object[] {1, new[] {2, 3}}, new[] {1, 2, 3})]
-        [InlineData(typeof (TypeWithMethodsWithOptionalArguments), "MethodWithParamsArgumentString", new object[] {}, new string[] {null})]
-        [InlineData(typeof (TypeWithMethodsWithOptionalArguments), "MethodWithParamsArgumentString", new object[] {"1"}, new[] {"1"})]
-        [InlineData(typeof (TypeWithMethodsWithOptionalArguments), "MethodWithParamsArgumentString", new object[] {"1", new[] {"2", "3"}}, new[] {"1", "2", "3"})]
-        [InlineData(typeof (TypeWithMethodsWithOptionalArguments), "MethodWithOptionalAndParamsArguments", new object[] {}, new[] {0, 200})]
-        [InlineData(typeof (TypeWithMethodsWithOptionalArguments), "MethodWithOptionalAndParamsArguments", new object[] {1}, new[] {1, 200})]
-        [InlineData(typeof (TypeWithMethodsWithOptionalArguments), "MethodWithOptionalAndParamsArguments", new object[] {1, 2}, new[] {1, 2})]
-        [InlineData(typeof (TypeWithMethodsWithOptionalArguments), "MethodWithOptionalAndParamsArguments", new object[] {1, 2, new[] {3, 4}}, new[] {1, 2, 3, 4})]
-        [InlineData(typeof (TypeWithMethodsWithOptionalArguments), "MethodWithOptionalAndParamsArgumentsString", new object[] {}, new[] {null, "200"})]
-        [InlineData(typeof (TypeWithMethodsWithOptionalArguments), "MethodWithOptionalAndParamsArgumentsString", new object[] {"1"}, new[] {"1", "200"})]
-        [InlineData(typeof (TypeWithMethodsWithOptionalArguments), "MethodWithOptionalAndParamsArgumentsString", new object[] {"1", "2"}, new[] {"1", "2"})]
-        [InlineData(typeof (TypeWithMethodsWithOptionalArguments), "MethodWithOptionalAndParamsArgumentsString", new object[] {"1", "2", new[] {"3", "4"}}, new[] {"1", "2", "3", "4"})]
+        [InlineData(typeof(TypeWithMethodsWithOptionalArguments), "MethodWithOptionalArgument", new object[] { }, new[] { 0, 100 })]
+        [InlineData(typeof(TypeWithMethodsWithOptionalArguments), "MethodWithOptionalArgument", new object[] { 1 }, new[] { 1, 100 })]
+        [InlineData(typeof(TypeWithMethodsWithOptionalArguments), "MethodWithOptionalArgument", new object[] { 1, 2 }, new[] { 1, 2 })]
+        [InlineData(typeof(TypeWithMethodsWithOptionalArguments), "MethodWithOptionalArgumentString", new object[] { }, new[] { null, "100" })]
+        [InlineData(typeof(TypeWithMethodsWithOptionalArguments), "MethodWithOptionalArgumentString", new object[] { "1" }, new[] { "1", "100" })]
+        [InlineData(typeof(TypeWithMethodsWithOptionalArguments), "MethodWithOptionalArgumentString", new object[] { "1", "2" }, new[] { "1", "2" })]
+        [InlineData(typeof(TypeWithMethodsWithOptionalArguments), "MethodWithParamsArgument", new object[] { }, new[] { 0 })]
+        [InlineData(typeof(TypeWithMethodsWithOptionalArguments), "MethodWithParamsArgument", new object[] { 1 }, new[] { 1 })]
+        [InlineData(typeof(TypeWithMethodsWithOptionalArguments), "MethodWithParamsArgument", new object[] { 1, new[] { 2, 3 } }, new[] { 1, 2, 3 })]
+        [InlineData(typeof(TypeWithMethodsWithOptionalArguments), "MethodWithParamsArgumentString", new object[] { }, new string[] { null })]
+        [InlineData(typeof(TypeWithMethodsWithOptionalArguments), "MethodWithParamsArgumentString", new object[] { "1" }, new[] { "1" })]
+        [InlineData(typeof(TypeWithMethodsWithOptionalArguments), "MethodWithParamsArgumentString", new object[] { "1", new[] { "2", "3" } }, new[] { "1", "2", "3" })]
+        [InlineData(typeof(TypeWithMethodsWithOptionalArguments), "MethodWithOptionalAndParamsArguments", new object[] { }, new[] { 0, 200 })]
+        [InlineData(typeof(TypeWithMethodsWithOptionalArguments), "MethodWithOptionalAndParamsArguments", new object[] { 1 }, new[] { 1, 200 })]
+        [InlineData(typeof(TypeWithMethodsWithOptionalArguments), "MethodWithOptionalAndParamsArguments", new object[] { 1, 2 }, new[] { 1, 2 })]
+        [InlineData(typeof(TypeWithMethodsWithOptionalArguments), "MethodWithOptionalAndParamsArguments", new object[] { 1, 2, new[] { 3, 4 } }, new[] { 1, 2, 3, 4 })]
+        [InlineData(typeof(TypeWithMethodsWithOptionalArguments), "MethodWithOptionalAndParamsArgumentsString", new object[] { }, new[] { null, "200" })]
+        [InlineData(typeof(TypeWithMethodsWithOptionalArguments), "MethodWithOptionalAndParamsArgumentsString", new object[] { "1" }, new[] { "1", "200" })]
+        [InlineData(typeof(TypeWithMethodsWithOptionalArguments), "MethodWithOptionalAndParamsArgumentsString", new object[] { "1", "2" }, new[] { "1", "2" })]
+        [InlineData(typeof(TypeWithMethodsWithOptionalArguments), "MethodWithOptionalAndParamsArgumentsString", new object[] { "1", "2", new[] { "3", "4" } }, new[] { "1", "2", "3", "4" })]
         public void InvokeReturnsCorrectResult(Type targetType, string methodName, object[] arguments, object expected)
         {
             var method = new DelegatingMethod();

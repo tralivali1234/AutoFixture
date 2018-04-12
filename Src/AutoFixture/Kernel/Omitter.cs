@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Issues <see cref="OmitSpecimen" /> instances if its encapsulated
@@ -33,10 +30,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// <seealso cref="Specification" />
         public Omitter(IRequestSpecification specification)
         {
-            if (specification == null)
-                throw new ArgumentNullException(nameof(specification));
-
-            this.Specification = specification;
+            this.Specification = specification ?? throw new ArgumentNullException(nameof(specification));
         }
 
         /// <summary>
@@ -58,15 +52,12 @@ namespace Ploeh.AutoFixture.Kernel
         /// </remarks>
         public object Create(object request, ISpecimenContext context)
         {
-            if (request == null)
-                throw new ArgumentNullException(nameof(request));
+            if (request == null) throw new ArgumentNullException(nameof(request));
 
             if (this.Specification.IsSatisfiedBy(request))
                 return new OmitSpecimen();
-
-#pragma warning disable 618
-            return new NoSpecimen(request);
-#pragma warning restore 618
+            
+            return new NoSpecimen();
         }
 
         /// <summary>

@@ -1,23 +1,22 @@
-﻿using Ploeh.AutoFixture.Kernel;
-using Ploeh.TestTypeFoundation;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using AutoFixture.Kernel;
+using TestTypeFoundation;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
+    [Obsolete]
     public class SortedDictionarySpecificationTests
     {
         [Fact]
         public void SutIsRequestSpecification()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new SortedDictionarySpecification();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<IRequestSpecification>(sut);
-            // Teardown
         }
 
         [Theory]
@@ -38,29 +37,27 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [InlineData(typeof(EmptyEnum?[]))]
         public void IsSatisfiedByNonSortedSetRequestReturnsCorrectResult(object request)
         {
-            // Fixture setup.
+            // Arrange.
             var sut = new SortedDictionarySpecification();
-            // Exercise system
+            // Act
             var result = sut.IsSatisfiedBy(request);
-            // Verify outcome
+            // Assert
             Assert.False(result);
-            // Teardown
         }
 
         [Theory]
-        [InlineData(typeof(SortedDictionary<string,int>))]
-        [InlineData(typeof(SortedDictionary<int,string>))]
-        [InlineData(typeof(SortedDictionary<object,object>))]
-        [InlineData(typeof(SortedDictionary<Version, OperatingSystem>))]
+        [InlineData(typeof(SortedDictionary<string, int>))]
+        [InlineData(typeof(SortedDictionary<int, string>))]
+        [InlineData(typeof(SortedDictionary<object, object>))]
+        [InlineData(typeof(SortedDictionary<Version, ConcreteType>))]
         public void IsSatisfiedBySortedSetRequestReturnsCorrectResult(object request)
         {
-            // Fixture setup
+            // Arrange
             var sut = new SortedDictionarySpecification();
-            // Exercise system
+            // Act
             var result = sut.IsSatisfiedBy(request);
-            // Verify outcome
+            // Assert
             Assert.True(result);
-            // Teardown
         }
     }
 }

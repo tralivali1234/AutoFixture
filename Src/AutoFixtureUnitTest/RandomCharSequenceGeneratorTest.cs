@@ -1,59 +1,54 @@
-﻿using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.AutoFixtureUnitTest.Kernel;
-using System;
+﻿using System;
 using System.Linq;
+using AutoFixture;
+using AutoFixture.Kernel;
+using AutoFixtureUnitTest.Kernel;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest
+namespace AutoFixtureUnitTest
 {
     public class RandomCharSequenceGeneratorTest
     {
         [Fact]
         public void SutIsSpecimenBuilder()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new RandomCharSequenceGenerator();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<ISpecimenBuilder>(sut);
-            // Teardown
         }
 
         [Fact]
         public void InitializeWithDefaultConstructorDoesNotThrow()
         {
-            // Fixture setup
-            // Exercise system and verify outcome
-            Assert.DoesNotThrow(
-                () => new RandomCharSequenceGenerator());
-            // Teardown
+            // Arrange
+            // Act & assert
+            Assert.Null(
+                Record.Exception(() => new RandomCharSequenceGenerator()));
         }
 
         [Fact]
         public void CreateWithNullRequestReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var dummyContext = new DelegatingSpecimenContext();
             var sut = new RandomCharSequenceGenerator();
-            // Exercise system
+            // Act
             var result = sut.Create(null, dummyContext);
-            // Verify outcome
+            // Assert
             var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithNullContextDoesNotThrow()
         {
-            // Fixture setup
+            // Arrange
             var dummyRequest = new object();
             var sut = new RandomCharSequenceGenerator();
-            // Exercise system and verify outcome
-            Assert.DoesNotThrow(() => sut.Create(dummyRequest, null));
-            // Teardown
+            // Act & assert
+            Assert.Null(Record.Exception(() => sut.Create(dummyRequest, null)));
         }
 
         [Theory]
@@ -62,17 +57,14 @@ namespace Ploeh.AutoFixtureUnitTest
         [InlineData(default(bool))]
         public void CreateWithNonTypeRequestReturnsCorrectResult(object request)
         {
-            // Fixture setup
+            // Arrange
             var dummyContext = new DelegatingSpecimenContext();
             var sut = new RandomCharSequenceGenerator();
-            // Exercise system
+            // Act
             var result = sut.Create(request, dummyContext);
-            // Verify outcome
-#pragma warning disable 618
-            var expectedResult = new NoSpecimen(request);
-#pragma warning restore 618
+            // Assert
+            var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Theory]
@@ -85,36 +77,32 @@ namespace Ploeh.AutoFixtureUnitTest
         [InlineData(typeof(decimal))]
         public void CreateWithNonCharTypeRequestReturnsNoSpecimen(Type request)
         {
-            // Fixture setup
+            // Arrange
             var dummyContext = new DelegatingSpecimenContext();
             var sut = new RandomCharSequenceGenerator();
-            // Exercise system
+            // Act
             var result = sut.Create(request, dummyContext);
-            // Verify outcome
-#pragma warning disable 618
-            var expectedResult = new NoSpecimen(request);
-#pragma warning restore 618
+            // Assert
+            var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithCharRequestReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var dummyContext = new DelegatingSpecimenContext();
             var sut = new RandomCharSequenceGenerator();
-            // Exercise system
+            // Act
             var result = sut.Create(typeof(char), dummyContext);
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<char>(result);
-            // Teardown
         }
 
         [Fact]
         public void CreateReturnsCorrectResultOnMultipleCall()
         {
-            // Fixture setup
+            // Arrange
             int printableCharactersCount = 94;
             char c = '!';
             var expected = Enumerable
@@ -124,15 +112,14 @@ namespace Ploeh.AutoFixtureUnitTest
                 .OrderBy(x => x);
             var dummyContext = new DelegatingSpecimenContext();
             var sut = new RandomCharSequenceGenerator();
-            // Exercise system
+            // Act
             var result = Enumerable
                 .Range(1, printableCharactersCount)
                 .Select(x => sut.Create(typeof(char), dummyContext))
                 .Cast<char>()
                 .OrderBy(x => x);
-            // Verify outcome
+            // Assert
             Assert.True(expected.SequenceEqual(result));
-            // Teardown
         }
 
         [Theory]
@@ -142,19 +129,18 @@ namespace Ploeh.AutoFixtureUnitTest
         public void CreateReturnsCorrectResultOnMultipleCallWhenRunOutOfChars(
             int expected, int repeatCount)
         {
-            // Fixture setup
+            // Arrange
             var dummyContext = new DelegatingSpecimenContext();
             var sut = new RandomCharSequenceGenerator();
-            // Exercise system
+            // Act
             var result = Enumerable
                 .Range(1, repeatCount)
                 .Select(x => sut.Create(typeof(char), dummyContext))
                 .Cast<char>()
                 .Distinct()
                 .Count();
-            // Verify outcome
+            // Assert
             Assert.Equal(expected, result);
-            // Teardown
         }
     }
 }

@@ -1,142 +1,124 @@
 ﻿using System;
-using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.AutoFixtureUnitTest.Kernel;
+using AutoFixture;
+using AutoFixture.Kernel;
+using AutoFixtureUnitTest.Kernel;
 using Xunit;
 
-namespace Ploeh.AutoFixtureUnitTest
+namespace AutoFixtureUnitTest
 {
     public class StringSeedRelayTest
     {
         [Fact]
         public void SutIsSpecimenBuilder()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new StringSeedRelay();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<ISpecimenBuilder>(sut);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithNullRequestWillReturnNull()
         {
-            // Fixture setup
+            // Arrange
             var sut = new StringSeedRelay();
-            // Exercise system
+            // Act
             var dummyContainer = new DelegatingSpecimenContext();
             var result = sut.Create(null, dummyContainer);
-            // Verify outcome
+            // Assert
             var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithNullContainerWillThrow()
         {
-            // Fixture setup
+            // Arrange
             var sut = new StringSeedRelay();
             var dummyRequest = new object();
-            // Exercise system and verify outcome
+            // Act & assert
             Assert.Throws<ArgumentNullException>(() =>
                 sut.Create(dummyRequest, null));
-            // Teardown
         }
 
         [Fact]
         public void CreateWithNonSeedWillReturnNull()
         {
-            // Fixture setup
+            // Arrange
             var sut = new StringSeedRelay();
             var nonSeed = new object();
-            // Exercise system
+            // Act
             var dummyContainer = new DelegatingSpecimenContext();
             var result = sut.Create(nonSeed, dummyContainer);
-            // Verify outcome
-#pragma warning disable 618
-            var expectedResult = new NoSpecimen(nonSeed);
-#pragma warning restore 618
+            // Assert
+            var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithNonStringRequestSeedWillReturnNull()
         {
-            // Fixture setup
+            // Arrange
             var sut = new StringSeedRelay();
             var nonStringRequestSeed = new SeededRequest(typeof(object), "Anonymous value");
-            // Exercise system
+            // Act
             var dummyContainer = new DelegatingSpecimenContext();
             var result = sut.Create(nonStringRequestSeed, dummyContainer);
-            // Verify outcome
-#pragma warning disable 618
-            var expectedResult = new NoSpecimen(nonStringRequestSeed);
-#pragma warning restore 618
+            // Assert
+            var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithNonStringSeedWillReturnCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = new StringSeedRelay();
             var nonStringSeed = new SeededRequest(typeof(string), new object());
-            // Exercise system
+            // Act
             var dummyContainer = new DelegatingSpecimenContext();
             var result = sut.Create(nonStringSeed, dummyContainer);
-            // Verify outcome
-#pragma warning disable 618
-            var expectedResult = new NoSpecimen(nonStringSeed);
-#pragma warning restore 618
+            // Assert
+            var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithStringSeedWhenContainerCannotCreateStringsWillReturnCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = new StringSeedRelay();
             var stringSeed = new SeededRequest(typeof(string), "Anonymous value");
-#pragma warning disable 618
-            var unableContainer = new DelegatingSpecimenContext { OnResolve = r => new NoSpecimen(stringSeed) };
-#pragma warning restore 618
-            // Exercise system
+            var unableContainer = new DelegatingSpecimenContext { OnResolve = r => new NoSpecimen() };
+            // Act
             var result = sut.Create(stringSeed, unableContainer);
-            // Verify outcome
-#pragma warning disable 618
-            var expectedResult = new NoSpecimen(stringSeed);
-#pragma warning restore 618
+            // Assert
+            var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithStringSeedWhenContainerCanCreateStringsWillReturnCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var seedString = Guid.NewGuid().ToString();
             var containerString = Guid.NewGuid().ToString();
 
             var sut = new StringSeedRelay();
             var stringSeed = new SeededRequest(typeof(string), seedString);
             var container = new DelegatingSpecimenContext { OnResolve = r => containerString };
-            // Exercise system
+            // Act
             var result = sut.Create(stringSeed, container);
-            // Verify outcome
+            // Assert
             var expectedString = seedString + containerString;
             Assert.Equal(expectedString, result);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithStringSeedWillCorrectlyInvokeContainer()
         {
-            // Fixture setup
+            // Arrange
             var sut = new StringSeedRelay();
             var stringSeed = new SeededRequest(typeof(string), "Anonymous value");
 
@@ -148,11 +130,10 @@ namespace Ploeh.AutoFixtureUnitTest
                     mockVerified = true;
                     return null;
                 };
-            // Exercise system
+            // Act
             sut.Create(stringSeed, containerMock);
-            // Verify outcome
+            // Assert
             Assert.True(mockVerified, "Mock verification");
-            // Teardown
         }
     }
 }

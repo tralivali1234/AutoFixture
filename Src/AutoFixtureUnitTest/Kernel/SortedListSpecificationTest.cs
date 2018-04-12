@@ -1,23 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.TestTypeFoundation;
+using AutoFixture.Kernel;
+using TestTypeFoundation;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
+    [Obsolete]
     public class SortedListSpecificationTest
     {
         [Fact]
         public void SutIsRequestSpecification()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new SortedListSpecification();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<IRequestSpecification>(sut);
-            // Teardown
         }
 
         [Theory]
@@ -35,13 +34,12 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [InlineData(typeof(SortedList<EmptyEnum?[], int?[]>))]
         public void IsSatisfiedBySortedListRequestReturnsCorrectResult(object request)
         {
-            // Fixture setup
+            // Arrange
             var sut = new SortedListSpecification();
-            // Exercise system
+            // Act
             var result = sut.IsSatisfiedBy(request);
-            // Verify outcome
+            // Assert
             Assert.True(result);
-            // Teardown
         }
 
         [Theory]
@@ -64,13 +62,12 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [InlineData(typeof(Dictionary<object, Version>))]  // double parameter generic, that implements same interface
         public void IsSatisfiedByNonSortedListRequestReturnsCorrectResult(object request)
         {
-            // Fixture setup
+            // Arrange
             var sut = new SortedListSpecification();
-            // Exercise system
+            // Act
             var result = sut.IsSatisfiedBy(request);
-            // Verify outcome
+            // Assert
             Assert.False(result);
-            // Teardown
         }
     }
 }

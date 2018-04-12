@@ -1,9 +1,8 @@
-﻿using System.Linq;
-using Ploeh.AutoFixture;
+﻿using System.Reflection;
+using AutoFixture;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest
+namespace AutoFixtureUnitTest
 {
     public class DependencyConstraints
     {
@@ -14,12 +13,11 @@ namespace Ploeh.AutoFixtureUnitTest
         [InlineData("xunit.extensions")]
         public void AutoFixtureDoesNotReference(string assemblyName)
         {
-            // Fixture setup
-            // Exercise system
-            var references = typeof(Fixture).Assembly.GetReferencedAssemblies();
-            // Verify outcome
-            Assert.False(references.Any(an => an.Name == assemblyName));
-            // Teardown
+            // Arrange
+            // Act
+            var references = typeof(Fixture).GetTypeInfo().Assembly.GetReferencedAssemblies();
+            // Assert
+            Assert.DoesNotContain(references, an => an.Name == assemblyName);
         }
 
         [Theory]
@@ -27,12 +25,11 @@ namespace Ploeh.AutoFixtureUnitTest
         [InlineData("Rhino.Mocks")]
         public void AutoFixtureUnitTestsDoNotReference(string assemblyName)
         {
-            // Fixture setup
-            // Exercise system
-            var references = this.GetType().Assembly.GetReferencedAssemblies();
-            // Verify outcome
-            Assert.False(references.Any(an => an.Name == assemblyName));
-            // Teardown
+            // Arrange
+            // Act
+            var references = this.GetType().GetTypeInfo().Assembly.GetReferencedAssemblies();
+            // Assert
+            Assert.DoesNotContain(references, an => an.Name == assemblyName);
         }
     }
 }

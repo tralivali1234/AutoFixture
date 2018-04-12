@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using AutoFixture.Kernel;
 using Xunit;
-using Ploeh.AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class OmitSpecimenTest
     {
@@ -19,52 +18,48 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [Fact]
         public void SutDoesNotEqualNull()
         {
-            // Fixture setup
+            // Arrange
             var sut = new OmitSpecimen();
-            // Exercise system
+            // Act
             var actual = BothEquals(sut, null);
-            // Verify outcome
-            Assert.False(actual.Any(b => b));
-            // Teardown
+            // Assert
+            Assert.DoesNotContain(actual, b => b);
         }
 
         [Fact]
         public void SutDoesNotEqualAnonymousObject()
         {
-            // Fixture setup
+            // Arrange
             var sut = new OmitSpecimen();
-            // Exercise system
+            // Act
             var anonymous = new object();
             var actual = sut.Equals(anonymous);
-            // Verify outcome
+            // Assert
             Assert.False(actual);
-            // Teardown
         }
 
         [Fact]
         public void SutEqualsOtherSut()
         {
-            // Fixture setup
+            // Arrange
             var sut = new OmitSpecimen();
             var other = new OmitSpecimen();
-            // Exercise system
+            // Act
             var actual = BothEquals(sut, other);
-            // Verify outcome
+            // Assert
             Assert.True(actual.All(b => b));
-            // Teardown
         }
 
         [Fact]
         public void GetHashCodeIsStableAcrossInstances()
         {
-            // Fixture setup
+            // Arrange
             var sut = new OmitSpecimen();
-            // Exercise system
+            // Act
             var actual = sut.GetHashCode();
-            // Verify outcome
+            // Assert
             var expected = new OmitSpecimen().GetHashCode();
             Assert.Equal(expected, actual);
-            // Teardown
         }
 
         private static IEnumerable<bool> BothEquals<T>(T sut, T other) where T : IEquatable<T>

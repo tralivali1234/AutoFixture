@@ -1,4 +1,4 @@
-﻿namespace Ploeh.AutoFixture.AutoMoq.UnitTest.TestTypes
+﻿namespace AutoFixture.AutoMoq.UnitTest.TestTypes
 {
     public abstract class TypeWithSealedMembersTemp
     {
@@ -8,10 +8,10 @@
 
     public class TypeWithSealedMembers : TypeWithSealedMembersTemp
     {
-        public override sealed string ExplicitlySealedProperty { get; set; }
+        public sealed override string ExplicitlySealedProperty { get; set; }
         public string ImplicitlySealedProperty { get; set; }
 
-        public override sealed string ExplicitlySealedMethod()
+        public sealed override string ExplicitlySealedMethod()
         {
             return "Awesome string";
         }

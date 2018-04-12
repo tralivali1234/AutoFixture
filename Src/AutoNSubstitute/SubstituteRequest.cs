@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Ploeh.AutoFixture.AutoNSubstitute
+namespace AutoFixture.AutoNSubstitute
 {
     /// <summary>
     /// Defines a request for a substitute.
@@ -21,12 +21,7 @@ namespace Ploeh.AutoFixture.AutoNSubstitute
         /// </param>
         public SubstituteRequest(Type targetType)
         {
-            if (targetType == null)
-            {
-                throw new ArgumentNullException(nameof(targetType));
-            }
-
-            this.TargetType = targetType;
+            this.TargetType = targetType ?? throw new ArgumentNullException(nameof(targetType));
         }
 
         /// <summary>
@@ -37,9 +32,6 @@ namespace Ploeh.AutoFixture.AutoNSubstitute
         /// <summary>
         /// Add user friendly request message.
         /// </summary>
-        public override string ToString()
-        {
-            return "NSubstituteRequest: " + this.TargetType;
-        }
+        public override string ToString() => "NSubstituteRequest: " + this.TargetType;
     }
 }

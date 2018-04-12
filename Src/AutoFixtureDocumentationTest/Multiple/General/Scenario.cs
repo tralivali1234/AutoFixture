@@ -1,76 +1,70 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture;
+using AutoFixture.Kernel;
 using Xunit;
 
-namespace Ploeh.AutoFixtureDocumentationTest.Multiple.General
+namespace AutoFixtureDocumentationTest.Multiple.General
 {
     public class Scenario
     {
         [Fact]
         public void CreateAnonymousEnumerableReturnsCorrectResult()
         {
-            // Fixture setup
-            var fixture = new Fixture()
-                .Customize(new MultipleCustomization());
-            // Exercise system
+            // Arrange
+            var fixture = new Fixture();
+            // Act
             var integers =
                 fixture.Create<IEnumerable<int>>();
-            // Verify outcome
+            // Assert
             Assert.True(integers.Any());
-            // Teardown
         }
 
         [Fact]
         public void CreateAnonymousListReturnsCorrectResult()
         {
-            // Fixture setup
-            var fixture = new Fixture().Customize(new MultipleCustomization());
-            // Exercise system
+            // Arrange
+            var fixture = new Fixture();
+            // Act
             var list = fixture.Create<List<int>>();
-            // Verify outcome
+            // Assert
             Assert.True(list.Any());
-            // Teardown
         }
 
         [Fact]
         public void CreateAnonymousIListReturnsCorrectResult()
         {
-            // Fixture setup
-            var fixture = new Fixture().Customize(new MultipleCustomization());
-            // Exercise system
+            // Arrange
+            var fixture = new Fixture();
+            // Act
             var list = fixture.Create<IList<int>>();
-            // Verify outcome
+            // Assert
             Assert.True(list.Any());
-            // Teardown
         }
 
         [Fact]
         public void CreateAnonymousCollectionReturnsCorrectResult()
         {
-            // Fixture setup
-            var fixture = new Fixture().Customize(new MultipleCustomization());
-            // Exercise system
+            // Arrange
+            var fixture = new Fixture();
+            // Act
             var collection =
                 fixture.Create<Collection<int>>();
-            // Verify outcome
+            // Assert
             Assert.True(collection.Any());
-            // Teardown
         }
 
         [Fact]
         public void CreateEnumerableWithCustomCount()
         {
-            // Fixture setup
-            var fixture = new Fixture().Customize(new MultipleCustomization());
+            // Arrange
+            var fixture = new Fixture();
             fixture.RepeatCount = 10;
-            // Exercise system
+            // Act
             var integers = fixture.Create<IEnumerable<int>>();
-            // Verify outcome
+            // Assert
             Assert.Equal(fixture.RepeatCount, integers.Count());
-            // Teardown
         }
 
         [Fact]

@@ -1,7 +1,7 @@
-﻿using Ploeh.AutoFixture;
+﻿using AutoFixture;
 using Xunit;
 
-namespace Ploeh.AutoFixtureDocumentationTest.Simple
+namespace AutoFixtureDocumentationTest.Simple
 {
     public class VehicleTest
     {
@@ -12,31 +12,29 @@ namespace Ploeh.AutoFixtureDocumentationTest.Simple
         [Fact]
         public void AnonymousVehicleHasWheelsAssignedByFixture()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             fixture.Customizations.Add(new RandomNumericSequenceGenerator(5, byte.MaxValue));
 
             var sut = fixture.Create<Vehicle>();
-            // Exercise system
+            // Act
             var result = sut.Wheels;
-            // Verify outcome
+            // Assert
             Assert.NotEqual<int>(4, result);
-            // Teardown
         }
 
         [Fact]
         public void VehicleWithoutAutoPropertiesWillHaveFourWheels()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             var sut = fixture.Build<Vehicle>()
                 .OmitAutoProperties()
                 .Create();
-            // Exercise system
+            // Act
             var result = sut.Wheels;
-            // Verify outcome
+            // Assert
             Assert.Equal<int>(4, result);
-            // Teardown
         }
     }
 }

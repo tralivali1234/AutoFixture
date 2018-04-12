@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// A customization that changes how <see cref="Boolean"/> are generated. Uses <see cref="RandomBooleanSequenceGenerator"/>.
@@ -14,10 +14,7 @@ namespace Ploeh.AutoFixture
         /// <param name="fixture">The fixture to customize.</param>
         public void Customize(IFixture fixture)
         {
-            if (fixture == null)
-            {
-                throw new ArgumentNullException(nameof(fixture));
-            }
+            if (fixture == null) throw new ArgumentNullException(nameof(fixture));
 
             fixture.Customizations.Add(new RandomBooleanSequenceGenerator());
         }

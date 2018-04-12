@@ -1,13 +1,9 @@
-﻿using Ploeh.AutoFixture.Kernel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Reflection;
-using System.Text;
+using AutoFixture.Kernel;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class PropertyTypeAndNameCriterionTests
     {
@@ -22,9 +18,9 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
 
         [Theory]
         [InlineData(false, false, false)]
-        [InlineData(true,  false, false)]
-        [InlineData(false, true,  false)]
-        [InlineData(true,  true,  true )]
+        [InlineData(true, false, false)]
+        [InlineData(false, true, false)]
+        [InlineData(true, true, true)]
         public void EqualsReturnsCorrectResult(
             bool typeResult,
             bool nameResult,
@@ -47,7 +43,7 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
                     return nameResult;
                 }
             };
-            var sut = 
+            var sut =
                 new PropertyTypeAndNameCriterion(
                     typeCriterion,
                     nameCriterion);

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Selects public factory methods ordered by the modest first.
@@ -35,13 +35,12 @@ namespace Ploeh.AutoFixture.Kernel
         /// </remarks>
         public IEnumerable<IMethod> SelectMethods(Type type)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
+            if (type == null) throw new ArgumentNullException(nameof(type));
 
-            return from mi in type.GetMethods(BindingFlags.Static | BindingFlags.Public)
-                   where mi.ReturnType == type
+            return from mi in type.GetTypeInfo().GetMethods(BindingFlags.Static | BindingFlags.Public)
+                   where mi.ReturnType == type &&
+                         !string.Equals(mi.Name, "op_Implicit", StringComparison.Ordinal) &&
+                         !string.Equals(mi.Name, "op_Explicit", StringComparison.Ordinal)
                    let parameters = mi.GetParameters()
                    where mi.GetParameters().All(p => p.ParameterType != type)
                    orderby parameters.Length ascending

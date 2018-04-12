@@ -1,8 +1,10 @@
 using System;
 using NSubstitute.Core;
 
-namespace Ploeh.AutoFixture.AutoNSubstitute
+namespace AutoFixture.AutoNSubstitute
 {
+    [Obsolete("This class belongs to the legacy integration approach. " +
+              "Use the NSubstituteRegisterCallHandlerCommand class and its dependencies instead.")]
     internal class NoSetupCallbackHandler : ICallHandler
     {
         private readonly ISubstituteState state;
@@ -10,13 +12,8 @@ namespace Ploeh.AutoFixture.AutoNSubstitute
 
         public NoSetupCallbackHandler(ISubstituteState state, Action action)
         {
-            if (state == null)
-                throw new ArgumentNullException("state");
-            if (action == null)
-                throw new ArgumentNullException("action");
-
-            this.state = state;
-            this.action = action;
+            this.state = state ?? throw new ArgumentNullException(nameof(state));
+            this.action = action ?? throw new ArgumentNullException(nameof(action));
         }
 
         public bool HasResultFor(ICall call)
@@ -26,8 +23,8 @@ namespace Ploeh.AutoFixture.AutoNSubstitute
 
         RouteAction ICallHandler.Handle(ICall call)
         {
-            if (!HasResultFor(call))
-                action();
+            if (!this.HasResultFor(call))
+                this.action();
 
             return RouteAction.Continue();
         }

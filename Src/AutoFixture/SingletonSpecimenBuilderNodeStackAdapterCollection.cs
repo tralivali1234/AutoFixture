@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Ploeh.AutoFixture.Kernel;
 using System.Collections.ObjectModel;
+using System.Linq;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// A collection of <see cref="ISpecimenBuilderTransformation" />
@@ -67,15 +65,10 @@ namespace Ploeh.AutoFixture
             Func<ISpecimenBuilderNode, bool> wrappedGraphPredicate,
             params ISpecimenBuilderTransformation[] transformations)
         {
-            if (graph == null)
-                throw new ArgumentNullException(nameof(graph));
-            if (wrappedGraphPredicate == null)
-                throw new ArgumentNullException(nameof(wrappedGraphPredicate));
-            if (transformations == null)
-                throw new ArgumentNullException(nameof(transformations));
+            if (transformations == null) throw new ArgumentNullException(nameof(transformations));
             
-            this.Graph = graph;
-            this.isWrappedGraph = wrappedGraphPredicate;
+            this.Graph = graph ?? throw new ArgumentNullException(nameof(graph));
+            this.isWrappedGraph = wrappedGraphPredicate ?? throw new ArgumentNullException(nameof(wrappedGraphPredicate));
 
             foreach (var t in transformations)
                 base.Add(t);
@@ -176,7 +169,7 @@ namespace Ploeh.AutoFixture
             this.UpdateGraph();
         }
 
-        /// <summary>Raises the <see cref="E:GraphChanged" /> event.</summary>
+        /// <summary>Raises the <see cref="GraphChanged" /> event.</summary>
         /// <param name="e">
         /// The <see cref="SpecimenBuilderNodeEventArgs" /> instance containing
         /// the event data.
@@ -191,14 +184,10 @@ namespace Ploeh.AutoFixture
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "ISpecimenBuilderNode"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "ISpecimenBuilderTransformation", Justification = "Workaround for a bug in CA: https://connect.microsoft.com/VisualStudio/feedback/details/521030/")]
         private void UpdateGraph()
         {
-            ISpecimenBuilder g = this.Graph.FindFirstNode(this.isWrappedGraph);
-            var builder = this.Aggregate(g, (b, t) => t.Transform(b));
+            ISpecimenBuilderNode g = this.Graph.FindFirstNode(this.isWrappedGraph);
+            ISpecimenBuilderNode builder = this.Aggregate(g, (b, t) => t.Transform(b));
 
-            var node = builder as ISpecimenBuilderNode;
-            if (node == null)
-                throw new InvalidOperationException("An ISpecimenBuilderTransformation returned a result which cannot be converted to an ISpecimenBuilderNode. To be used in the current context, all ISpecimenBuilderTransformation Transform methods must return an ISpecimenBuilderNode instance.");
-
-            this.Graph = node;
+            this.Graph = builder;
 
             this.OnGraphChanged(new SpecimenBuilderNodeEventArgs(this.Graph));
         }

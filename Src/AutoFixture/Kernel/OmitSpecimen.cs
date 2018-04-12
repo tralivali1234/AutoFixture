@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// A signal type used to indicate to the Auto-Property feature that a given request should be
@@ -18,7 +15,7 @@ namespace Ploeh.AutoFixture.Kernel
     /// <see langword="null" />.
     /// </para>
     /// <para>
-    /// The OmitSpecimen type is explicitly understood by <see cref="AutoPropertiesCommand{T}" />,
+    /// The OmitSpecimen type is explicitly understood by <see cref="AutoPropertiesCommand" />,
     /// but can be returned by any ISpecimenBuilder.
     /// </para>
     /// </remarks>
@@ -38,9 +35,9 @@ namespace Ploeh.AutoFixture.Kernel
         /// <seealso cref="Equals(OmitSpecimen)" />
         public override bool Equals(object obj)
         {
-            var other = obj as OmitSpecimen;
-            if (other != null)
+            if (obj is OmitSpecimen other)
                 return this.Equals(other);
+            
             return base.Equals(obj);
         }
 

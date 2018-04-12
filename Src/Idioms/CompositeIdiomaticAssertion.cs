@@ -2,17 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
-namespace Ploeh.AutoFixture.Idioms
+namespace AutoFixture.Idioms
 {
     /// <summary>
     /// Composes an arbitrary number of <see cref="IIdiomaticAssertion" /> instances.
     /// </summary>
     public class CompositeIdiomaticAssertion : IIdiomaticAssertion
     {
-        private readonly IEnumerable<IIdiomaticAssertion> assertions;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="CompositeIdiomaticAssertion"/> class with
         /// the supplied <see cref="IIdiomaticAssertion" /> instances.
@@ -20,7 +17,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="assertions">The encapsulated assertions.</param>
         public CompositeIdiomaticAssertion(params IIdiomaticAssertion[] assertions)
         {
-            this.assertions = assertions;
+            this.Assertions = assertions;
         }
 
         /// <summary>
@@ -36,10 +33,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <summary>
         /// Gets the assertions supplied via the constructor.
         /// </summary>
-        public IEnumerable<IIdiomaticAssertion> Assertions
-        {
-            get { return this.assertions; }
-        }
+        public IEnumerable<IIdiomaticAssertion> Assertions { get; }
 
         /// <summary>
         /// Verifies the behavior of the constructor by delegating the implementation to
@@ -48,7 +42,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="constructorInfo">The constructor whose behavior must be verified.</param>
         public void Verify(ConstructorInfo constructorInfo)
         {
-            foreach (var assertion in this.assertions)
+            foreach (var assertion in this.Assertions)
             {
                 assertion.Verify(constructorInfo);
             }
@@ -61,7 +55,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="constructorInfos">The constructors whose behavior must be verified.</param>
         public void Verify(IEnumerable<ConstructorInfo> constructorInfos)
         {
-            foreach (var assertion in this.assertions)
+            foreach (var assertion in this.Assertions)
             {
                 assertion.Verify(constructorInfos);
             }
@@ -74,7 +68,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="assemblies">The assemblies whose behaviour must be verified.</param>
         public void Verify(params Assembly[] assemblies)
         {
-            foreach (var assertion in this.assertions)
+            foreach (var assertion in this.Assertions)
             {
                 assertion.Verify(assemblies);
             }
@@ -87,7 +81,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="assemblies">The assemblies whose behaviour must be verified.</param>
         public void Verify(IEnumerable<Assembly> assemblies)
         {
-            foreach (var assertion in this.assertions)
+            foreach (var assertion in this.Assertions)
             {
                 assertion.Verify(assemblies);
             }
@@ -100,7 +94,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="assembly">The assembly whose behaviour must be verified.</param>
         public void Verify(Assembly assembly)
         {
-            foreach (var assertion in this.assertions)
+            foreach (var assertion in this.Assertions)
             {
                 assertion.Verify(assembly);
             }
@@ -113,7 +107,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="types">The types whose behaviour must be verified.</param>
         public void Verify(params Type[] types)
         {
-            foreach (var assertion in this.assertions)
+            foreach (var assertion in this.Assertions)
             {
                 assertion.Verify(types);
             }
@@ -126,7 +120,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="types">The types whose behaviour must be verified.</param>
         public void Verify(IEnumerable<Type> types)
         {
-            foreach (var assertion in this.assertions)
+            foreach (var assertion in this.Assertions)
             {
                 assertion.Verify(types);
             }
@@ -139,7 +133,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="type">The type whose behaviour must be verified.</param>
         public void Verify(Type type)
         {
-            foreach (var assertion in this.assertions)
+            foreach (var assertion in this.Assertions)
             {
                 assertion.Verify(type);
             }
@@ -152,7 +146,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="memberInfos">The members whose behaviour must be verified.</param>
         public void Verify(params MemberInfo[] memberInfos)
         {
-            foreach (var assertion in this.assertions)
+            foreach (var assertion in this.Assertions)
             {
                 assertion.Verify(memberInfos);
             }
@@ -165,7 +159,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="memberInfos">The members whose behaviour must be verified.</param>
         public void Verify(IEnumerable<MemberInfo> memberInfos)
         {
-            foreach (var assertion in this.assertions)
+            foreach (var assertion in this.Assertions)
             {
                 assertion.Verify(memberInfos);
             }
@@ -178,7 +172,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="memberInfo">The member whose behaviour must be verified.</param>
         public void Verify(MemberInfo memberInfo)
         {
-            foreach (var assertion in this.assertions)
+            foreach (var assertion in this.Assertions)
             {
                 assertion.Verify(memberInfo);
             }
@@ -191,7 +185,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="constructorInfos">The constructors whose behavior must be verified.</param>
         public void Verify(params ConstructorInfo[] constructorInfos)
         {
-            foreach (var assertion in this.assertions)
+            foreach (var assertion in this.Assertions)
             {
                 assertion.Verify(constructorInfos);
             }
@@ -204,7 +198,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="methodInfo">The method whose behavior must be verified.</param>
         public void Verify(MethodInfo methodInfo)
         {
-            foreach (var assertion in this.assertions)
+            foreach (var assertion in this.Assertions)
             {
                 assertion.Verify(methodInfo);
             }
@@ -217,7 +211,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="methodInfos">The methods whose behavior must be verified.</param>
         public void Verify(IEnumerable<MethodInfo> methodInfos)
         {
-            foreach (var assertion in this.assertions)
+            foreach (var assertion in this.Assertions)
             {
                 assertion.Verify(methodInfos);
             }
@@ -230,7 +224,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="methodInfos">The methods whose behavior must be verified.</param>
         public void Verify(params MethodInfo[] methodInfos)
         {
-            foreach (var assertion in this.assertions)
+            foreach (var assertion in this.Assertions)
             {
                 assertion.Verify(methodInfos);
             }
@@ -243,7 +237,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="propertyInfo">The property whose behavior must be verified.</param>
         public void Verify(PropertyInfo propertyInfo)
         {
-            foreach (var assertion in this.assertions)
+            foreach (var assertion in this.Assertions)
             {
                 assertion.Verify(propertyInfo);
             }
@@ -256,7 +250,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="propertyInfos">The properties whose behavior must be verified.</param>
         public void Verify(IEnumerable<PropertyInfo> propertyInfos)
         {
-            foreach (var assertion in this.assertions)
+            foreach (var assertion in this.Assertions)
             {
                 assertion.Verify(propertyInfos);
             }
@@ -269,7 +263,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="propertyInfos">The properties whose behavior must be verified.</param>
         public void Verify(params PropertyInfo[] propertyInfos)
         {
-            foreach (var assertion in this.assertions)
+            foreach (var assertion in this.Assertions)
             {
                 assertion.Verify(propertyInfos);
             }
@@ -282,7 +276,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="fieldInfo">The field whose behavior must be verified.</param>
         public void Verify(FieldInfo fieldInfo)
         {
- 	        foreach(var assertion in this.assertions)
+ 	        foreach(var assertion in this.Assertions)
             {
                 assertion.Verify(fieldInfo);
             }
@@ -295,7 +289,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="fieldInfos">The fields whose behavior must be verified.</param>
         public void Verify(IEnumerable<FieldInfo> fieldInfos)
         {
-            foreach (var assertion in this.assertions)
+            foreach (var assertion in this.Assertions)
             {
                 assertion.Verify(fieldInfos);
             }
@@ -308,7 +302,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="fieldInfos">The fields whose behavior must be verified.</param>
         public void Verify(params FieldInfo[] fieldInfos)
         {
-            foreach (var assertion in this.assertions)
+            foreach (var assertion in this.Assertions)
             {
                 assertion.Verify(fieldInfos);
             }

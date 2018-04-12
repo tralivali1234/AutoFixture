@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.TestTypeFoundation;
+using AutoFixture.Kernel;
+using TestTypeFoundation;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixture.AutoNSubstitute.UnitTest
+namespace AutoFixture.AutoNSubstitute.UnitTest
 {
     public class NSubstituteMethodQueryTest
     {
@@ -16,21 +15,17 @@ namespace Ploeh.AutoFixture.AutoNSubstitute.UnitTest
         [InlineData(typeof(MultiUnorderedConstructorType))]
         public void MethodsAreReturnedInCorrectOrder(Type type)
         {
-            // Fixture setup
+            // Arrange
             var typeCtorArgCounts = from ci in type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                                     let paramCount = ci.GetParameters().Length
                                     orderby paramCount ascending
                                     select paramCount;
             var sut = new NSubstituteMethodQuery();
-
-            // Exercise system
+            // Act
             var result = sut.SelectMethods(type);
-
-            // Verify outcome
+            // Assert
             var actualArgCounts = from ci in result select ci.Parameters.Count();
             Assert.True(typeCtorArgCounts.SequenceEqual(actualArgCounts));
-
-            // Teardown
         }
 
         [Theory]
@@ -39,18 +34,14 @@ namespace Ploeh.AutoFixture.AutoNSubstitute.UnitTest
         [InlineData(typeof(MultiUnorderedConstructorType))]
         public void MethodsDefineCorrectParameters(Type type)
         {
-            // Fixture setup
+            // Arrange
             var typeCtorArgs = from ci in type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic) select ci.GetParameters();
             var sut = new NSubstituteMethodQuery();
-
-            // Exercise system
+            // Act
             var result = sut.SelectMethods(type);
-
-            // Verify outcome
+            // Assert
             var actualArgs = from ci in result select ci.Parameters;
             Assert.True(typeCtorArgs.All(expectedParams => actualArgs.Any(expectedParams.SequenceEqual)));
-
-            // Teardown
         }
 
         [Theory]
@@ -59,58 +50,71 @@ namespace Ploeh.AutoFixture.AutoNSubstitute.UnitTest
         [InlineData(typeof(MultiUnorderedConstructorType))]
         public void SelectMethodsReturnsCorrectNumberOfConstructorsForTypesWithConstructors(Type type)
         {
-            // Fixture setup
+            // Arrange
             var expectedCount = type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Length;
             var sut = new NSubstituteMethodQuery();
-
-            // Exercise system
+            // Act
             var result = sut.SelectMethods(type);
-
-            // Verify outcome
+            // Assert
             Assert.Equal(expectedCount, result.Count());
-
-            // Teardown
         }
 
         [Fact]
         public void SelectMethodReturnsMethodForInterface()
         {
-            // Fixture setup
+            // Arrange
             var type = typeof(IInterface);
             var sut = new NSubstituteMethodQuery();
-
-            // Exercise system
+            // Act
             var result = sut.SelectMethods(type);
-
-            // Verify outcome
+            // Assert
             Assert.NotEmpty(result);
         }
 
         [Fact]
         public void SelectMethodReturnsMethodWithoutParametersForInterface()
         {
-            // Fixture setup
+            // Arrange
             var type = typeof(IInterface);
             var sut = new NSubstituteMethodQuery();
-
-            // Exercise system
+            // Act
             var result = sut.SelectMethods(type);
+            // Assert
+            Assert.Empty(result.Single().Parameters);
+        }
 
-            // Verify outcome
-            Assert.Empty(result.First().Parameters);
+        [Fact]
+        public void SelectMethodReturnsMethodForDelegate()
+        {
+            // Arrange
+            var type = typeof(Action);
+            var sut = new NSubstituteMethodQuery();
+            // Act
+            var result = sut.SelectMethods(type);
+            // Assert
+            Assert.NotEmpty(result);
+        }
+
+        [Fact]
+        public void SelectMethodReturnsMethodWithoutParametersForDelegate()
+        {
+            // Arrange
+            var type = typeof(Func<int>);
+            var sut = new NSubstituteMethodQuery();
+            // Act
+            var result = sut.SelectMethods(type);
+            // Assert
+            Assert.Empty(result.Single().Parameters);
         }
 
         [Fact]
         public void SutIsMethodQuery()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new NSubstituteMethodQuery();
-
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<IMethodQuery>(sut);
-
-            // Teardown
         }
     }
 }

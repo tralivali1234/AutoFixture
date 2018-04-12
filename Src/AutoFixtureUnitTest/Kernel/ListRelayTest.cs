@@ -1,34 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
-using Ploeh.AutoFixture.Kernel;
+using System.Reflection;
+using AutoFixture.Kernel;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
+    [Obsolete]
     public class ListRelayTest
     {
         [Fact]
         public void SutIsSpecimenBuilder()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new ListRelay();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<ISpecimenBuilder>(sut);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithNullContextThrows()
         {
-            // Fixture setup
+            // Arrange
             var sut = new ListRelay();
             var dummyRequest = new object();
-            // Exercise system and verify outcome
+            // Act & assert
             Assert.Throws<ArgumentNullException>(() =>
                 sut.Create(dummyRequest, null));
-            // Teardown
         }
 
         [Theory]
@@ -49,17 +48,14 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [InlineData(typeof(IEnumerable<Version>))]
         public void CreateWithNonListRequestReturnsCorrectResult(object request)
         {
-            // Fixture setup
+            // Arrange
             var sut = new ListRelay();
-            // Exercise system
+            // Act
             var dummyContext = new DelegatingSpecimenContext();
             var result = sut.Create(request, dummyContext);
-            // Verify outcome
-#pragma warning disable 618
-            var expectedResult = new NoSpecimen(request);
-#pragma warning restore 618
+            // Assert
+            var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Theory]
@@ -69,19 +65,16 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [InlineData(typeof(IList<Version>), typeof(Version))]
         public void CreateWithListRequestReturnsCorrectResult(Type request, Type itemType)
         {
-            // Fixture setup
+            // Arrange
             var expectedRequest = typeof(List<>).MakeGenericType(itemType);
             object contextResult = typeof(List<>).MakeGenericType(itemType).GetConstructor(Type.EmptyTypes).Invoke(new object[0]);
-#pragma warning disable 618
-            var context = new DelegatingSpecimenContext { OnResolve = r => expectedRequest.Equals(r) ? contextResult : new NoSpecimen(r) };
-#pragma warning restore 618
+            var context = new DelegatingSpecimenContext { OnResolve = r => expectedRequest.Equals(r) ? contextResult : new NoSpecimen() };
 
             var sut = new ListRelay();
-            // Exercise system
+            // Act
             var result = sut.Create(request, context);
-            // Verify outcome
+            // Assert
             Assert.Equal(contextResult, result);
-            // Teardown
         }
     }
 }

@@ -4,12 +4,15 @@
     <Unrecognized>
     </Unrecognized>
     <Recognized>
-      <Word>ploeh</Word>
       <Word>info</Word>
       <Word>infos</Word>
+      <Word>AutoFixture</Word>
     </Recognized>
     <Deprecated>
     </Deprecated>
+    <DiscreteExceptions>
+      <Term>AutoFixture</Term>
+    </DiscreteExceptions>
   </Words>
   <Acronyms>
     <CasingExceptions>

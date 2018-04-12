@@ -1,7 +1,7 @@
 ﻿using System;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// Creates new <see cref="Uri"/> instances.
@@ -18,38 +18,29 @@ namespace Ploeh.AutoFixture
         /// </returns>
         public object Create(object request, ISpecimenContext context)
         {
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
+            if (context == null) throw new ArgumentNullException(nameof(context));
 
             if (!typeof(Uri).Equals(request))
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
             }
 
             var scheme = context.Resolve(typeof(UriScheme)) as UriScheme;
             if (scheme == null)
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
             }
 
             var authority = context.Resolve(typeof(string)) as string;
             if (authority == null)
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
             }
 
-            return UriGenerator.CreateAnonymous(scheme, authority);
+            return MakeUri(scheme, authority);
         }
 
-        private static Uri CreateAnonymous(UriScheme scheme, string authority)
+        private static Uri MakeUri(UriScheme scheme, string authority)
         {
             return new Uri(scheme + "://" + authority);
         }

@@ -1,111 +1,102 @@
 ﻿using System;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.TestTypeFoundation;
+using AutoFixture.Kernel;
+using TestTypeFoundation;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class DirectBaseTypeSpecificationTest
     {
         [Fact]
         public void SutIsRequestSpecification()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new DirectBaseTypeSpecification(typeof(object));
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<IRequestSpecification>(sut);
-            // Teardown
         }
 
         [Fact]
         public void InitializeWithTargetTypeShouldSetCorrespondingProperty()
         {
-            // Fixture setup
+            // Arrange
             var targetType = typeof(object);
-            // Exercise system
+            // Act
             var sut = new DirectBaseTypeSpecification(targetType);
-            // Verify outcome
+            // Assert
             Assert.Equal(targetType, sut.TargetType);
-            // Teardown
         }
 
         [Fact]
         public void InitializeWithNullTargetTypeShouldThrowArgumentNullException()
         {
-            // Fixture setup
-            // Exercise system and verify outcome
+            // Arrange
+            // Act & assert
             Assert.Throws<ArgumentNullException>(() =>
                 new DirectBaseTypeSpecification(null));
-            // Teardown
         }
 
         [Fact]
         public void IsSatisfiedByWithNullRequestShouldThrowArgumentNullException()
         {
-            // Fixture setup
+            // Arrange
             var sut = new DirectBaseTypeSpecification(typeof(object));
-            // Exercise system and verify outcome
+            // Act & assert
             Assert.Throws<ArgumentNullException>(() =>
                 sut.IsSatisfiedBy(null));
-            // Teardown
         }
 
         [Fact]
         public void IsSatisfiedByWithRequestForDirectBaseTypeShouldReturnTrue()
         {
-            // Fixture setup
+            // Arrange
             var targetType = typeof(ConcreteType);
             var requestedType = typeof(AbstractType);
             var sut = new DirectBaseTypeSpecification(targetType);
-            // Exercise system
+            // Act
             var result = sut.IsSatisfiedBy(requestedType);
-            // Verify outcome
+            // Assert
             Assert.True(result);
-            // Teardown
         }
 
         [Fact]
         public void IsSatisfiedByWithRequestForSameTypeShouldReturnTrue()
         {
-            // Fixture setup
+            // Arrange
             var targetType = typeof(ConcreteType);
             var requestedType = typeof(ConcreteType);
             var sut = new DirectBaseTypeSpecification(targetType);
-            // Exercise system
+            // Act
             var result = sut.IsSatisfiedBy(requestedType);
-            // Verify outcome
+            // Assert
             Assert.True(result);
-            // Teardown
         }
 
         [Fact]
         public void IsSatisfiedByWithRequestForIndirectBaseTypeShouldReturnFalse()
         {
-            // Fixture setup
+            // Arrange
             var targetType = typeof(ConcreteType);
             var requestedType = typeof(object);
             var sut = new DirectBaseTypeSpecification(targetType);
-            // Exercise system
+            // Act
             var result = sut.IsSatisfiedBy(requestedType);
-            // Verify outcome
+            // Assert
             Assert.False(result);
-            // Teardown
         }
 
         [Fact]
         public void IsSatisfiedByWithRequestForIncompatibleTypeShouldReturnFalse()
         {
-            // Fixture setup
+            // Arrange
             var targetType = typeof(ConcreteType);
             var requestedType = typeof(string);
             var sut = new DirectBaseTypeSpecification(targetType);
-            // Exercise system
+            // Act
             var result = sut.IsSatisfiedBy(requestedType);
-            // Verify outcome
+            // Assert
             Assert.False(result);
-            // Teardown
         }
 
         [Theory]
@@ -114,13 +105,12 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [InlineData(true)]
         public void IsSatisfiedByWithInvalidRequestShouldReturnFalse(object request)
         {
-            // Fixture setup
+            // Arrange
             var sut = new DirectBaseTypeSpecification(typeof(ConcreteType));
-            // Exercise system
+            // Act
             var result = sut.IsSatisfiedBy(request);
-            // Verify outcome
+            // Assert
             Assert.False(result);
-            // Teardown
         }
     }
 }

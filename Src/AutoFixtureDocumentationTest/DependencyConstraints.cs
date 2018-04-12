@@ -1,8 +1,7 @@
-﻿using System.Linq;
+﻿using System.Reflection;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureDocumentationTest
+namespace AutoFixtureDocumentationTest
 {
     public class DependencyConstraints
     {
@@ -10,12 +9,11 @@ namespace Ploeh.AutoFixtureDocumentationTest
         [InlineData("Moq")]
         public void AutoFixtureDocumentationTestsDoeNotReference(string assemblyName)
         {
-            // Fixture setup
-            // Exercise system
-            var references = this.GetType().Assembly.GetReferencedAssemblies();
-            // Verify outcome
-            Assert.False(references.Any(an => an.Name == assemblyName));
-            // Teardown
+            // Arrange
+            // Act
+            var references = this.GetType().GetTypeInfo().Assembly.GetReferencedAssemblies();
+            // Assert
+            Assert.DoesNotContain(references, an => an.Name == assemblyName);
         }
     }
 }

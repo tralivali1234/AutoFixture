@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Relays a request for <see cref="IEnumerable{T}" /> to a <see cref="MultipleRequest"/> and
@@ -30,67 +30,48 @@ namespace Ploeh.AutoFixture.Kernel
         /// </remarks>
         public object Create(object request, ISpecimenContext context)
         {
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
+            if (context == null) throw new ArgumentNullException(nameof(context));
 
             // This is performance-sensitive code when used repeatedly over many requests.
             // See discussion at https://github.com/AutoFixture/AutoFixture/pull/218
             var type = request as Type;
             if (type == null)
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
-            var typeArgs = type.GetGenericArguments();
-            if (typeArgs.Length != 1)
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
-            if (type.GetGenericTypeDefinition() != typeof(IEnumerable<>))
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
-            var specimen = context.Resolve(new MultipleRequest(typeArgs[0]));
+                return new NoSpecimen();
+
+            if(!type.TryGetSingleGenericTypeArgument(typeof(IEnumerable<>), out Type enumerableType))
+                return new NoSpecimen();
+
+            var specimen = context.Resolve(new MultipleRequest(enumerableType));
             if (specimen is OmitSpecimen)
                 return specimen;
+
             var enumerable = specimen as IEnumerable<object>;
             if (enumerable == null)
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
 
-            return typeof (ConvertedEnumerable<>)
-                .MakeGenericType(typeArgs)
-                .GetConstructor(new[] {typeof (IEnumerable<object>)})
-                .Invoke(new[] {enumerable});
+            var typedAdapterType = typeof(ConvertedEnumerable<>).MakeGenericType(enumerableType);
+            return Activator.CreateInstance(typedAdapterType, enumerable);
         }
 
+        [SuppressMessage("Microsoft.Performance", "CA1812:AvoidUninstantiatedInternalClasses",
+            Justification = "It's activated via reflection.")]
         private class ConvertedEnumerable<T> : IEnumerable<T>
         {
             private readonly IEnumerable<object> enumerable;
 
             public ConvertedEnumerable(IEnumerable<object> enumerable)
             {
-                if (enumerable == null)
-                {
-                    throw new ArgumentNullException(nameof(enumerable));
-                }
-
-                this.enumerable = enumerable;
+                this.enumerable = enumerable ?? throw new ArgumentNullException(nameof(enumerable));
             }
 
             public IEnumerator<T> GetEnumerator()
             {
                 foreach (var item in this.enumerable)
-                    if (item is T)
-                        yield return (T)item;
+                    if (item is T variable)
+                        yield return variable;
             }
 
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return this.GetEnumerator();
-            }
+            IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
         }
     }
 }

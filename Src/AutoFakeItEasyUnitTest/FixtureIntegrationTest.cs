@@ -2,122 +2,166 @@
 using System.Collections.Generic;
 using System.Linq;
 using FakeItEasy;
-using Ploeh.TestTypeFoundation;
+using TestTypeFoundation;
 using Xunit;
 
-namespace Ploeh.AutoFixture.AutoFakeItEasy.UnitTest
+namespace AutoFixture.AutoFakeItEasy.UnitTest
 {
     public class FixtureIntegrationTest
     {
         [Fact]
         public void FixtureAutoFakesInterface()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture().Customize(new AutoFakeItEasyCustomization());
-            // Exercise system
+            // Act
             var result = fixture.Create<IInterface>();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<IInterface>(result);
-            // Teardown
         }
 
         [Fact]
         public void FixtureAutoFakesAbstractType()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture().Customize(new AutoFakeItEasyCustomization());
-            // Exercise system
+            // Act
             var result = fixture.Create<AbstractType>();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<AbstractType>(result);
-            // Teardown
         }
 
         [Fact]
         public void FixtureCanPassValuesToAbstractGenericTypeWithNonDefaultConstructor()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture().Customize(new AutoFakeItEasyCustomization());
-            // Exercise system
+            // Act
             var result = fixture.Create<AbstractTypeWithNonDefaultConstructor<int>>();
-            // Verify outcome
+            // Assert
             Assert.NotEqual(0, result.Property);
-            // Teardown
+        }
+
+#if CAN_FAKE_DELEGATES
+        [Fact]
+        public void FixtureCanCreateFakeOfDelegate()
+        {
+            // Arrange
+            var fixture = new Fixture().Customize(new AutoFakeItEasyCustomization { GenerateDelegates = true });
+            // Act
+            var result = fixture.Create<Fake<Func<int, int>>>();
+            // Assert
+            Assert.IsAssignableFrom<Fake<Func<int, int>>>(result);
+        }
+
+        [Fact]
+        public void FixtureCanCreateDelegateThatIsAFake()
+        {
+            // Arrange
+            var fixture = new Fixture().Customize(new AutoFakeItEasyCustomization { GenerateDelegates = true });
+            // Act
+            var result = fixture.Create<Func<int, int>>();
+            // Assert
+            Assert.IsAssignableFrom<Func<int, int>>(result);
+            Assert.NotNull(Fake.GetFakeManager(result));
+        }
+
+        [Fact]
+        public void FixtureCanFreezeFakeOfDelegate()
+        {
+            // Arrange
+            var fixture = new Fixture().Customize(new AutoFakeItEasyCustomization { GenerateDelegates = true });
+            // Act
+            var frozen = fixture.Freeze<Fake<Func<int, int>>>();
+            var result = fixture.Create<Func<int, int>>();
+            // Assert
+            Assert.Same(frozen.FakedObject, result);
+        }
+#endif
+
+        [Fact]
+        public void FixtureWithDefaultCustomizationCanCreateNonFakedDelegate()
+        {
+            // Arrange
+            var fixture = new Fixture().Customize(new AutoFakeItEasyCustomization());
+            // Act
+            var result = fixture.Create<Func<int, int>>();
+            // Assert
+            Assert.IsAssignableFrom<Func<int, int>>(result);
+
+            var notAFakeException = Assert.Throws<ArgumentException>(() => Fake.GetFakeManager(result));
+            Assert.Contains("not recognized as a fake", notAFakeException.Message);
         }
 
         [Fact]
         public void FixtureCanCreateFake()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture().Customize(new AutoFakeItEasyCustomization());
-            // Exercise system
+            // Act
             var result = fixture.Create<Fake<AbstractType>>();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<Fake<AbstractType>>(result);
-            // Teardown
         }
 
         [Fact]
         public void FixtureCanFreezeFake()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture().Customize(new AutoFakeItEasyCustomization());
             var dummy = new object();
             var fake = fixture.Freeze<Fake<IInterface>>();
             fake.CallsTo(x => x.MakeIt(dummy))
                 .Returns(null);
-            // Exercise system
+            // Act
             var result = fixture.Create<IInterface>();
             result.MakeIt(dummy);
-            // Verify outcome
+            // Assert
             A.CallTo(() => result.MakeIt(dummy)).MustHaveHappened();
-            // Teardown
         }
 
         [Fact]
         public void FixtureCanCreateList()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture().Customize(new AutoFakeItEasyCustomization());
-            // Exercise system
+            // Act
             var result = fixture.Create<IList<ConcreteType>>();
-            // Verify outcome
+            // Assert
             Assert.True(result.Any());
-            // Teardown
         }
 
         [Fact]
         public void FixtureCanCreateAbstractGenericTypeWithNonDefaultConstructor()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture().Customize(new AutoFakeItEasyCustomization());
-            // Exercise system
+            // Act
             var result = fixture.Create<AbstractGenericType<object>>();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<AbstractGenericType<object>>(result);
         }
 
         [Fact]
         public void FixtureCanCreateAbstractGenericTypeWithConstructorWithMultipleParameters()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture().Customize(new AutoFakeItEasyCustomization());
-            // Exercise system
+            // Act
             var result = fixture.Create<AbstractTypeWithConstructorWithMultipleParameters<int, int>>();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<AbstractTypeWithConstructorWithMultipleParameters<int, int>>(result);
         }
 
         [Fact]
         public void FixtureCanCreateAnonymousGuid()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture().Customize(new AutoFakeItEasyCustomization());
-            // Exercise system
+            // Act
             var result = fixture.Create<Guid>();
-            // Verify outcome
+            // Assert
             Assert.NotEqual(Guid.Empty, result);
-            // Teardown
         }
     }
 }

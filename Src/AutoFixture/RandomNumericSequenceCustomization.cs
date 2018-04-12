@@ -1,7 +1,6 @@
-﻿using Ploeh.AutoFixture.Kernel;
-using System;
+﻿using System;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// A customization that enables numeric specimens to be random and unique.
@@ -18,10 +17,7 @@ namespace Ploeh.AutoFixture
         /// </exception>
         public void Customize(IFixture fixture)
         {
-            if (fixture == null)
-            {
-                throw new ArgumentNullException(nameof(fixture));
-            }
+            if (fixture == null) throw new ArgumentNullException(nameof(fixture));
 
             fixture.Customizations.Add(new RandomNumericSequenceGenerator());
         }

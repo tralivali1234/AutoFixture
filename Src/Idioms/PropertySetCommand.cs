@@ -2,16 +2,13 @@
 using System.Globalization;
 using System.Reflection;
 
-namespace Ploeh.AutoFixture.Idioms
+namespace AutoFixture.Idioms
 {
     /// <summary>
     /// Assigns a value to a property.
     /// </summary>
     public class PropertySetCommand : IGuardClauseCommand
     {
-        private readonly PropertyInfo propertyInfo;
-        private readonly object owner;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="PropertySetCommand"/> class.
         /// </summary>
@@ -26,25 +23,19 @@ namespace Ploeh.AutoFixture.Idioms
         /// </remarks>
         public PropertySetCommand(PropertyInfo propertyInfo, object owner)
         {
-            this.propertyInfo = propertyInfo;
-            this.owner = owner;
+            this.PropertyInfo = propertyInfo;
+            this.Owner = owner;
         }
 
         /// <summary>
         /// Gets the owner supplied via the constructor.
         /// </summary>
-        public object Owner
-        {
-            get { return this.owner; }
-        }
+        public object Owner { get; }
 
         /// <summary>
         /// Gets the property supplied via the constructor.
         /// </summary>
-        public PropertyInfo PropertyInfo
-        {
-            get { return this.propertyInfo; }
-        }
+        public PropertyInfo PropertyInfo { get; }
 
         /// <summary>
         /// Gets the type of the requested value.
@@ -55,10 +46,17 @@ namespace Ploeh.AutoFixture.Idioms
         /// the <see cref="Execute"/> method - in this case the type of the
         /// <see cref="PropertyInfo" />.
         /// </remarks>
-        public Type RequestedType
-        {
-            get { return this.propertyInfo.PropertyType; }
-        }
+        public Type RequestedType => this.PropertyInfo.PropertyType;
+
+
+        /// <summary>
+        /// Gets the parameter name of the requested value.
+        /// </summary>
+        /// <value></value>
+        /// <remarks>
+        /// The RequestedParameterName always returns "value".
+        /// </remarks>
+        public string RequestedParameterName => "value";
 
         /// <summary>
         /// Executes the action with the specified value.
@@ -71,7 +69,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// </remarks>
         public void Execute(object value)
         {
-            this.propertyInfo.SetValue(this.Owner, value, null);
+            this.PropertyInfo.SetValue(this.Owner, value, null);
         }
 
         /// <summary>
@@ -104,7 +102,8 @@ namespace Ploeh.AutoFixture.Idioms
         private string CreateExceptionMessage(string value)
         {
             return string.Format(CultureInfo.CurrentCulture,
-                "An attempt was made to assign the value {0} to the property {1}, and no Guard Clause prevented this. Are you missing a Guard Clause?{5}Property Type: {2}{5}Declaring Type: {3}{5}Reflected Type: {4}",
+                "An attempt was made to assign the value {0} to the property {1}, and no Guard Clause prevented this. " +
+                "Are you missing a Guard Clause?{5}Property Type: {2}{5}Declaring Type: {3}{5}Reflected Type: {4}",
                 value,
                 this.PropertyInfo.Name,
                 this.PropertyInfo.PropertyType.AssemblyQualifiedName,

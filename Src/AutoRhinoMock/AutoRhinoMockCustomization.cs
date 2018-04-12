@@ -1,7 +1,7 @@
 ﻿using System;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture.AutoRhinoMock
+namespace AutoFixture.AutoRhinoMock
 {
     /// <summary>
     /// Enables IFixture auto-mocking of abstract classes and interfaces using RhinoMocks.
@@ -14,10 +14,7 @@ namespace Ploeh.AutoFixture.AutoRhinoMock
         /// <param name="fixture">The fixture upon which to enable auto-mocking.</param>
         public void Customize(IFixture fixture)
         {
-            if (fixture == null)
-            {
-                throw new ArgumentNullException("fixture");
-            }
+            if (fixture == null) throw new ArgumentNullException(nameof(fixture));
 
             fixture.ResidueCollectors.Add(
                 new RhinoMockAroundAdvice(

@@ -1,12 +1,12 @@
 ﻿using System;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Encapsulates an operation without identifying any property or field.
     /// </summary>
     /// <typeparam name="T">The type of specimen.</typeparam>
-    [Obsolete("This class is no longer used, and will be removed in future versions.")]
+    [Obsolete("This class is no longer used, and will be removed in future versions.", true)]
     public class UnspecifiedSpecimenCommand<T> : ISpecifiedSpecimenCommand<T>
     {
         /// <summary>
@@ -16,12 +16,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// <param name="action">The action to perform on a specimen.</param>
         public UnspecifiedSpecimenCommand(Action<T> action)
         {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
-
-            this.Action = action;
+            this.Action = action ?? throw new ArgumentNullException(nameof(action));
         }
 
         /// <summary>

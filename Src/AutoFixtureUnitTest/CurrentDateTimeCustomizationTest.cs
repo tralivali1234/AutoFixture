@@ -1,44 +1,41 @@
 ﻿using System;
 using System.Linq;
-using Ploeh.AutoFixture;
+using AutoFixture;
 using Xunit;
 
-namespace Ploeh.AutoFixtureUnitTest
+namespace AutoFixtureUnitTest
 {
     public class CurrentDateTimeCustomizationTest
     {
         [Fact]
         public void SutIsCustomization()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new CurrentDateTimeCustomization();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<ICustomization>(sut);
-            // Teardown
         }
 
         [Fact]
         public void CustomizeWithNullThrowsArgumentNullException()
         {
-            // Fixture setup
+            // Arrange
             var sut = new CurrentDateTimeCustomization();
-            // Exercise system and verify outcome
-            Assert.Throws(typeof(ArgumentNullException), () => sut.Customize(null));
-            // Teardown
+            // Act & assert
+            Assert.Throws<ArgumentNullException>(() => sut.Customize(null));
         }
 
         [Fact]
         public void CustomizeAddsCurrentDateTimeGeneratorToFixture()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             var sut = new CurrentDateTimeCustomization();
-            // Exercise system
+            // Act
             sut.Customize(fixture);
-            // Verify outcome
+            // Assert
             Assert.True(fixture.Customizations.OfType<CurrentDateTimeGenerator>().Any());
-            // Teardown
         }
     }
 }

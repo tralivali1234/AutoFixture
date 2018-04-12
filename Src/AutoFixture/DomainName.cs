@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// Represents a domain name.
@@ -13,11 +13,7 @@ namespace Ploeh.AutoFixture
         /// </summary>
         public DomainName(string domainName)
         {
-            if (domainName == null)
-            {
-                throw new ArgumentNullException(nameof(domainName));
-            }
-            this.Domain = domainName;
+            this.Domain = domainName ?? throw new ArgumentNullException(nameof(domainName));
         }
 
         /// <summary>
@@ -45,16 +41,14 @@ namespace Ploeh.AutoFixture
         ///   <c>true</c> if the specified <see cref="System.Object"/> is equal to this instance; 
         /// otherwise, <c>false</c>.
         /// </returns>
-        /// <exception cref="T:System.NullReferenceException">
+        /// <exception cref="System.NullReferenceException">
         /// The <paramref name="obj"/> parameter is null.
         ///   </exception>
         public override bool Equals(object obj)
         {
-            var other = obj as DomainName;
-
-            if (other != null)
+            if (obj is DomainName other)
             {
-                return this.Domain.Equals(other.Domain);
+                return this.Domain.Equals(other.Domain, StringComparison.Ordinal);
             }
             return base.Equals(obj);
         }

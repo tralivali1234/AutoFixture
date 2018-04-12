@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Trace writer that will write out a trace of object requests and created objects
@@ -23,14 +22,8 @@ namespace Ploeh.AutoFixture.Kernel
         /// <param name="tracer">The <see cref="ISpecimenBuilder"/> to decorate.</param>
         public TraceWriter(TextWriter writer, TracingBuilder tracer)
         {
-            if (writer == null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
-            if (tracer == null)
-            {
-                throw new ArgumentNullException(nameof(tracer));
-            }        
+            if (writer == null) throw new ArgumentNullException(nameof(writer));
+            if (tracer == null) throw new ArgumentNullException(nameof(tracer));
 
             this.Tracer = tracer;
             this.Tracer.SpecimenRequested += (sender, e) => this.writeRequest(writer, e.Request, e.Depth);
@@ -52,16 +45,8 @@ namespace Ploeh.AutoFixture.Kernel
         /// <value>The request trace formatter.</value>
         public Action<TextWriter, object, int> TraceRequestFormatter
         {
-            get { return this.writeRequest; }
-            set
-            {
-                if (value == null)
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
-
-                this.writeRequest = value;
-            }
+            get => this.writeRequest;
+            set => this.writeRequest = value ?? throw new ArgumentNullException(nameof(value));
         }
 
         /// <summary>
@@ -70,16 +55,8 @@ namespace Ploeh.AutoFixture.Kernel
         /// <value>The created specimen trace formatter.</value>
         public Action<TextWriter, object, int> TraceSpecimenFormatter
         {
-            get { return this.writeSpecimen; }
-            set
-            {
-                if (value == null)
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
-
-                this.writeSpecimen = value;
-            }
+            get => this.writeSpecimen;
+            set => this.writeSpecimen = value ?? throw new ArgumentNullException(nameof(value));
         }
 
         /// <summary>

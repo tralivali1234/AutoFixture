@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Ploeh.AutoFixture.NUnit2.Addins;
+using System.Reflection;
+using AutoFixture.NUnit2.Addins;
 using NUnit.Framework;
-using Ploeh.TestTypeFoundation;
+using TestTypeFoundation;
 
-namespace Ploeh.AutoFixture.NUnit2.UnitTest
+namespace AutoFixture.NUnit2.UnitTest
 {
     [TestFixture]
     public class AutoDataAttributeTest
@@ -13,130 +14,175 @@ namespace Ploeh.AutoFixture.NUnit2.UnitTest
         [Test]
         public void SutIsDataAttribute()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new AutoDataAttribute();
-            // Verify outcome
+            // Assert
             Assert.IsInstanceOf<DataAttribute>(sut);
-            // Teardown
         }
 
         [Test]
         public void InitializedWithDefaultConstructorHasCorrectFixture()
         {
-            // Fixture setup
+            // Arrange
             var sut = new AutoDataAttribute();
-            // Exercise system
+            // Act
+#pragma warning disable 618
             IFixture result = sut.Fixture;
-            // Verify outcome
+#pragma warning restore 618
+            // Assert
             Assert.IsAssignableFrom<Fixture>(result);
-            // Teardown
+        }
+        
+        [Test]
+        public void InitializedWithFixtureFactoryConstrucorHasCorrectFixture()
+        {
+            // Arrange
+            var fixture = new Fixture();
+            
+            // Act
+            var sut = new DerivedAutoDataAttribute(() => fixture);
+            
+            // Assert
+#pragma warning disable 618
+            Assert.AreSame(fixture, sut.Fixture);
+#pragma warning restore 618
         }
 
         [Test]
         public void InitializeWithNullFixtureThrows()
         {
-            // Fixture setup
-            // Exercise system and verify outcome
+            // Arrange
+            // Act & Assert
+#pragma warning disable 612
             Assert.Throws<ArgumentNullException>(() =>
-                new AutoDataAttribute((IFixture)null));
-            // Teardown
+                new DerivedAutoDataAttribute((IFixture)null));
+#pragma warning restore 612
+        }
+        
+        [Test]
+        public void InitializeWithNullFixtureFactoryThrows()
+        {
+            // Arrange
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() =>
+                new DerivedAutoDataAttribute((Func<IFixture>) null));
+        }
+
+        [Test]
+        public void FixtureFactoryIsNotInvokedImmediately()
+        {
+            // Arrange
+            bool wasInvoked = false;
+            Func<IFixture> fixtureFactory = () =>
+            {
+                wasInvoked = true;
+                return null;
+            };
+
+            // Act
+            var sut = new DerivedAutoDataAttribute(fixtureFactory);
+            
+            // Assert
+            Assert.False(wasInvoked);
         }
 
         [Test]
         public void InitializedWithComposerHasCorrectComposer()
         {
-            // Fixture setup
+            // Arrange
             var expectedComposer = new DelegatingFixture();
-            var sut = new AutoDataAttribute(expectedComposer);
-            // Exercise system
+#pragma warning disable 612
+            var sut = new DerivedAutoDataAttribute(expectedComposer);
+#pragma warning restore 612
+            // Act
+#pragma warning disable 618
             var result = sut.Fixture;
-            // Verify outcome
+#pragma warning restore 618
+            // Assert
             Assert.AreEqual(expectedComposer, result);
-            // Teardown
         }
 
         [Test]
+        [Obsolete]
         public void InitializeWithNullTypeThrows()
         {
-            // Fixture setup
-            // Exercise system and verify outcome
+            // Arrange
+            // Act & Assert
             Assert.Throws<ArgumentNullException>(() =>
 #pragma warning disable 618
                 new AutoDataAttribute((Type)null));
 #pragma warning restore 618
-            // Teardown
         }
 
         [Test]
+        [Obsolete]
         public void InitializeWithNonComposerTypeThrows()
         {
-            // Fixture setup
-            // Exercise system and verify outcome
+            // Arrange
+            // Act & Assert
             Assert.Throws<ArgumentException>(() =>
 #pragma warning disable 618
                 new AutoDataAttribute(typeof(object)));
 #pragma warning restore 618
-            // Teardown
         }
 
         [Test]
+        [Obsolete]
         public void InitializeWithComposerTypeWithoutDefaultConstructorThrows()
         {
-            // Fixture setup
-            // Exercise system and verify outcome
+            // Arrange
+            // Act & Assert
             Assert.Throws<ArgumentException>(() =>
 #pragma warning disable 618
                 new AutoDataAttribute(typeof(ComposerWithoutADefaultConstructor)));
 #pragma warning restore 618
-            // Teardown
         }
 
         [Test]
+        [Obsolete]
         public void InitializedWithCorrectComposerTypeHasCorrectComposer()
         {
-            // Fixture setup
+            // Arrange
             var composerType = typeof(DelegatingFixture);
 #pragma warning disable 618
             var sut = new AutoDataAttribute(composerType);
 #pragma warning restore 618
-            // Exercise system
+            // Act
             var result = sut.Fixture;
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom(composerType, result);
-            // Teardown
         }
 
         [Test]
+        [Obsolete]
         public void FixtureTypeIsCorrect()
         {
-            // Fixture setup
+            // Arrange
             var composerType = typeof(DelegatingFixture);
 #pragma warning disable 618
             var sut = new AutoDataAttribute(composerType);
 #pragma warning restore 618
-            // Exercise system
+            // Act
             var result = sut.FixtureType;
-            // Verify outcome
+            // Assert
             Assert.AreEqual(composerType, result);
-            // Teardown
         }
 
         [Test]
         public void GetArgumentsWithNullMethodThrows()
         {
-            // Fixture setup
+            // Arrange
             var sut = new AutoDataAttribute();
-            // Exercise system and verify outcome
+            // Act & Assert
             Assert.Throws<ArgumentNullException>(() =>
                 sut.GetData(null));
-            // Teardown
         }
 
         [Test]
         public void GetArgumentsReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var method = typeof(TypeWithOverloadedMembers).GetMethod("DoSomething", new[] { typeof(object) });
             var parameters = method.GetParameters();
 
@@ -152,12 +198,11 @@ namespace Ploeh.AutoFixture.NUnit2.UnitTest
             };
             var composer = new DelegatingFixture { OnCreate = builder.OnCreate };
 
-            var sut = new AutoDataAttribute(composer);
-            // Exercise system
+            var sut = new DerivedAutoDataAttribute(() => composer);
+            // Act
             var result = sut.GetData(method);
-            // Verify outcome
+            // Assert
             Assert.True(new[] { expectedResult }.SequenceEqual(result.Single()));
-            // Teardown
         }
 
         [TestCase("CreateWithFrozenAndFavorArrays")]
@@ -174,7 +219,7 @@ namespace Ploeh.AutoFixture.NUnit2.UnitTest
         [TestCase("CreateWithNoAutoPropertiesAndFrozen")]
         public void GetDataOrdersCustomizationAttributes(string methodName)
         {
-            // Fixture setup
+            // Arrange
             var method = typeof(TypeWithCustomizationAttributes).GetMethod(methodName, new[] { typeof(ConcreteType) });
             var customizationLog = new List<ICustomization>();
             var fixture = new DelegatingFixture();
@@ -183,13 +228,70 @@ namespace Ploeh.AutoFixture.NUnit2.UnitTest
                 customizationLog.Add(c);
                 return fixture;
             };
-            var sut = new AutoDataAttribute(fixture);
-            // Exercise system
+            var sut = new DerivedAutoDataAttribute(() => fixture);
+            // Act
             sut.GetData(method);
-            // Verify outcome
+            // Assert
             Assert.False(customizationLog[0] is FreezeOnMatchCustomization);
             Assert.True(customizationLog[1] is FreezeOnMatchCustomization);
-            // Teardown
+        }
+        
+        private class TypeWithIParameterCustomizationSourceUsage
+        {
+            public void DecoratedMethod([CustomizationSource] int arg)
+            {
+            }
+
+            public class CustomizationSourceAttribute : Attribute, IParameterCustomizationSource
+            {
+                public ICustomization GetCustomization(ParameterInfo parameter)
+                {
+                    return new Customization();
+                }
+            }
+            
+            public class Customization: ICustomization
+            {
+                public void Customize(IFixture fixture)
+                {
+                }
+            }
+        }
+
+        [Test]
+        public void ShouldRecognizeAttributesImplementingIParameterCustomizationSource()
+        {
+            // Arrange
+            var method = typeof(TypeWithIParameterCustomizationSourceUsage)
+                .GetMethod(nameof(TypeWithIParameterCustomizationSourceUsage.DecoratedMethod));
+
+            var customizationLog = new List<ICustomization>();
+            var fixture = new DelegatingFixture();
+            fixture.OnCustomize = c =>
+            {
+                customizationLog.Add(c);
+                return fixture;
+            };
+            var sut = new DerivedAutoDataAttribute(() => fixture);
+            
+            // Act
+            sut.GetData(method);
+            // Assert
+            Assert.True(customizationLog[0] is TypeWithIParameterCustomizationSourceUsage.Customization);
+        }
+        
+        private class DerivedAutoDataAttribute : AutoDataAttribute
+        {
+            [Obsolete]
+            public DerivedAutoDataAttribute(IFixture fixture)
+                : base(fixture)
+            {
+            }
+
+            public DerivedAutoDataAttribute(Func<IFixture> fixtureFactory)
+                : base(fixtureFactory)
+            {
+            }
         }
     }
 }

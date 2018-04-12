@@ -1,56 +1,52 @@
 ﻿using System;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.TestTypeFoundation;
+using System.Collections.Generic;
+using AutoFixture.Kernel;
+using TestTypeFoundation;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class ExactTypeSpecificationTest
     {
         [Fact]
         public void SutIsRequestSpecification()
         {
-            // Fixture setup
+            // Arrange
             var dummyType = typeof(object);
-            // Exercise system
+            // Act
             var sut = new ExactTypeSpecification(dummyType);
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<IRequestSpecification>(sut);
-            // Teardown
         }
 
         [Fact]
         public void InitializeWithNullTypeThrows()
         {
-            // Fixture setup
-            // Exercise system and verify outcome
+            // Arrange
+            // Act & assert
             Assert.Throws<ArgumentNullException>(() => new ExactTypeSpecification(null));
-            // Teardown
         }
 
         [Fact]
         public void TargetTypeIsCorrect()
         {
-            // Fixture setup
+            // Arrange
             var expectedType = typeof(DayOfWeek);
             var sut = new ExactTypeSpecification(expectedType);
-            // Exercise system
+            // Act
             Type result = sut.TargetType;
-            // Verify outcome
+            // Assert
             Assert.Equal(expectedType, result);
-            // Teardown
         }
 
         [Fact]
         public void IsSatisfiedByNullThrows()
         {
-            // Fixture setup
+            // Arrange
             var dummyType = typeof(object);
             var sut = new ExactTypeSpecification(dummyType);
-            // Exercise system and verify outcome
+            // Act & assert
             Assert.Throws<ArgumentNullException>(() => sut.IsSatisfiedBy(null));
-            // Teardown
         }
 
         [Theory]
@@ -60,13 +56,31 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [InlineData(typeof(PropertyHolder<string>), typeof(FieldHolder<string>), false)]
         public void IsSatisfiedByReturnsCorrectResult(Type specType, Type requestType, bool expectedResult)
         {
-            // Fixture setup
+            // Arrange
             var sut = new ExactTypeSpecification(specType);
-            // Exercise system
+            // Act
             var result = sut.IsSatisfiedBy(requestType);
-            // Verify outcome
+            // Assert
             Assert.Equal(expectedResult, result);
-            // Teardown
+        }
+
+        [Theory]
+        [InlineData(typeof(PropertyHolder<>), typeof(PropertyHolder<string>), true)]
+        [InlineData(typeof(PropertyHolder<>), typeof(PropertyHolder<int>), true)]
+        [InlineData(typeof(PropertyHolder<>), typeof(FieldHolder<string>), false)]
+        [InlineData(typeof(IEnumerable<>), typeof(List<string>), false)]
+        [InlineData(typeof(IEnumerable<>), typeof(IEnumerable<string>), true)]
+        [InlineData(typeof(IDictionary<,>), typeof(Dictionary<string, int>), false)]
+        [InlineData(typeof(IDictionary<,>), typeof(IDictionary<string, int>), true)]
+        [InlineData(typeof(IEnumerable<>), typeof(string), false)]
+        public void IsSatisfiedByMatchesExactlyOpenGenerics(Type specType, Type requestType, bool expectedResult)
+        {
+            // Arrange
+            var sut = new ExactTypeSpecification(specType);
+            // Act
+            var result = sut.IsSatisfiedBy(requestType);
+            // Assert
+            Assert.Equal(expectedResult, result);
         }
     }
 }

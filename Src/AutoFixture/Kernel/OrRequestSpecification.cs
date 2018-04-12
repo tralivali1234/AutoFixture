@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// A boolean 'Or' Composite <see cref="IRequestSpecification"/>.
@@ -18,12 +18,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// <param name="specifications">An array of <see cref="IRequestSpecification"/>.</param>
         public OrRequestSpecification(params IRequestSpecification[] specifications)
         {
-            if (specifications == null)
-            {
-                throw new ArgumentNullException(nameof(specifications));
-            }
-
-            this.specifications = specifications;
+            this.specifications = specifications ?? throw new ArgumentNullException(nameof(specifications));
         }
 
         /// <summary>
@@ -39,10 +34,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// <summary>
         /// Gets the decorated specifications.
         /// </summary>
-        public IEnumerable<IRequestSpecification> Specifications
-        {
-            get { return this.specifications; }
-        }
+        public IEnumerable<IRequestSpecification> Specifications => this.specifications;
 
         /// <summary>
         /// Evaluates a request for a specimen.
@@ -56,7 +48,7 @@ namespace Ploeh.AutoFixture.Kernel
         {
             // This is performance-sensitive code when used repeatedly over many requests.
             // See discussion at https://github.com/AutoFixture/AutoFixture/pull/218
-            if (specifications.Length == 0) return true;
+            if (this.specifications.Length == 0) return true;
             for (int i = 0; i < this.specifications.Length; i++)
             {
                 var satisfied = this.specifications[i].IsSatisfiedBy(request);

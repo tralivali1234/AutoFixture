@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Decorates <see cref="ISpecimenBuilder"/> instances with <see cref="DisposableTracker"/>
@@ -25,10 +25,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// invoked, a new <see cref="DisposableTracker"/> instance is created and added to this
         /// list.
         /// </summary>
-        public IEnumerable<DisposableTracker> Trackers
-        {
-            get { return this.trackers; }
-        }
+        public IEnumerable<DisposableTracker> Trackers => this.trackers;
 
         /// <summary>
         /// Decorates the supplied builder with a <see cref="DisposableTracker"/>.
@@ -43,7 +40,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// <see cref="Trackers"/> property.
         /// </para>
         /// </remarks>
-        public ISpecimenBuilder Transform(ISpecimenBuilder builder)
+        public ISpecimenBuilderNode Transform(ISpecimenBuilder builder)
         {
             var tracker = new DisposableTracker(builder);
             this.trackers.Add(tracker);

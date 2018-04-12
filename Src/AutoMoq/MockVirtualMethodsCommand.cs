@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
+using AutoFixture.AutoMoq.Extensions;
+using AutoFixture.Kernel;
 using Moq;
-using Ploeh.AutoFixture.AutoMoq.Extensions;
-using Ploeh.AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture.AutoMoq
+namespace AutoFixture.AutoMoq
 {
     /// <summary>
     /// Sets up a mocked object's methods so that the return values will be retrieved from a fixture,
@@ -29,6 +29,8 @@ namespace Ploeh.AutoFixture.AutoMoq
     /// </remarks>
     public class MockVirtualMethodsCommand : ISpecimenCommand
     {
+        private static readonly DelegateSpecification DelegateSpecification = new DelegateSpecification();
+
         /// <summary>
         /// Sets up a mocked object's methods so that the return values will be retrieved from a fixture,
         /// instead of being created directly by Moq.
@@ -37,7 +39,7 @@ namespace Ploeh.AutoFixture.AutoMoq
         /// <param name="context">The context of the mock.</param>
         public void Execute(object specimen, ISpecimenContext context)
         {
-            if (context == null) throw new ArgumentNullException("context");
+            if (context == null) throw new ArgumentNullException(nameof(context));
 
             var mock = specimen as Mock;
             if (mock == null)
@@ -57,14 +59,14 @@ namespace Ploeh.AutoFixture.AutoMoq
                     if (method.IsVoid())
                     {
                         this.GetType()
-                            .GetMethod("SetupVoidMethod", BindingFlags.NonPublic | BindingFlags.Static)
+                            .GetMethod(nameof(SetupVoidMethod), BindingFlags.NonPublic | BindingFlags.Static)
                             .MakeGenericMethod(mockedType)
                             .Invoke(this, new object[] {mock, methodInvocationLambda});
                     }
                     else
                     {
                         this.GetType()
-                            .GetMethod("SetupMethod", BindingFlags.NonPublic | BindingFlags.Static)
+                            .GetMethod(nameof(SetupMethod), BindingFlags.NonPublic | BindingFlags.Static)
                             .MakeGenericMethod(mockedType, returnType)
                             .Invoke(this, new object[] {mock, methodInvocationLambda, context});
                     }
@@ -78,12 +80,11 @@ namespace Ploeh.AutoFixture.AutoMoq
         /// <typeparam name="TMock">The type of the object being mocked.</typeparam>
         /// <param name="mock">The mock being set up.</param>
         /// <param name="methodCallExpression">An expression representing a call to the method being set up.</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "This method is invoked through reflection.")]
+        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode",
+            Justification = "This method is invoked through reflection.")]
         private static void SetupVoidMethod<TMock>(Mock<TMock> mock, Expression<Action<TMock>> methodCallExpression)
             where TMock : class
         {
-            if (mock == null) throw new ArgumentNullException("mock");
-
             mock.Setup(methodCallExpression);
         }
 
@@ -95,11 +96,12 @@ namespace Ploeh.AutoFixture.AutoMoq
         /// <param name="mock">The mock being set up.</param>
         /// <param name="methodCallExpression">An expression representing a call to the method being set up.</param>
         /// <param name="context">The context that will be used to resolve the method's return value.</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "This method is invoked through reflection.")]
-        private static void SetupMethod<TMock, TResult>(Mock<TMock> mock, Expression<Func<TMock, TResult>> methodCallExpression, ISpecimenContext context) where TMock : class
+        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode",
+            Justification = "This method is invoked through reflection.")]
+        private static void SetupMethod<TMock, TResult>(
+            Mock<TMock> mock, Expression<Func<TMock, TResult>> methodCallExpression, ISpecimenContext context)
+            where TMock : class
         {
-            if (mock == null) throw new ArgumentNullException("mock");
-
             mock.Setup(methodCallExpression)
                 .ReturnsUsingContext(context);
         }
@@ -110,23 +112,28 @@ namespace Ploeh.AutoFixture.AutoMoq
         /// <param name="type">The type being mocked and whose methods need to be configured.</param>
         private static IEnumerable<MethodInfo> GetConfigurableMethods(Type type)
         {
-            // If "type" is an interface, "GetMethods" does not return methods declared on other interfaces extended by "type".
-            // In these cases, we use the "GetInterfaceMethods" extension method instead.
-            var methods = type.IsInterface
-                              ? type.GetInterfaceMethods()
-                              : type.GetMethods();
+            // If "type" is a delegate, return "Invoke" method only and skip the rest of the methods.
+            var methods = DelegateSpecification.IsSatisfiedBy(type)
+                ? new[] { type.GetTypeInfo().GetMethod("Invoke") }
+                : type.GetAllMethods();
 
             // Skip properties that have both getters and setters to not interfere
             // with other post-processors in the chain that initialize them later.
-            var getMethods = type.GetProperties()
-                                    .Where(p => p.GetGetMethod() != null &&
-                                                p.GetSetMethod() != null)
-                                    .Select(p => p.GetGetMethod());
-            methods = methods.Except(getMethods);
+            methods = SkipWritablePropertyGetters(type, methods);
 
             return methods.Where(CanBeConfigured);
         }
 
+        private static IEnumerable<MethodInfo> SkipWritablePropertyGetters(Type type, IEnumerable<MethodInfo> methods)
+        {
+            var getterMethods = type.GetAllProperties()
+                .Where(p => p.GetGetMethod() != null &&
+                            p.GetSetMethod() != null)
+                .Select(p => p.GetGetMethod());
+            
+            return methods.Except(getterMethods);
+        }
+        
         /// <summary>
         /// Determines whether a method can be mocked.
         /// </summary>
@@ -156,23 +163,29 @@ namespace Ploeh.AutoFixture.AutoMoq
             if (methodCallParams.Any(exp => exp == null))
                 return null;
 
-            //e.g. "x.Method(It.IsAny<string>(), out parameter)"
-            var methodCall = Expression.Call(lambdaParam, method, methodCallParams);
+            Expression methodCall;
+            if (DelegateSpecification.IsSatisfiedBy(mockedType))
+                // e.g. "x(It.IsAny<string>(), out parameter)"
+                methodCall = Expression.Invoke(lambdaParam, methodCallParams);
+            else
+                // e.g. "x.Method(It.IsAny<string>(), out parameter)"
+                methodCall = Expression.Call(lambdaParam, method, methodCallParams);
 
-            //e.g. "x => x.Method(It.IsAny<string>(), out parameter)"
+            // e.g. "x => x.Method(It.IsAny<string>(), out parameter)"
+            // or "x => x(It.IsAny<string>(), out parameter)"
             return Expression.Lambda(methodCall, lambdaParam);
         }
 
         private static Expression MakeParameterExpression(ParameterInfo parameter, ISpecimenContext context)
         {
-            //check if parameter is an "out" parameter
+            // check if parameter is an "out" parameter
             if (parameter.IsOut)
             {
-                //gets the type corresponding to this "byref" type
-                //e.g., the underlying type of "System.String&" is "System.String"
+                // gets the type corresponding to this "byref" type
+                // e.g., the underlying type of "System.String&" is "System.String"
                 var underlyingType = parameter.ParameterType.GetElementType();
 
-                //resolve the "out" param from the context
+                // resolve the "out" param from the context
                 object variable = context.Resolve(underlyingType);
 
                 if (variable is OmitSpecimen)
@@ -182,9 +195,8 @@ namespace Ploeh.AutoFixture.AutoMoq
             }
             else
             {
-                //for any non-out parameter, invoke "It.IsAny<T>()"
-                var isAnyMethod = typeof (It).GetMethod("IsAny")
-                                             .MakeGenericMethod(parameter.ParameterType);
+                // for any non-out parameter, invoke "It.IsAny<T>()"
+                var isAnyMethod = typeof(It).GetMethod(nameof(It.IsAny)).MakeGenericMethod(parameter.ParameterType);
 
                 return Expression.Call(isAnyMethod);
             }

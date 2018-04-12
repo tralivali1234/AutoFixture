@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using Ploeh.Albedo;
-using Ploeh.AutoFixture.Idioms;
-using Ploeh.TestTypeFoundation;
-using Xunit;
 using System.Linq;
+using Albedo;
+using AutoFixture.Idioms;
+using AutoFixture.Kernel;
+using TestTypeFoundation;
+using Xunit;
 
-namespace Ploeh.AutoFixture.IdiomsUnitTest
+namespace AutoFixture.IdiomsUnitTest
 {
     public class Scenario
     {
@@ -205,7 +206,7 @@ namespace Ploeh.AutoFixture.IdiomsUnitTest
             public override IReflectionVisitor<IEnumerable<NameAndType>> Visit(
                 FieldInfoElement fieldInfoElement)
             {
-                if (fieldInfoElement == null) throw new ArgumentNullException("fieldInfoElement");
+                if (fieldInfoElement == null) throw new ArgumentNullException(nameof(fieldInfoElement));
                 var v = new NameAndType(
                     fieldInfoElement.FieldInfo.Name,
                     fieldInfoElement.FieldInfo.FieldType);
@@ -216,7 +217,7 @@ namespace Ploeh.AutoFixture.IdiomsUnitTest
             public override IReflectionVisitor<IEnumerable<NameAndType>> Visit(
                 ParameterInfoElement parameterInfoElement)
             {
-                if (parameterInfoElement == null) throw new ArgumentNullException("parameterInfoElement");
+                if (parameterInfoElement == null) throw new ArgumentNullException(nameof(parameterInfoElement));
                 var v = new NameAndType(
                     parameterInfoElement.ParameterInfo.Name,
                     parameterInfoElement.ParameterInfo.ParameterType);
@@ -227,7 +228,7 @@ namespace Ploeh.AutoFixture.IdiomsUnitTest
             public override IReflectionVisitor<IEnumerable<NameAndType>> Visit(
                 PropertyInfoElement propertyInfoElement)
             {
-                if (propertyInfoElement == null) throw new ArgumentNullException("propertyInfoElement");
+                if (propertyInfoElement == null) throw new ArgumentNullException(nameof(propertyInfoElement));
                 var v = new NameAndType(
                     propertyInfoElement.PropertyInfo.Name,
                     propertyInfoElement.PropertyInfo.PropertyType);
@@ -263,7 +264,7 @@ namespace Ploeh.AutoFixture.IdiomsUnitTest
 
             int IEqualityComparer<IReflectionElement>.GetHashCode(IReflectionElement obj)
             {
-                if (obj == null) throw new ArgumentNullException("obj");
+                if (obj == null) throw new ArgumentNullException(nameof(obj));
                 return obj
                     .Accept(this.visitor)
                     .Value
@@ -302,26 +303,26 @@ namespace Ploeh.AutoFixture.IdiomsUnitTest
 
             var typesToExclude = new[] {
                 // Needs parameters of type object to be IComparable
-                typeof(Ploeh.AutoFixture.Kernel.RangedNumberRequest),
+                typeof(RangedNumberRequest),
 
                 // Needs parameters of type IMethod
-                typeof(Ploeh.AutoFixture.Kernel.MissingParametersSupplyingMethod),
+                typeof(MissingParametersSupplyingMethod),
 
                 // Constructors needs reflection types (e.g. ConstructorInfo, MethodInfo)
-                typeof(Ploeh.AutoFixture.Kernel.ConstructorMethod),
-                typeof(Ploeh.AutoFixture.Kernel.InstanceMethod),
-                typeof(Ploeh.AutoFixture.Kernel.StaticMethod),
+                typeof(ConstructorMethod),
+                typeof(InstanceMethod),
+                typeof(StaticMethod),
 
                 // Autofixture interprets a value of this type as a creation
                 // failure
-                typeof(Ploeh.AutoFixture.Kernel.NoSpecimen),
+                typeof(NoSpecimen),
 
                 // Takes one or more values involving a generic type argument
                 // in the constructor
-                typeof(Ploeh.AutoFixture.Kernel.Criterion<>),
-                typeof(Ploeh.AutoFixture.Kernel.FieldTypeAndNameCriterion),
-                typeof(Ploeh.AutoFixture.Kernel.ParameterTypeAndNameCriterion),
-                typeof(Ploeh.AutoFixture.Kernel.PropertyTypeAndNameCriterion),
+                typeof(Criterion<>),
+                typeof(FieldTypeAndNameCriterion),
+                typeof(ParameterTypeAndNameCriterion),
+                typeof(PropertyTypeAndNameCriterion),
             };
 
             var typesToVerify = typeof(IFixture).Assembly

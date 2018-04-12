@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// A customization that makes sequences (i.e. <see cref="IEnumerable{T}" /> stable instead of
@@ -31,8 +31,7 @@ namespace Ploeh.AutoFixture
         /// <seealso cref="StableFiniteSequenceCustomization" />
         public void Customize(IFixture fixture)
         {
-            if (fixture == null)
-                throw new ArgumentNullException(nameof(fixture));
+            if (fixture == null) throw new ArgumentNullException(nameof(fixture));
 
             fixture.Customizations.Add(new StableFiniteSequenceRelay());
         }

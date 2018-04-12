@@ -1,7 +1,8 @@
 using System;
 using System.Linq;
+using System.Reflection;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// A specification that determines whether the request is a request
@@ -21,12 +22,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// </exception>
         public ImplementedInterfaceSpecification(Type targetType)
         {
-            if (targetType == null)
-            {
-                throw new ArgumentNullException(nameof(targetType));
-            }
-
-            this.TargetType = targetType;
+            this.TargetType = targetType ?? throw new ArgumentNullException(nameof(targetType));
         }
 
         /// <summary>
@@ -45,13 +41,10 @@ namespace Ploeh.AutoFixture.Kernel
         /// </returns>
         public bool IsSatisfiedBy(object request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            if (request == null) throw new ArgumentNullException(nameof(request));
 
             return IsRequestForType(request) &&
-                   IsTargetTypeOrImplementedInterface(request);
+                   this.IsTargetTypeOrImplementedInterface(request);
         }
 
         private static bool IsRequestForType(object request)
@@ -61,8 +54,8 @@ namespace Ploeh.AutoFixture.Kernel
 
         private bool IsTargetTypeOrImplementedInterface(object request)
         {
-            return IsSameAsTargetType(request) ||
-                   IsInterfaceImplementedByTargetType(request);
+            return this.IsSameAsTargetType(request) ||
+                   this.IsInterfaceImplementedByTargetType(request);
         }
 
         private bool IsSameAsTargetType(object request)
@@ -73,6 +66,7 @@ namespace Ploeh.AutoFixture.Kernel
         private bool IsInterfaceImplementedByTargetType(object request)
         {
             return this.TargetType
+                       .GetTypeInfo()
                        .GetInterfaces()
                        .Contains((Type)request);
         }

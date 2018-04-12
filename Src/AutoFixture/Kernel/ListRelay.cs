@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Reflection;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Relays a request for an <see cref="IList{T}" /> to a request for a
     /// <see cref="List{T}"/> and returns the result.
     /// </summary>
+    [Obsolete("This relay has been deprecated, use \"new TypeRelay(typeof(IList<>), typeof(List<>))\" instead.")]
     public class ListRelay : ISpecimenBuilder
     {
         /// <summary>
@@ -29,21 +30,16 @@ namespace Ploeh.AutoFixture.Kernel
         /// </remarks>
         public object Create(object request, ISpecimenContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
+            if (context == null) throw new ArgumentNullException(nameof(context));
 
             var t = request as Type;
             if (t == null)
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
 
-            var typeArguments = t.GetGenericArguments();
+            var typeArguments = t.GetTypeInfo().GetGenericArguments();
             if (typeArguments.Length != 1 ||
                 typeof(IList<>) != t.GetGenericTypeDefinition())
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
 
             return context.Resolve(
                 typeof(List<>).MakeGenericType(typeArguments));

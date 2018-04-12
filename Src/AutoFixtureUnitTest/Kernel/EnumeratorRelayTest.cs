@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class EnumeratorRelayTest
     {
@@ -41,33 +40,29 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
 
             var result = sut.Create(request, dummyContext);
 
-#pragma warning disable 618
-            var expectedResult = new NoSpecimen(request);
-#pragma warning restore 618
+            var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
         }
 
 
         [Theory]
-        [InlineData(typeof (IEnumerator<object>), typeof (object))]
-        [InlineData(typeof (IEnumerator<string>), typeof (string))]
-        [InlineData(typeof (IEnumerator<int>), typeof (int))]
-        [InlineData(typeof (IEnumerator<Version>), typeof (Version))]
+        [InlineData(typeof(IEnumerator<object>), typeof(object))]
+        [InlineData(typeof(IEnumerator<string>), typeof(string))]
+        [InlineData(typeof(IEnumerator<int>), typeof(int))]
+        [InlineData(typeof(IEnumerator<Version>), typeof(Version))]
         public void CreateWithEnumeratorRequestReturnsCorrectResult(
             Type request,
             Type itemType)
         {
             var expectedRequest =
-                typeof (IEnumerable<>).MakeGenericType(itemType);
-            var enumerable = (IList) Activator.CreateInstance(
-                typeof (List<>).MakeGenericType(itemType));
+                typeof(IEnumerable<>).MakeGenericType(itemType);
+            var enumerable = (IList)Activator.CreateInstance(
+                typeof(List<>).MakeGenericType(itemType));
             var context = new DelegatingSpecimenContext
             {
                 OnResolve = r => expectedRequest.Equals(r)
                     ? (object)enumerable
-#pragma warning disable 618
-                    : new NoSpecimen(r)
-#pragma warning restore 618
+                    : new NoSpecimen()
             };
             var sut = new EnumeratorRelay();
 
@@ -76,7 +71,7 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
             var expectedResult = enumerable.GetEnumerator();
             Assert.Equal(expectedResult, result);
         }
-        
+
         [Theory]
         [InlineData(0)]
         [InlineData(1)]
@@ -94,9 +89,7 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
 
             var result = sut.Create(request, context);
 
-#pragma warning disable 618
-            var expectedResult = new NoSpecimen(request);
-#pragma warning restore 618
+            var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
         }
     }

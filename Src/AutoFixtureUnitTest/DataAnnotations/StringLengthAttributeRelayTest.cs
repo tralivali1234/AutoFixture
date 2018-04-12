@@ -1,67 +1,59 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.Reflection;
-using Ploeh.AutoFixture.DataAnnotations;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.AutoFixtureUnitTest.Kernel;
+using AutoFixture.DataAnnotations;
+using AutoFixture.Kernel;
+using AutoFixtureUnitTest.Kernel;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest.DataAnnotations
+namespace AutoFixtureUnitTest.DataAnnotations
 {
     public class StringLengthAttributeRelayTest
     {
         [Fact]
         public void SutIsSpecimenBuilder()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new StringLengthAttributeRelay();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<ISpecimenBuilder>(sut);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithNullRequestReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = new StringLengthAttributeRelay();
-            // Exercise system
+            // Act
             var dummyContext = new DelegatingSpecimenContext();
             var result = sut.Create(null, dummyContext);
-            // Verify outcome
+            // Assert
             Assert.Equal(new NoSpecimen(), result);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithNullContextThrows()
         {
-            // Fixture setup
+            // Arrange
             var sut = new StringLengthAttributeRelay();
             var dummyRequest = new object();
-            // Exercise system and verify outcome
+            // Act & assert
             Assert.Throws<ArgumentNullException>(() =>
                 sut.Create(dummyRequest, null));
-            // Teardown
         }
 
         [Fact]
         public void CreateWithAnonymousRequestReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = new StringLengthAttributeRelay();
             var dummyRequest = new object();
-            // Exercise system
+            // Act
             var dummyContainer = new DelegatingSpecimenContext();
             var result = sut.Create(dummyRequest, dummyContainer);
-            // Verify outcome
-#pragma warning disable 618
-            var expectedResult = new NoSpecimen(dummyRequest);
-#pragma warning restore 618
+            // Assert
+            var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Theory]
@@ -74,17 +66,14 @@ namespace Ploeh.AutoFixtureUnitTest.DataAnnotations
         [InlineData(typeof(Version))]
         public void CreateWithNonConstrainedStringRequestReturnsCorrectResult(object request)
         {
-            // Fixture setup
+            // Arrange
             var sut = new StringLengthAttributeRelay();
-            // Exercise system
+            // Act
             var dummyContext = new DelegatingSpecimenContext();
             var result = sut.Create(request, dummyContext);
-            // Verify outcome
-#pragma warning disable 618
-            var expectedResult = new NoSpecimen(request);
-#pragma warning restore 618
+            // Assert
+            var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Theory]
@@ -93,24 +82,21 @@ namespace Ploeh.AutoFixtureUnitTest.DataAnnotations
         [InlineData(3)]
         public void CreateWithConstrainedStringRequestReturnsCorrectResult(int maximum)
         {
-            // Fixture setup
+            // Arrange
             var stringLengthAttribute = new StringLengthAttribute(maximum);
             var providedAttribute = new ProvidedAttribute(stringLengthAttribute, true);
-            ICustomAttributeProvider request = new FakeCustomAttributeProvider(providedAttribute);
+            var request = new FakeMemberInfo(providedAttribute);
             var expectedRequest = new ConstrainedStringRequest(stringLengthAttribute.MaximumLength);
             var expectedResult = new object();
             var context = new DelegatingSpecimenContext
             {
-#pragma warning disable 618
-                OnResolve = r => expectedRequest.Equals(r) ? expectedResult : new NoSpecimen(r)
-#pragma warning restore 618
+                OnResolve = r => expectedRequest.Equals(r) ? expectedResult : new NoSpecimen()
             };
             var sut = new StringLengthAttributeRelay();
-            // Exercise system
+            // Act
             var result = sut.Create(request, context);
-            // Verify outcome
+            // Assert
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Theory]
@@ -119,10 +105,10 @@ namespace Ploeh.AutoFixtureUnitTest.DataAnnotations
         [InlineData(3)]
         public void CreateWithStringRequestConstrainedbyMinimunLengthReturnsCorrectResult(int maximum)
         {
-            // Fixture setup
+            // Arrange
             var stringLengthAttribute = new StringLengthAttribute(maximum) { MinimumLength = 1 };
             var providedAttribute = new ProvidedAttribute(stringLengthAttribute, true);
-            ICustomAttributeProvider request = new FakeCustomAttributeProvider(providedAttribute);
+            var request = new FakeMemberInfo(providedAttribute);
             var expectedRequest = new ConstrainedStringRequest(stringLengthAttribute.MinimumLength, stringLengthAttribute.MaximumLength);
             var expectedResult = new object();
             var context = new DelegatingSpecimenContext
@@ -130,11 +116,10 @@ namespace Ploeh.AutoFixtureUnitTest.DataAnnotations
                 OnResolve = r => expectedRequest.Equals(r) ? expectedResult : new NoSpecimen()
             };
             var sut = new StringLengthAttributeRelay();
-            // Exercise system
+            // Act
             var result = sut.Create(request, context);
-            // Verify outcome
+            // Assert
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
     }
 }

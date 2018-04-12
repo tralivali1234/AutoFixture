@@ -1,10 +1,12 @@
-﻿using NUnit.Framework;
-using System.Linq;
+﻿using System.Linq;
+using System.Reflection;
+using NUnit.Framework;
 
-namespace Ploeh.AutoFixture.NUnit3.UnitTest
+namespace AutoFixture.NUnit3.UnitTest
 {
     public class DependencyConstraints
     {
+        [Test]
         [InlineAutoData("FakeItEasy")]
         [InlineAutoData("Foq")]
         [InlineAutoData("FsCheck")]
@@ -16,15 +18,14 @@ namespace Ploeh.AutoFixture.NUnit3.UnitTest
         [InlineAutoData("xunit.extensions")]
         public void AutoFixtureNUnit3DoesNotReference(string assemblyName)
         {
-            // Fixture setup
-            // Exercise system
-            var references = typeof(AutoDataAttribute).Assembly.GetReferencedAssemblies();
-            // Verify outcome
+            // Arrange
+            // Act
+            var references = typeof(AutoDataAttribute).GetTypeInfo().Assembly.GetReferencedAssemblies();
+            // Assert
             Assert.False(references.Any(an => an.Name == assemblyName));
-            // Teardown
         }
 
-        [Theory]
+        [Test]
         [InlineAutoData("FakeItEasy")]
         [InlineAutoData("Foq")]
         [InlineAutoData("FsCheck")]
@@ -36,12 +37,11 @@ namespace Ploeh.AutoFixture.NUnit3.UnitTest
         [InlineAutoData("xunit.extensions")]
         public void AutoFixtureNUnit3UnitTestsDoNotReference(string assemblyName)
         {
-            // Fixture setup
-            // Exercise system
-            var references = this.GetType().Assembly.GetReferencedAssemblies();
-            // Verify outcome
+            // Arrange
+            // Act
+            var references = this.GetType().GetTypeInfo().Assembly.GetReferencedAssemblies();
+            // Assert
             Assert.False(references.Any(an => an.Name == assemblyName));
-            // Teardown
         }
     }
 }

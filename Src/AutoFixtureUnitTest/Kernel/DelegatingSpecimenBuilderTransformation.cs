@@ -1,20 +1,20 @@
 ﻿using System;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class DelegatingSpecimenBuilderTransformation : ISpecimenBuilderTransformation
     {
         public DelegatingSpecimenBuilderTransformation()
         {
-            this.OnTransform = b => b;
+            this.OnTransform = b => (ISpecimenBuilderNode)b;
         }
 
-        public ISpecimenBuilder Transform(ISpecimenBuilder builder)
+        public ISpecimenBuilderNode Transform(ISpecimenBuilder builder)
         {
             return this.OnTransform(builder);
         }
 
-        internal Func<ISpecimenBuilder, ISpecimenBuilder> OnTransform { get; set; }
+        internal Func<ISpecimenBuilder, ISpecimenBuilderNode> OnTransform { get; set; }
     }
 }

@@ -1,41 +1,39 @@
 ﻿using System;
 using System.Linq;
-using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture;
+using AutoFixture.Kernel;
 using Xunit;
 
-namespace Ploeh.AutoFixtureUnitTest
+namespace AutoFixtureUnitTest
 {
     public class SupportMutableValueTypesCustomizationTest
     {
         [Fact]
         public void SutIsCustomization()
         {
-            // Exercise system
+            // Act
             var sut = new SupportMutableValueTypesCustomization();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<ICustomization>(sut);
-            // Teardown
         }
 
         [Fact]
         public void CustomizeNullFixtureThrows()
         {
-            // Fixture setup
+            // Arrange
             var sut = new SupportMutableValueTypesCustomization();
-            // Exercise system and verify outcome
+            // Act & assert
             Assert.Throws<ArgumentNullException>(() =>
                 sut.Customize(null));
-            // Teardown
         }
 
         [Fact]
         public void CustomizeProperFixtureCorrectlyCustomizesIt()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             var sut = new SupportMutableValueTypesCustomization();
-            // Exercise system
+            // Act
             sut.Customize(fixture);
 
             var results = fixture.Customizations
@@ -45,9 +43,8 @@ namespace Ploeh.AutoFixtureUnitTest
                                      b.Builder is MutableValueTypeGenerator)
                                  .Where(b => b.Command is AutoPropertiesCommand)
                                  .SingleOrDefault();
-            // Verify outcome
+            // Assert
             Assert.NotNull(results);
-            // Teardown
-        } 
+        }
     }
 }

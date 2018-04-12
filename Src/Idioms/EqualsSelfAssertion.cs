@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using Ploeh.AutoFixture.Kernel;
 using System.Globalization;
+using System.Reflection;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture.Idioms
+namespace AutoFixture.Idioms
 {
     /// <summary>
     /// Encapsulates a unit test that verifies that a type which overrides the
@@ -15,8 +12,6 @@ namespace Ploeh.AutoFixture.Idioms
     /// </summary>
     public class EqualsSelfAssertion : IdiomaticAssertion
     {
-        private readonly ISpecimenBuilder builder;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="EqualsSelfAssertion"/> class.
         /// </summary>
@@ -32,21 +27,13 @@ namespace Ploeh.AutoFixture.Idioms
         /// </remarks>
         public EqualsSelfAssertion(ISpecimenBuilder builder)
         {
-            if (builder == null)
-            {
-                throw new ArgumentNullException("builder");
-            }
-
-            this.builder = builder;
+            this.Builder = builder ?? throw new ArgumentNullException(nameof(builder));
         }
 
         /// <summary>
         /// Gets the builder supplied by the constructor.
         /// </summary>
-        public ISpecimenBuilder Builder
-        {
-            get { return this.builder; }
-        }
+        public ISpecimenBuilder Builder { get; }
 
         /// <summary>
         /// Verifies that `calling `x.Equals(x)' on an instance of the type returns true
@@ -55,8 +42,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="methodInfo">The method to verify</param>
         public override void Verify(MethodInfo methodInfo)
         {
-            if (methodInfo == null)
-                throw new ArgumentNullException("methodInfo");
+            if (methodInfo == null) throw new ArgumentNullException(nameof(methodInfo));
 
             if (methodInfo.ReflectedType == null ||
                 !methodInfo.IsObjectEqualsOverrideMethod())
@@ -65,7 +51,7 @@ namespace Ploeh.AutoFixture.Idioms
                 return;
             }
 
-            var instance = this.builder.CreateAnonymous(methodInfo.ReflectedType);
+            var instance = this.Builder.CreateAnonymous(methodInfo.ReflectedType);
             var equalsResult = instance.Equals(instance);
             if (!equalsResult)
             {

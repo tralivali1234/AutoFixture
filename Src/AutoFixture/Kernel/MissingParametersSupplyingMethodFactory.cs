@@ -1,7 +1,7 @@
 using System;
 using System.Reflection;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Creates a new <see cref="MissingParametersSupplyingMethod" /> for an 
@@ -16,10 +16,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// <param name="owner">The owner.</param>
         public MissingParametersSupplyingMethodFactory(object owner)
         {
-            if (owner == null)
-                throw new ArgumentNullException(nameof(owner));
-
-            this.Owner = owner;
+            this.Owner = owner ?? throw new ArgumentNullException(nameof(owner));
         }
 
         /// <summary>
@@ -36,7 +33,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// <returns>Method for <paramref name="methodInfo"/>.</returns>
         public IMethod Create(MethodInfo methodInfo)
         {
-            return new MissingParametersSupplyingMethod(new InstanceMethod(methodInfo, Owner));
+            return new MissingParametersSupplyingMethod(new InstanceMethod(methodInfo, this.Owner));
         }
     }
 }

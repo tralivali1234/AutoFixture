@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Linq;
+using System.Reflection;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// A specification that evaluates whether a request is a request for a nullable enum.
@@ -20,13 +20,14 @@ namespace Ploeh.AutoFixture.Kernel
         {
             // This is performance-sensitive code when used repeatedly over many requests.
             // See discussion at https://github.com/AutoFixture/AutoFixture/pull/218
-            var requestType = request as Type;
-            if (requestType == null) return false;
-            if (!requestType.IsGenericType) return false;
-            var gtd = requestType.GetGenericTypeDefinition();
-            if (!typeof(Nullable<>).IsAssignableFrom(gtd)) return false;
-            var ga = requestType.GetGenericArguments();
-            return ga.Length == 1 && ga[0].IsEnum;
+            var typeRequest = request as Type;
+            if (typeRequest == null)
+                return false;
+
+            if (!typeRequest.TryGetSingleGenericTypeArgument(typeof(Nullable<>), out Type nullableType))
+                return false;
+
+            return nullableType.GetTypeInfo().IsEnum;
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Decorates an <see cref="ISpecimenBuilder"/> and filters requests so that only some requests
@@ -19,17 +19,8 @@ namespace Ploeh.AutoFixture.Kernel
         /// </param>
         public FilteringSpecimenBuilder(ISpecimenBuilder builder, IRequestSpecification specification)
         {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }        
-            if (specification == null)
-            {
-                throw new ArgumentNullException(nameof(specification));
-            }
-
-            this.Builder = builder;
-            this.Specification = specification;
+            this.Builder = builder ?? throw new ArgumentNullException(nameof(builder));
+            this.Specification = specification ?? throw new ArgumentNullException(nameof(specification));
         }
 
         /// <summary>
@@ -56,9 +47,7 @@ namespace Ploeh.AutoFixture.Kernel
         {
             if (!this.Specification.IsSatisfiedBy(request))
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
             }
 
             return this.Builder.Create(request, context);

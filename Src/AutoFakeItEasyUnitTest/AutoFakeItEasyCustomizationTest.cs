@@ -1,103 +1,143 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AutoFixture.Kernel;
 using FakeItEasy;
-using Ploeh.AutoFixture.Kernel;
 using Xunit;
 
-namespace Ploeh.AutoFixture.AutoFakeItEasy.UnitTest
+namespace AutoFixture.AutoFakeItEasy.UnitTest
 {
     public class AutoFakeItEasyCustomizationTest
     {
         [Fact]
         public void SutIsCustomization()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new AutoFakeItEasyCustomization();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<ICustomization>(sut);
-            // Teardown
         }
 
-        [Fact]
+        [Fact, Obsolete]
         public void InitializeWithNullRelayThrows()
         {
-            // Fixture setup
-            // Exercise system and verify outcome
+            // Arrange
+            // Act & Assert
             Assert.Throws<ArgumentNullException>(() =>
                 new AutoFakeItEasyCustomization(null));
-            // Teardown
         }
 
         [Fact]
+        public void SetNullRelayThrows()
+        {
+            // Arrange
+            var sut = new AutoFakeItEasyCustomization();
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() =>
+                sut.Relay = null);
+        }
+
+        [Fact]
+        public void DelegatesFeatureIsDisabledByDefault()
+        {
+            // Arrange
+            // Act
+            var sut = new AutoFakeItEasyCustomization();
+            // Assert
+            Assert.False(sut.GenerateDelegates);
+        }
+
+#if !CAN_FAKE_DELEGATES
+        [Fact]
+        public void InitializeWithGenerateDelegatesOptionThrowsIfNotSupported()
+        {
+            // Arrange
+            // Act
+            var ex = Assert.Throws<ArgumentException>(() =>
+                new Fixture().Customize(new AutoFakeItEasyCustomization { GenerateDelegates = true }));
+            // Assert
+            Assert.Contains(
+                "Option GenerateDelegates was specified, but this requires FakeItEasy version 1.7.4257.42 or higher",
+                ex.Message);
+        }
+#endif
+
+        [Fact, Obsolete]
         public void SpecificationIsCorrectWhenInitializedWithRelay()
         {
-            // Fixture setup
+            // Arrange
             var expectedRelay = new FakeItEasyRelay();
             var sut = new AutoFakeItEasyCustomization(expectedRelay);
-            // Exercise system
+            // Act
             ISpecimenBuilder result = sut.Relay;
-            // Verify outcome
+            // Assert
             Assert.Equal(expectedRelay, result);
-            // Teardown
+        }
+
+        [Fact]
+        public void SpecificationIsCorrectWhenRelayIsSetViaProperty()
+        {
+            // Arrange
+            var expectedRelay = new FakeItEasyRelay();
+            // Act
+            var sut = new AutoFakeItEasyCustomization { Relay = expectedRelay };
+            // Assert
+            ISpecimenBuilder result = sut.Relay;
+            Assert.Equal(expectedRelay, result);
         }
 
         [Fact]
         public void SpecificationIsNotNullWhenInitializedWithDefaultConstructor()
         {
-            // Fixture setup
+            // Arrange
             var sut = new AutoFakeItEasyCustomization();
-            // Exercise system
+            // Act
             var result = sut.Relay;
-            // Verify outcome
+            // Assert
             Assert.IsType<FakeItEasyRelay>(result);
-            // Teardown
         }
 
         [Fact]
         public void CustomizeNullFixtureThrows()
         {
-            // Fixture setup
+            // Arrange
             var sut = new AutoFakeItEasyCustomization();
-            // Exercise system and verify outcome
+            // Act & Assert
             Assert.Throws<ArgumentNullException>(() =>
                 sut.Customize(null));
-            // Teardown
         }
 
         [Fact]
         public void CustomizeAddsAppropriateCustomizations()
         {
-            // Fixture setup
+            // Arrange
             var customizations = new List<ISpecimenBuilder>();
             var fixtureStub = new Fake<IFixture>();
             fixtureStub.CallsTo(c => c.Customizations).Returns(customizations);
 
             var sut = new AutoFakeItEasyCustomization();
-            // Exercise system
+            // Act
             sut.Customize(fixtureStub.FakedObject);
-            // Verify outcome
+            // Assert
             var postprocessor = customizations.OfType<FakeItEasyBuilder>().Single();
             var ctorInvoker = Assert.IsAssignableFrom<MethodInvoker>(postprocessor.Builder);
             Assert.IsAssignableFrom<FakeItEasyMethodQuery>(ctorInvoker.Query);
-            // Teardown
         }
 
         [Fact]
         public void CustomizeAddsAppropriateResidueCollector()
         {
-            // Fixture setup
+            // Arrange
             var residueCollectors = new List<ISpecimenBuilder>();
             var fixtureStub = new Fake<IFixture>();
             fixtureStub.CallsTo(c => c.ResidueCollectors).Returns(residueCollectors);
             
             var sut = new AutoFakeItEasyCustomization();
-            // Exercise system
+            // Act
             sut.Customize(fixtureStub.FakedObject);
-            // Verify outcome
+            // Assert
             Assert.Contains(sut.Relay, residueCollectors);
-            // Teardown
         }
     }
 }

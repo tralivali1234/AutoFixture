@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// A marker class, used to explicitly identify the root of the
@@ -35,10 +33,7 @@ namespace Ploeh.AutoFixture
         /// <seealso cref="Builder" />
         public BehaviorRoot(ISpecimenBuilder builder)
         {
-            if (builder == null)
-                throw new ArgumentNullException(nameof(builder));
-
-            this.Builder = builder;
+            this.Builder = builder ?? throw new ArgumentNullException(nameof(builder));
         }
 
         /// <summary>Composes the supplied builders.</summary>
@@ -49,8 +44,7 @@ namespace Ploeh.AutoFixture
         /// </returns>
         public ISpecimenBuilderNode Compose(IEnumerable<ISpecimenBuilder> builders)
         {
-            var composedBuilder = 
-                CompositeSpecimenBuilder.ComposeIfMultiple(builders);
+            var composedBuilder = CompositeSpecimenBuilder.ComposeIfMultiple(builders);
             return new BehaviorRoot(composedBuilder);
         }
 
@@ -89,7 +83,7 @@ namespace Ploeh.AutoFixture
         /// Returns an enumerator that iterates through a collection.
         /// </summary>
         /// <returns>
-        /// An <see cref="T:System.Collections.IEnumerator" /> object that can
+        /// An <see cref="System.Collections.IEnumerator" /> object that can
         /// be used to iterate through the collection.
         /// </returns>
         /// <seealso cref="GetEnumerator()" />

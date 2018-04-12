@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Aggregates a set of <see cref="ISpecimenCommand"/>.
@@ -28,18 +27,13 @@ namespace Ploeh.AutoFixture.Kernel
         /// <param name="commands">The child commands.</param>
         public CompositeSpecimenCommand(params ISpecimenCommand[] commands)
         {
-            if (commands == null) throw new ArgumentNullException(nameof(commands));
-
-            this.commands = commands;
+            this.commands = commands ?? throw new ArgumentNullException(nameof(commands));
         }
 
         /// <summary>
         /// Gets the child commands.
         /// </summary>
-        public IEnumerable<ISpecimenCommand> Commands
-        {
-            get { return commands; }
-        }
+        public IEnumerable<ISpecimenCommand> Commands => this.commands;
 
         /// <summary>
         /// Executes all child commands using a given specimen and context.
@@ -48,8 +42,10 @@ namespace Ploeh.AutoFixture.Kernel
         /// <param name="context">The context of <paramref name="specimen"/>.</param>
         public void Execute(object specimen, ISpecimenContext context)
         {
-            foreach (var command in commands)
+            foreach (var command in this.commands)
+            {
                 command.Execute(specimen, context);
+            }
         }
     }
 }

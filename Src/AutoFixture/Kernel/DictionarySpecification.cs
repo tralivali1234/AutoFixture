@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Encapsulates logic that determines whether a request is a request for a dictionary.
     /// </summary>
+    [Obsolete("This specification is obsolete. Use ExactTypeSpecification(typeof(Dictionary<,>)) instead.")]
     public class DictionarySpecification : IRequestSpecification
     {
         /// <summary>
@@ -19,14 +21,9 @@ namespace Ploeh.AutoFixture.Kernel
         /// </returns>
         public bool IsSatisfiedBy(object request)
         {
-            var type = request as Type;
-            if (type == null)
-            {
-                return false;
-            }
-
-            return type.IsGenericType
-                && typeof(Dictionary<,>) == type.GetGenericTypeDefinition();
+            return request is Type type &&
+                       type.GetTypeInfo().IsGenericType &&
+                       type.GetGenericTypeDefinition() == typeof(Dictionary<,>);
         }
     }
 }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// Contains extension methods for repeating a function in <see cref="IFixture"/> instances.
@@ -30,10 +30,7 @@ namespace Ploeh.AutoFixture
         /// </remarks>
         public static IEnumerable<T> Repeat<T>(this IFixture fixture, Func<T> function)
         {
-            if (fixture == null)
-            {
-                throw new ArgumentNullException("fixture");
-            }
+            if (fixture == null) throw new ArgumentNullException(nameof(fixture));
 
             return from f in Enumerable.Repeat(function, fixture.RepeatCount)
                    select f();

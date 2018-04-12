@@ -1,15 +1,12 @@
 ﻿using System;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture.AutoNSubstitute
+namespace AutoFixture.AutoNSubstitute
 {
     /// <summary>Provides pre- and post-condition checks for requests for substituted instances.</summary>
     /// <seealso cref="Create(object, ISpecimenContext)"/>
     public class NSubstituteBuilder : ISpecimenBuilder
     {
-        private readonly ISpecimenBuilder builder;
-        private readonly IRequestSpecification substitutionSpecification;
-
         /// <summary>Initializes a new instance of the <see cref="NSubstituteBuilder"/> class with an
         ///     <see cref="ISpecimenBuilder"/> to decorate.</summary>
         /// <param name="builder">The builder which must build mock instances.</param>
@@ -34,21 +31,13 @@ namespace Ploeh.AutoFixture.AutoNSubstitute
         /// <seealso cref="SubstitutionSpecification"/>
         public NSubstituteBuilder(ISpecimenBuilder builder, IRequestSpecification substitutionSpecification)
         {
-            if (builder == null)
-                throw new ArgumentNullException("builder");
-            if (substitutionSpecification == null)
-                throw new ArgumentNullException("substitutionSpecification");
-
-            this.builder = builder;
-            this.substitutionSpecification = substitutionSpecification;
+            this.Builder = builder ?? throw new ArgumentNullException(nameof(builder));
+            this.SubstitutionSpecification = substitutionSpecification ?? throw new ArgumentNullException(nameof(substitutionSpecification));
         }
 
         /// <summary>Gets the decorated builder supplied through the constructor.</summary>
         /// <seealso cref="NSubstituteBuilder(ISpecimenBuilder)"/>
-        public ISpecimenBuilder Builder
-        {
-            get { return builder; }
-        }
+        public ISpecimenBuilder Builder { get; }
 
         /// <summary>Gets a specification that determines whether a substitute should be created for a given request.</summary>
         /// <remarks>
@@ -59,10 +48,7 @@ namespace Ploeh.AutoFixture.AutoNSubstitute
         ///     </para>
         /// </remarks>
         /// <seealso cref="NSubstituteBuilder(ISpecimenBuilder, IRequestSpecification)"/>
-        public IRequestSpecification SubstitutionSpecification
-        {
-            get { return substitutionSpecification; }
-        }
+        public IRequestSpecification SubstitutionSpecification { get; }
 
         /// <summary>Creates a new specimen based on a request.</summary>
         /// <param name="request">The request that describes what to create.</param>
@@ -74,16 +60,12 @@ namespace Ploeh.AutoFixture.AutoNSubstitute
         /// </remarks>
         public object Create(object request, ISpecimenContext context)
         {
-            if (!SubstitutionSpecification.IsSatisfiedBy(request))
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+            if (!this.SubstitutionSpecification.IsSatisfiedBy(request))
+                return new NoSpecimen();
 
-            var substitute = Builder.Create(request, context);
+            var substitute = this.Builder.Create(request, context);
             if (substitute == null)
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
 
             return substitute;
         }

@@ -1,22 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
+using TestTypeFoundation;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
+    [Obsolete]
     public class DictionarySpecificationTest
     {
         [Fact]
         public void SutIsRequestSpecification()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new DictionarySpecification();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<IRequestSpecification>(sut);
-            // Teardown
         }
 
         [Theory]
@@ -33,29 +33,27 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [InlineData(typeof(Version[]))]
         public void IsSatisfiedByNonDictionaryRequestReturnsCorrectResult(object request)
         {
-            // Fixture setup
+            // Arrange
             var sut = new DictionarySpecification();
-            // Exercise system
+            // Act
             var result = sut.IsSatisfiedBy(request);
-            // Verify outcome
+            // Assert
             Assert.False(result);
-            // Teardown
         }
 
         [Theory]
         [InlineData(typeof(Dictionary<object, object>))]
         [InlineData(typeof(Dictionary<int, string>))]
         [InlineData(typeof(Dictionary<string, int>))]
-        [InlineData(typeof(Dictionary<Version, OperatingSystem>))]
+        [InlineData(typeof(Dictionary<Version, ConcreteType>))]
         public void IsSatisfiedByDictionaryRequestReturnsCorrectResult(Type request)
         {
-            // Fixture setup
+            // Arrange
             var sut = new DictionarySpecification();
-            // Exercise system
+            // Act
             var result = sut.IsSatisfiedBy(request);
-            // Verify outcome
+            // Assert
             Assert.True(result);
-            // Teardown
         }
     }
 }

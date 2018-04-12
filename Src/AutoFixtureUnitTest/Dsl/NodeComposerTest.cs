@@ -1,71 +1,66 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using AutoFixture.Dsl;
+using AutoFixture.Kernel;
+using AutoFixtureUnitTest.Kernel;
+using TestTypeFoundation;
 using Xunit;
-using Ploeh.AutoFixture.Dsl;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.AutoFixtureUnitTest.Kernel;
-using Ploeh.TestTypeFoundation;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest.Dsl
+namespace AutoFixtureUnitTest.Dsl
 {
     public class NodeComposerTest
     {
         [Fact]
         public void SutIsComposer()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = SpecimenBuilderNodeFactory.CreateComposer<object>();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<ICustomizationComposer<object>>(sut);
-            // Teardown
         }
 
         [Fact]
         public void SutIsSpecimenBuilderNode()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = SpecimenBuilderNodeFactory.CreateComposer<string>();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<ISpecimenBuilderNode>(sut);
-            // Teardown
         }
 
         [Fact]
         public void SutYieldsDecoratedBuilder()
         {
-            // Fixture setup
+            // Arrange
             var expected = new DelegatingSpecimenBuilder();
-            // Exercise system
+            // Act
             var sut = new NodeComposer<Guid>(expected);
-            // Verify outcome
+            // Assert
             Assert.True(new[] { expected }.SequenceEqual(sut));
             Assert.True(new object[] { expected }.SequenceEqual(
                 ((System.Collections.IEnumerable)sut).Cast<object>()));
-            // Teardown
         }
 
         [Fact]
         public void BuilderIsCorrect()
         {
-            // Fixture setup
+            // Arrange
             var expected = new DelegatingSpecimenBuilder();
             var sut = new NodeComposer<Guid>(expected);
-            // Exercise system
+            // Act
             ISpecimenBuilder actual = sut.Builder;
-            // Verify outcome
+            // Assert
             Assert.Equal(expected, actual);
-            // Teardown
         }
 
         [Fact]
         public void CreateReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var request = new object();
             var context = new DelegatingSpecimenContext();
             var expected = new object();
@@ -73,175 +68,163 @@ namespace Ploeh.AutoFixtureUnitTest.Dsl
             {
                 OnCreate = (r, c) => r == request && c == context ?
                     expected :
-#pragma warning disable 618
-                    new NoSpecimen(r)
-#pragma warning restore 618
+                    new NoSpecimen()
             };
             var sut = new NodeComposer<object>(builder);
-            // Exercise system
+            // Act
             var actual = sut.Create(request, context);
-            // Verify outcome
+            // Assert
             Assert.Equal(expected, actual);
-            // Teardown
         }
 
         [Fact]
         public void SutIsCorrectInitialGraph()
         {
-            // Fixture setup
+            // Arrange
             var sut = SpecimenBuilderNodeFactory.CreateComposer<int>();
-            // Exercise system
-            // Verify outcome
+            // Act
+            // Assert
             var factory = new MethodInvoker(new ModestConstructorQuery());
             var expected = new NodeComposer<int>(
                 SpecimenBuilderNodeFactory.CreateTypedNode(typeof(int), factory));
             Assert.True(expected.GraphEquals(sut, new NodeComparer()));
-            // Teardown
         }
 
         [Fact]
         public void FromSeedReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = SpecimenBuilderNodeFactory.CreateComposer<decimal>();
             Func<decimal, decimal> f = d => d;
-            // Exercise system
+            // Act
             var actual = sut.FromSeed(f);
-            // Verify outcome
+            // Assert
             var factory = new SeededFactory<decimal>(f);
             var expected = new NodeComposer<decimal>(
                 SpecimenBuilderNodeFactory.CreateTypedNode(typeof(decimal), factory));
 
             var n = Assert.IsAssignableFrom<ISpecimenBuilderNode>(actual);
             Assert.True(expected.GraphEquals(n, new NodeComparer()));
-            // Teardown
         }
 
         [Fact]
         public void FromSpecimenBuilderFactoryReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = SpecimenBuilderNodeFactory.CreateComposer<Guid>();
             var builder = new DelegatingSpecimenBuilder();
-            // Exercise system
+            // Act
             var actual = sut.FromFactory(builder);
-            // Verify outcome
+            // Assert
             var expected = new NodeComposer<Guid>(
                 SpecimenBuilderNodeFactory.CreateTypedNode(typeof(Guid), builder));
 
             var n = Assert.IsAssignableFrom<ISpecimenBuilderNode>(actual);
             Assert.True(expected.GraphEquals(n, new NodeComparer()));
-            // Teardown
         }
 
         [Fact]
         public void FromNoArgFuncReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = SpecimenBuilderNodeFactory.CreateComposer<long>();
             Func<long> f = () => 0;
-            // Exercise system
+            // Act
             var actual = sut.FromFactory(f);
-            // Verify outcome
+            // Assert
             var factory = new SpecimenFactory<long>(f);
             var expected = new NodeComposer<long>(
                 SpecimenBuilderNodeFactory.CreateTypedNode(typeof(long), factory));
 
             var n = Assert.IsAssignableFrom<ISpecimenBuilderNode>(actual);
             Assert.True(expected.GraphEquals(n, new NodeComparer()));
-            // Teardown
         }
 
         [Fact]
         public void FromSingleArgFuncReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = SpecimenBuilderNodeFactory.CreateComposer<float>();
             Func<int, float> f = i => i;
-            // Exercise system
+            // Act
             var actual = sut.FromFactory(f);
-            // Verify outcome
+            // Assert
             var factory = new SpecimenFactory<int, float>(f);
             var expected = new NodeComposer<float>(
                 SpecimenBuilderNodeFactory.CreateTypedNode(typeof(float), factory));
 
             var n = Assert.IsAssignableFrom<ISpecimenBuilderNode>(actual);
             Assert.True(expected.GraphEquals(n, new NodeComparer()));
-            // Teardown
         }
 
         [Fact]
         public void FromDoubleArgFuncReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = SpecimenBuilderNodeFactory.CreateComposer<string>();
             Func<int, Version, string> f = (i, _) => i.ToString();
-            // Exercise system
+            // Act
             var actual = sut.FromFactory(f);
-            // Verify outcome
+            // Assert
             var factory = new SpecimenFactory<int, Version, string>(f);
             var expected = new NodeComposer<string>(
                 SpecimenBuilderNodeFactory.CreateTypedNode(typeof(string), factory));
 
             var n = Assert.IsAssignableFrom<ISpecimenBuilderNode>(actual);
             Assert.True(expected.GraphEquals(n, new NodeComparer()));
-            // Teardown
         }
 
         [Fact]
         public void FromTripleArgFuncReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = SpecimenBuilderNodeFactory.CreateComposer<decimal>();
             Func<int, Guid, Version, decimal> f = (i, g, v) => i;
-            // Exercise system
+            // Act
             var actual = sut.FromFactory(f);
-            // Verify outcome
+            // Assert
             var factory = new SpecimenFactory<int, Guid, Version, decimal>(f);
             var expected = new NodeComposer<decimal>(
                 SpecimenBuilderNodeFactory.CreateTypedNode(typeof(decimal), factory));
 
             var n = Assert.IsAssignableFrom<ISpecimenBuilderNode>(actual);
             Assert.True(expected.GraphEquals(n, new NodeComparer()));
-            // Teardown
         }
 
         [Fact]
         public void FromQuadrupleArgFuncReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = SpecimenBuilderNodeFactory.CreateComposer<Version>();
             Func<int, int, int, int, Version> f = (mj, mn, b, r) => new Version(mj, mn, b, r);
-            // Exercise system
+            // Act
             var actual = sut.FromFactory(f);
-            // Verify outcome
+            // Assert
             var factory = new SpecimenFactory<int, int, int, int, Version>(f);
             var expected = new NodeComposer<Version>(
                 SpecimenBuilderNodeFactory.CreateTypedNode(typeof(Version), factory));
 
             var n = Assert.IsAssignableFrom<ISpecimenBuilderNode>(actual);
             Assert.True(expected.GraphEquals(n, new NodeComparer()));
-            // Teardown
         }
 
         [Fact]
         public void LegacyComposeReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = SpecimenBuilderNodeFactory.CreateComposer<UTF8Encoding>();
-            // Exercise system
+            // Act
             var actual = sut.Compose();
-            // Verify outcome
+            // Assert
             Assert.Equal(sut, actual);
-            // Teardown
         }
 
         [Fact]
         public void ComposeReturnsCorrectResult()
         {
-            // Fixture setup
-            var sut = SpecimenBuilderNodeFactory.CreateComposer<GenericUriParser>();
-            // Exercise system
+            // Arrange
+            var sut = SpecimenBuilderNodeFactory.CreateComposer<ConcreteType>();
+            // Act
             var expectedBuilders = new[]
             {
                 new DelegatingSpecimenBuilder(),
@@ -249,72 +232,69 @@ namespace Ploeh.AutoFixtureUnitTest.Dsl
                 new DelegatingSpecimenBuilder()
             };
             var actual = sut.Compose(expectedBuilders);
-            // Verify outcome
-            var nc = Assert.IsAssignableFrom<NodeComposer<GenericUriParser>>(actual);
+            // Assert
+            var nc = Assert.IsAssignableFrom<NodeComposer<ConcreteType>>(actual);
             var composite = Assert.IsAssignableFrom<CompositeSpecimenBuilder>(nc.Builder);
             Assert.True(expectedBuilders.SequenceEqual(composite));
-            // Teardown
         }
 
         [Fact]
         public void ComposeSingleItemReturnsCorrectResult()
         {
-            // Fixture setup
-            var sut = SpecimenBuilderNodeFactory.CreateComposer<GenericUriParser>();
+            // Arrange
+            var sut = SpecimenBuilderNodeFactory.CreateComposer<ConcreteType>();
             var expected = new DelegatingSpecimenBuilder();
-            // Exercise system
+            // Act
             var actual = sut.Compose(new[] { expected });
-            // Verify outcome
-            var f = Assert.IsAssignableFrom<NodeComposer<GenericUriParser>>(actual);
+            // Assert
+            var f = Assert.IsAssignableFrom<NodeComposer<ConcreteType>>(actual);
             Assert.Equal(expected, f.Builder);
-            // Teardown
         }
 
         [Fact]
         public void DoReturnsCorrectResult()
         {
-            // Fixture setup
-            var sut = SpecimenBuilderNodeFactory.CreateComposer<AppDomainSetup>();
-            Action<AppDomainSetup> a = ads => ads.DisallowApplicationBaseProbing = false;
-            // Exercise system
+            // Arrange
+            var sut = SpecimenBuilderNodeFactory.CreateComposer<ConcreteType>();
+            Action<ConcreteType> a = ads => ads.Property1 = 42;
+            // Act
             var actual = sut.Do(a);
-            // Verify outcome
-            var expected = new NodeComposer<AppDomainSetup>(
+            // Assert
+            var expected = new NodeComposer<ConcreteType>(
                 new FilteringSpecimenBuilder(
                     new CompositeSpecimenBuilder(
-                        new Postprocessor<AppDomainSetup>(
+                        new Postprocessor(
                             new NoSpecimenOutputGuard(
                                 new MethodInvoker(
                                     new ModestConstructorQuery()),
                                 new InverseRequestSpecification(
                                     new SeedRequestSpecification(
-                                        typeof(AppDomainSetup)))),
-                            new ActionSpecimenCommand<AppDomainSetup>(a)),
+                                        typeof(ConcreteType)))),
+                            new ActionSpecimenCommand<ConcreteType>(a)),
                         new SeedIgnoringRelay()),
                     new OrRequestSpecification(
-                        new SeedRequestSpecification(typeof(AppDomainSetup)),
-                        new ExactTypeSpecification(typeof(AppDomainSetup)))));
+                        new SeedRequestSpecification(typeof(ConcreteType)),
+                        new ExactTypeSpecification(typeof(ConcreteType)))));
 
             var n = Assert.IsAssignableFrom<ISpecimenBuilderNode>(actual);
             Assert.True(expected.GraphEquals(n, new NodeComparer()));
-            // Teardown
         }
 
         [Fact]
         public void SecondDoReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = SpecimenBuilderNodeFactory.CreateComposer<PropertyHolder<string>>();
             Action<PropertyHolder<string>> dummy = _ => { };
             Action<PropertyHolder<string>> a = ph => ph.Property = "";
-            // Exercise system
+            // Act
             var actual = sut.Do(dummy).Do(a);
-            // Verify outcome
+            // Assert
             var expected = new NodeComposer<PropertyHolder<string>>(
                 new FilteringSpecimenBuilder(
                     new CompositeSpecimenBuilder(
-                        new Postprocessor<PropertyHolder<string>>(
-                            new Postprocessor<PropertyHolder<string>>(
+                        new Postprocessor(
+                            new Postprocessor(
                                 new NoSpecimenOutputGuard(
                                     new MethodInvoker(
                                         new ModestConstructorQuery()),
@@ -330,31 +310,28 @@ namespace Ploeh.AutoFixtureUnitTest.Dsl
 
             var n = Assert.IsAssignableFrom<ISpecimenBuilderNode>(actual);
             Assert.True(expected.GraphEquals(n, new NodeComparer()));
-            // Teardown
         }
 
         [Fact]
         public void WithAutoPropertiesReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = SpecimenBuilderNodeFactory.CreateComposer<Version>();
-            // Exercise system
+            // Act
             var actual = sut.WithAutoProperties();
-            // Verify outcome
+            // Assert
             var expected = new NodeComposer<Version>(
                 new FilteringSpecimenBuilder(
                     new CompositeSpecimenBuilder(
-                        new Postprocessor<Version>(
+                        new Postprocessor(
                             new NoSpecimenOutputGuard(
                                 new MethodInvoker(
                                     new ModestConstructorQuery()),
                                 new InverseRequestSpecification(
                                     new SeedRequestSpecification(
                                         typeof(Version)))),
-                            new AutoPropertiesCommand<Version>(),
-                            new OrRequestSpecification(
-                                new SeedRequestSpecification(typeof(Version)),
-                                new ExactTypeSpecification(typeof(Version)))),
+                            new AutoPropertiesCommand(typeof(Version)),
+                            new TrueRequestSpecification()),
                         new SeedIgnoringRelay()),
                     new OrRequestSpecification(
                         new SeedRequestSpecification(typeof(Version)),
@@ -362,51 +339,63 @@ namespace Ploeh.AutoFixtureUnitTest.Dsl
 
             var n = Assert.IsAssignableFrom<ISpecimenBuilderNode>(actual);
             Assert.True(expected.GraphEquals(n, new NodeComparer()));
-            // Teardown
         }
 
         [Fact]
         public void OmitAutoPropertiesIsInitiallyANoOp()
         {
-            // Fixture setup
+            // Arrange
             var sut = SpecimenBuilderNodeFactory.CreateComposer<Version>();
-            // Exercise system
+            // Act
             var actual = sut.OmitAutoProperties();
-            // Verify outcome
+            // Assert
             var expected = sut;
 
             var n = Assert.IsAssignableFrom<ISpecimenBuilderNode>(actual);
             Assert.True(expected.GraphEquals(n, new NodeComparer()));
-            // Teardown
         }
 
         [Fact]
         public void OmitAutoPropertiesAfterAddingAutoPropertiesReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = SpecimenBuilderNodeFactory.CreateComposer<Version>();
-            // Exercise system
+            // Act
             var actual = sut.WithAutoProperties().OmitAutoProperties();
-            // Verify outcome
-            var expected = sut;
+            // Assert
+            var expected = new NodeComposer<Version>(
+                new FilteringSpecimenBuilder(
+                    new CompositeSpecimenBuilder(
+                        new Postprocessor(
+                            new NoSpecimenOutputGuard(
+                                new MethodInvoker(
+                                    new ModestConstructorQuery()),
+                                new InverseRequestSpecification(
+                                    new SeedRequestSpecification(
+                                        typeof(Version)))),
+                            new AutoPropertiesCommand(typeof(Version)),
+                            new FalseRequestSpecification()),
+                        new SeedIgnoringRelay()),
+                    new OrRequestSpecification(
+                        new SeedRequestSpecification(typeof(Version)),
+                        new ExactTypeSpecification(typeof(Version)))));
 
             var n = Assert.IsAssignableFrom<ISpecimenBuilderNode>(actual);
             Assert.True(expected.GraphEquals(n, new NodeComparer()));
-            // Teardown
         }
 
         [Fact]
         public void WithAnonymousValueReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = SpecimenBuilderNodeFactory.CreateComposer<PropertyHolder<int>>();
-            // Exercise system
+            // Act
             var actual = sut.With(x => x.Property);
-            // Verify outcome
+            // Assert
             var expected = new NodeComposer<PropertyHolder<int>>(
                 new FilteringSpecimenBuilder(
                     new CompositeSpecimenBuilder(
-                        new Postprocessor<PropertyHolder<int>>(
+                        new Postprocessor(
                             new NoSpecimenOutputGuard(
                                 new MethodInvoker(
                                     new ModestConstructorQuery()),
@@ -424,7 +413,6 @@ namespace Ploeh.AutoFixtureUnitTest.Dsl
 
             var n = Assert.IsAssignableFrom<ISpecimenBuilderNode>(actual);
             Assert.True(expected.GraphEquals(n, new NodeComparer()));
-            // Teardown
         }
 
         [Theory]
@@ -433,39 +421,42 @@ namespace Ploeh.AutoFixtureUnitTest.Dsl
         [InlineData("bar")]
         public void WithExplicitValueReturnsCorrectResult(string value)
         {
-            // Fixture setup
+            // Arrange
             var sut = SpecimenBuilderNodeFactory.CreateComposer<PropertyHolder<string>>();
             var pi = typeof(PropertyHolder<string>).GetProperty("Property");
-            // Exercise system
+            // Act
             var actual = sut.With(x => x.Property, value);
-            // Verify outcome
+            // Assert
             var expected = new NodeComposer<PropertyHolder<string>>(
-                new CompositeSpecimenBuilder(
-                    new Omitter(
-                        new EqualRequestSpecification(
-                            pi,
-                            new MemberInfoEqualityComparer())),
-                    new FilteringSpecimenBuilder(
-                        new CompositeSpecimenBuilder(
-                            new Postprocessor<PropertyHolder<string>>(
+                new FilteringSpecimenBuilder(
+                    new CompositeSpecimenBuilder(
+                        new Postprocessor(
+                            new Postprocessor(
                                 new NoSpecimenOutputGuard(
                                     new MethodInvoker(
                                         new ModestConstructorQuery()),
                                     new InverseRequestSpecification(
                                         new SeedRequestSpecification(
                                             typeof(PropertyHolder<string>)))),
-                                new BindingCommand<PropertyHolder<string>, string>(x => x.Property, value),
-                                new OrRequestSpecification(
-                                    new SeedRequestSpecification(typeof(PropertyHolder<string>)),
-                                    new ExactTypeSpecification(typeof(PropertyHolder<string>)))),
-                            new SeedIgnoringRelay()),
-                        new OrRequestSpecification(
-                            new SeedRequestSpecification(typeof(PropertyHolder<string>)),
-                            new ExactTypeSpecification(typeof(PropertyHolder<string>))))));
+                                new AutoPropertiesCommand(
+                                    typeof(PropertyHolder<string>),
+                                    new InverseRequestSpecification(
+                                        new EqualRequestSpecification(
+                                            pi,
+                                            new MemberInfoEqualityComparer()))),
+                                new FalseRequestSpecification()
+                            ),
+                            new BindingCommand<PropertyHolder<string>, string>(x => x.Property, value),
+                            new OrRequestSpecification(
+                                new SeedRequestSpecification(typeof(PropertyHolder<string>)),
+                                new ExactTypeSpecification(typeof(PropertyHolder<string>)))),
+                        new SeedIgnoringRelay()),
+                    new OrRequestSpecification(
+                        new SeedRequestSpecification(typeof(PropertyHolder<string>)),
+                        new ExactTypeSpecification(typeof(PropertyHolder<string>)))));
 
             var n = Assert.IsAssignableFrom<ISpecimenBuilderNode>(actual);
             Assert.True(expected.GraphEquals(n, new NodeComparer()));
-            // Teardown
         }
 
         [Theory]
@@ -477,111 +468,113 @@ namespace Ploeh.AutoFixtureUnitTest.Dsl
             string value1,
             int value2)
         {
-            // Fixture setup
+            // Arrange
             var sut =
                 SpecimenBuilderNodeFactory.CreateComposer<DoublePropertyHolder<string, int>>();
             var pi1 = typeof(DoublePropertyHolder<string, int>).GetProperty("Property1");
             var pi2 = typeof(DoublePropertyHolder<string, int>).GetProperty("Property2");
-            // Exercise system
+            // Act
             var actual = sut
                 .With(x => x.Property1, value1)
                 .With(x => x.Property2, value2);
-            // Verify outcome
+            // Assert
             var expected = new NodeComposer<DoublePropertyHolder<string, int>>(
-                new CompositeSpecimenBuilder(
-                    new Omitter(
-                        new EqualRequestSpecification(
-                            pi2,
-                            new MemberInfoEqualityComparer())),
+                new FilteringSpecimenBuilder(
                     new CompositeSpecimenBuilder(
-                        new Omitter(
-                            new EqualRequestSpecification(
-                                pi1,
-                                new MemberInfoEqualityComparer())),
-                        new FilteringSpecimenBuilder(
-                            new CompositeSpecimenBuilder(
-                                new Postprocessor<DoublePropertyHolder<string, int>>(
-                                    new Postprocessor<DoublePropertyHolder<string, int>>(
-                                        new NoSpecimenOutputGuard(
-                                            new MethodInvoker(
-                                                new ModestConstructorQuery()),
+                        new Postprocessor(
+                            new Postprocessor(
+                                new Postprocessor(
+                                    new NoSpecimenOutputGuard(
+                                        new MethodInvoker(
+                                            new ModestConstructorQuery()),
+                                        new InverseRequestSpecification(
+                                            new SeedRequestSpecification(
+                                                typeof(DoublePropertyHolder<string, int>)))),
+                                    new AutoPropertiesCommand(
+                                        typeof(DoublePropertyHolder<string, int>),
+                                        new AndRequestSpecification(
                                             new InverseRequestSpecification(
-                                                new SeedRequestSpecification(
-                                                    typeof(DoublePropertyHolder<string, int>)))),
-                                        new BindingCommand<DoublePropertyHolder<string, int>, string>(x => x.Property1, value1),
-                                        new OrRequestSpecification(
-                                            new SeedRequestSpecification(typeof(DoublePropertyHolder<string, int>)),
-                                            new ExactTypeSpecification(typeof(DoublePropertyHolder<string, int>)))),
-                                    new BindingCommand<DoublePropertyHolder<string, int>, int>(x => x.Property2, value2),
-                                    new OrRequestSpecification(
-                                        new SeedRequestSpecification(typeof(DoublePropertyHolder<string, int>)),
-                                        new ExactTypeSpecification(typeof(DoublePropertyHolder<string, int>)))),
-                                new SeedIgnoringRelay()),
+                                                new EqualRequestSpecification(
+                                                    pi1,
+                                                    new MemberInfoEqualityComparer())),
+                                            new InverseRequestSpecification(
+                                                new EqualRequestSpecification(
+                                                    pi2,
+                                                    new MemberInfoEqualityComparer())))),
+                                    new FalseRequestSpecification()),
+                                new BindingCommand<DoublePropertyHolder<string, int>, string>(x => x.Property1, value1),
+                                new OrRequestSpecification(
+                                    new SeedRequestSpecification(typeof(DoublePropertyHolder<string, int>)),
+                                    new ExactTypeSpecification(typeof(DoublePropertyHolder<string, int>)))),
+                            new BindingCommand<DoublePropertyHolder<string, int>, int>(x => x.Property2, value2),
                             new OrRequestSpecification(
                                 new SeedRequestSpecification(typeof(DoublePropertyHolder<string, int>)),
-                                new ExactTypeSpecification(typeof(DoublePropertyHolder<string, int>)))))));
+                                new ExactTypeSpecification(typeof(DoublePropertyHolder<string, int>)))),
+                        new SeedIgnoringRelay()),
+                    new OrRequestSpecification(
+                        new SeedRequestSpecification(typeof(DoublePropertyHolder<string, int>)),
+                        new ExactTypeSpecification(typeof(DoublePropertyHolder<string, int>)))));
 
             var n = Assert.IsAssignableFrom<ISpecimenBuilderNode>(actual);
             Assert.True(expected.GraphEquals(n, new NodeComparer()));
-            // Teardown
         }
 
         [Fact]
         public void WithoutReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = SpecimenBuilderNodeFactory.CreateComposer<FieldHolder<short>>();
             var fi = typeof(FieldHolder<short>).GetField("Field");
-            // Exercise system
+            // Act
             var actual = sut.Without(x => x.Field);
-            // Verify outcome
+            // Assert
             var expected = new NodeComposer<FieldHolder<short>>(
-                new CompositeSpecimenBuilder(
-                    new Omitter(
-                        new EqualRequestSpecification(
-                            fi,
-                            new MemberInfoEqualityComparer())),
-                    new FilteringSpecimenBuilder(
-                        new CompositeSpecimenBuilder(
+                new FilteringSpecimenBuilder(
+                    new CompositeSpecimenBuilder(
+                        new Postprocessor(
                             new NoSpecimenOutputGuard(
                                 new MethodInvoker(
                                     new ModestConstructorQuery()),
                                 new InverseRequestSpecification(
                                     new SeedRequestSpecification(
                                         typeof(FieldHolder<short>)))),
-                            new SeedIgnoringRelay()),
-                        new OrRequestSpecification(
-                            new SeedRequestSpecification(typeof(FieldHolder<short>)),
-                            new ExactTypeSpecification(typeof(FieldHolder<short>))))));
+                            new AutoPropertiesCommand(
+                                typeof(FieldHolder<short>),
+                                new InverseRequestSpecification(
+                                    new EqualRequestSpecification(
+                                        fi,
+                                        new MemberInfoEqualityComparer()))),
+                            new FalseRequestSpecification()),
+                        new SeedIgnoringRelay()),
+                    new OrRequestSpecification(
+                        new SeedRequestSpecification(typeof(FieldHolder<short>)),
+                        new ExactTypeSpecification(typeof(FieldHolder<short>)))));
 
             var n = Assert.IsAssignableFrom<ISpecimenBuilderNode>(actual);
             Assert.True(expected.GraphEquals(n, new NodeComparer()));
-            // Teardown
         }
 
         [Fact]
         public void WithAutoPropertiesTrueReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = SpecimenBuilderNodeFactory.CreateComposer<Version>();
-            // Exercise system
+            // Act
             NodeComposer<Version> actual =
                 sut.WithAutoProperties(true);
-            // Verify outcome
+            // Assert
             var expected = new NodeComposer<Version>(
                 new FilteringSpecimenBuilder(
                     new CompositeSpecimenBuilder(
-                        new Postprocessor<Version>(
+                        new Postprocessor(
                             new NoSpecimenOutputGuard(
                                 new MethodInvoker(
                                     new ModestConstructorQuery()),
                                 new InverseRequestSpecification(
                                     new SeedRequestSpecification(
                                         typeof(Version)))),
-                            new AutoPropertiesCommand<Version>(),
-                            new OrRequestSpecification(
-                                new SeedRequestSpecification(typeof(Version)),
-                                new ExactTypeSpecification(typeof(Version)))),
+                            new AutoPropertiesCommand(typeof(Version)),
+                            new TrueRequestSpecification()),
                         new SeedIgnoringRelay()),
                     new OrRequestSpecification(
                         new SeedRequestSpecification(typeof(Version)),
@@ -589,62 +582,72 @@ namespace Ploeh.AutoFixtureUnitTest.Dsl
 
             var n = Assert.IsAssignableFrom<ISpecimenBuilderNode>(actual);
             Assert.True(expected.GraphEquals(n, new NodeComparer()));
-            // Teardown
         }
 
         [Fact]
         public void WithAutoPropertiesFalseReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = SpecimenBuilderNodeFactory.CreateComposer<Version>();
-            // Exercise system
+            // Act
             var actual = sut.WithAutoProperties(false);
-            // Verify outcome
+            // Assert
             var expected = sut;
 
             var n = Assert.IsAssignableFrom<ISpecimenBuilderNode>(actual);
             Assert.True(expected.GraphEquals(n, new NodeComparer()));
-            // Teardown
         }
 
         [Fact]
         public void TogglingAutoPropertiesOnAndOffReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = SpecimenBuilderNodeFactory.CreateComposer<Version>();
-            // Exercise system
+            // Act
             var actual = sut.WithAutoProperties(true).WithAutoProperties(false);
-            // Verify outcome
-            var expected = sut;
+            // Assert
+            var expected = new NodeComposer<Version>(
+                new FilteringSpecimenBuilder(
+                    new CompositeSpecimenBuilder(
+                        new Postprocessor(
+                            new NoSpecimenOutputGuard(
+                                new MethodInvoker(
+                                    new ModestConstructorQuery()),
+                                new InverseRequestSpecification(
+                                    new SeedRequestSpecification(
+                                        typeof(Version)))),
+                            new AutoPropertiesCommand(typeof(Version)),
+                            new FalseRequestSpecification()),
+                        new SeedIgnoringRelay()),
+                    new OrRequestSpecification(
+                        new SeedRequestSpecification(typeof(Version)),
+                        new ExactTypeSpecification(typeof(Version)))));
 
             var n = Assert.IsAssignableFrom<ISpecimenBuilderNode>(actual);
             Assert.True(expected.GraphEquals(n, new NodeComparer()));
-            // Teardown
         }
 
         [Fact]
         public void WithAutoPropertiesTrueFollowedByFromFactoryReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = SpecimenBuilderNodeFactory.CreateComposer<PropertyHolder<string>>();
             Func<PropertyHolder<string>> f =
                 () => new PropertyHolder<string>();
-            // Exercise system
+            // Act
             var actual = sut.WithAutoProperties(true).FromFactory(f);
-            // Verify outcome
+            // Assert
             var expected = new NodeComposer<PropertyHolder<string>>(
                 new FilteringSpecimenBuilder(
                     new CompositeSpecimenBuilder(
-                        new Postprocessor<PropertyHolder<string>>(
+                        new Postprocessor(
                             new NoSpecimenOutputGuard(
                                 new SpecimenFactory<PropertyHolder<string>>(f),
                                 new InverseRequestSpecification(
                                     new SeedRequestSpecification(
                                         typeof(PropertyHolder<string>)))),
-                            new AutoPropertiesCommand<PropertyHolder<string>>(),
-                            new OrRequestSpecification(
-                                new SeedRequestSpecification(typeof(PropertyHolder<string>)),
-                                new ExactTypeSpecification(typeof(PropertyHolder<string>)))),
+                            new AutoPropertiesCommand(typeof(PropertyHolder<string>)),
+                            new TrueRequestSpecification()),
                         new SeedIgnoringRelay()),
                     new OrRequestSpecification(
                         new SeedRequestSpecification(typeof(PropertyHolder<string>)),
@@ -652,23 +655,22 @@ namespace Ploeh.AutoFixtureUnitTest.Dsl
 
             var n = Assert.IsAssignableFrom<ISpecimenBuilderNode>(actual);
             Assert.True(expected.GraphEquals(n, new NodeComparer()));
-            // Teardown
         }
 
         [Fact]
         public void WithAutoPropertiesTrueFollowedByDoReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = SpecimenBuilderNodeFactory.CreateComposer<PropertyHolder<int>>();
             Action<PropertyHolder<int>> a = ph => ph.Property = 42;
-            // Exercise system
+            // Act
             var actual = sut.WithAutoProperties(true).Do(a);
-            // Verify outcome
+            // Assert
             var expected = new NodeComposer<PropertyHolder<int>>(
                 new FilteringSpecimenBuilder(
                     new CompositeSpecimenBuilder(
-                        new Postprocessor<PropertyHolder<int>>(
-                            new Postprocessor<PropertyHolder<int>>(
+                        new Postprocessor(
+                            new Postprocessor(
                                 new NoSpecimenOutputGuard(
                                     new MethodInvoker(
                                         new ModestConstructorQuery()),
@@ -676,10 +678,8 @@ namespace Ploeh.AutoFixtureUnitTest.Dsl
                                         new SeedRequestSpecification(
                                             typeof(PropertyHolder<int>)))),
                                 new ActionSpecimenCommand<PropertyHolder<int>>(a)),
-                            new AutoPropertiesCommand<PropertyHolder<int>>(),
-                            new OrRequestSpecification(
-                                new SeedRequestSpecification(typeof(PropertyHolder<int>)),
-                                new ExactTypeSpecification(typeof(PropertyHolder<int>)))),
+                            new AutoPropertiesCommand(typeof(PropertyHolder<int>)),
+                            new TrueRequestSpecification()),
                         new SeedIgnoringRelay()),
                     new OrRequestSpecification(
                         new SeedRequestSpecification(typeof(PropertyHolder<int>)),
@@ -687,7 +687,6 @@ namespace Ploeh.AutoFixtureUnitTest.Dsl
 
             var n = Assert.IsAssignableFrom<ISpecimenBuilderNode>(actual);
             Assert.True(expected.GraphEquals(n, new NodeComparer()));
-            // Teardown
         }
     }
 }

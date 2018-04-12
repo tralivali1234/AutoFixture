@@ -4,12 +4,11 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using Ploeh.Albedo;
-using Ploeh.Albedo.Refraction;
-using Ploeh.AutoFixture.Kernel;
+using Albedo;
+using Albedo.Refraction;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture.Idioms
+namespace AutoFixture.Idioms
 {
     /// <summary>
     /// Encapsulates a unit test which verifies a method correctly makes a copy of an
@@ -32,10 +31,6 @@ namespace Ploeh.AutoFixture.Idioms
     /// </remarks>
     public class CopyAndUpdateAssertion : IdiomaticAssertion
     {
-        private readonly ISpecimenBuilder builder;
-        private readonly IEqualityComparer comparer;
-        private readonly IEqualityComparer<IReflectionElement> parameterMemberMatcher;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="CopyAndUpdateAssertion"/> class.
         /// </summary>
@@ -56,19 +51,12 @@ namespace Ploeh.AutoFixture.Idioms
         /// </remarks>
         public CopyAndUpdateAssertion(
             ISpecimenBuilder builder,
-            System.Collections.IEqualityComparer comparer,
+            IEqualityComparer comparer,
             IEqualityComparer<IReflectionElement> parameterMemberMatcher)
         {
-            if (builder == null)
-                throw new ArgumentNullException("builder");
-            if (comparer == null)
-                throw new ArgumentNullException("comparer");
-            if (parameterMemberMatcher == null)
-                throw new ArgumentNullException("parameterMemberMatcher");
-
-            this.builder = builder;
-            this.comparer = comparer;
-            this.parameterMemberMatcher = parameterMemberMatcher;
+            this.Builder = builder ?? throw new ArgumentNullException(nameof(builder));
+            this.Comparer = comparer ?? throw new ArgumentNullException(nameof(comparer));
+            this.ParameterMemberMatcher = parameterMemberMatcher ?? throw new ArgumentNullException(nameof(parameterMemberMatcher));
         }
 
         /// <summary>
@@ -86,7 +74,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// </remarks>
         public CopyAndUpdateAssertion(
             ISpecimenBuilder builder,
-            System.Collections.IEqualityComparer comparer)
+            IEqualityComparer comparer)
             : this(builder, comparer, new DefaultParameterMemberMatcher())
         {
         }
@@ -111,19 +99,13 @@ namespace Ploeh.AutoFixture.Idioms
         /// <summary>
         /// Gets the builder supplied by the constructor.
         /// </summary>
-        public ISpecimenBuilder Builder
-        {
-            get { return this.builder; }
-        }
+        public ISpecimenBuilder Builder { get; }
 
         /// <summary>
         /// Gets the comparer that tests for equality of the values on the specimen and the
         /// 'copied and updated' specimen.
         /// </summary>
-        public IEqualityComparer Comparer
-        {
-            get { return this.comparer; }
-        }
+        public IEqualityComparer Comparer { get; }
 
         /// <summary>
         /// Gets the comparer instance which is used to determine if a 'copy and update' method 
@@ -135,10 +117,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// the <see cref="IEqualityComparer{T}.Equals(T,T)"/> method means the parameter and 
         /// member are 'matched'.
         /// </remarks>
-        public IEqualityComparer<IReflectionElement> ParameterMemberMatcher
-        {
-            get { return parameterMemberMatcher; }
-        }
+        public IEqualityComparer<IReflectionElement> ParameterMemberMatcher { get; }
 
         /// <summary>
         /// Verifies that a method correctly makes a copy of an object while changing                                  
@@ -147,8 +126,7 @@ namespace Ploeh.AutoFixture.Idioms
         /// <param name="methodInfo">The 'copy and update' method to verify</param>
         public override void Verify(MethodInfo methodInfo)
         {
-            if (methodInfo == null)
-                throw new ArgumentNullException("methodInfo");
+            if (methodInfo == null) throw new ArgumentNullException(nameof(methodInfo));
 
             var publicMembers = GetPublicPropertiesAndFields(methodInfo.ReflectedType);
             var parameters = (
@@ -156,8 +134,8 @@ namespace Ploeh.AutoFixture.Idioms
                 select new
                 {
                     Parameter = parameter,
-                    Member = publicMembers.FirstOrDefault(m => IsMatchingParameterAndMember(parameter, m)),
-                    Value = this.builder.CreateAnonymous(parameter)
+                    Member = publicMembers.FirstOrDefault(m => this.IsMatchingParameterAndMember(parameter, m)),
+                    Value = this.Builder.CreateAnonymous(parameter)
                 })
                 .ToArray();
 
@@ -170,7 +148,7 @@ namespace Ploeh.AutoFixture.Idioms
             }
 
             // Build a specimen and invoke the 'Copy and update' method
-            var specimen = this.builder.CreateAnonymous(methodInfo.ReflectedType);
+            var specimen = this.Builder.CreateAnonymous(methodInfo.ReflectedType);
             var copiedAndUpdatedSpecimen = methodInfo.Invoke(specimen, parameters.Select(p => p.Value).ToArray());
             VerifyCopiedAndUpdatedSpecimenType(methodInfo, copiedAndUpdatedSpecimen, specimen);
 
@@ -186,7 +164,7 @@ namespace Ploeh.AutoFixture.Idioms
                         .Value
                         .Single()
                 })
-                .FirstOrDefault(p => !this.comparer.Equals(p.Expected, p.Actual));
+                .FirstOrDefault(p => !this.Comparer.Equals(p.Expected, p.Actual));
 
             if (firstUpdatedParameterWithUnexpectedValue != null)
             {
@@ -196,7 +174,7 @@ namespace Ploeh.AutoFixture.Idioms
             // Verify each member without a matching update parameter, remained unchanged
             var firstNonEqualMemberExpectedToBeEqual = publicMembers
                 .Except(parameters.Select(p => p.Member))
-                .FirstOrDefault(m => !AreMemberValuesEqual(specimen, copiedAndUpdatedSpecimen, m));
+                .FirstOrDefault(m => !this.AreMemberValuesEqual(specimen, copiedAndUpdatedSpecimen, m));
 
             if (firstNonEqualMemberExpectedToBeEqual != null)
             {
@@ -259,7 +237,7 @@ namespace Ploeh.AutoFixture.Idioms
                 copiedAndUpdatedMemberValue = fieldInfo.GetValue(copiedAndUpdatedSpecimen);
             }
 
-            return this.comparer.Equals(specimenMemberValue, copiedAndUpdatedMemberValue);
+            return this.Comparer.Equals(specimenMemberValue, copiedAndUpdatedMemberValue);
         }
 
         private static IEnumerable<MemberInfo> GetPublicPropertiesAndFields(Type t)
@@ -271,7 +249,7 @@ namespace Ploeh.AutoFixture.Idioms
 
         private bool IsMatchingParameterAndMember(ParameterInfo parameter, MemberInfo fieldOrProperty)
         {
-            return this.parameterMemberMatcher.Equals(
+            return this.ParameterMemberMatcher.Equals(
                 parameter.ToReflectionElement(), fieldOrProperty.ToReflectionElement());
         }
 

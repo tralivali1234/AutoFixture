@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Encapsulates a constructor as a method.
@@ -19,12 +19,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// <param name="constructor">The constructor.</param>
         public ConstructorMethod(ConstructorInfo constructor)
         {
-            if (constructor == null)
-            {
-                throw new ArgumentNullException(nameof(constructor));
-            }
-
-            this.Constructor = constructor;
+            this.Constructor = constructor ?? throw new ArgumentNullException(nameof(constructor));
             this.paramInfos = this.Constructor.GetParameters();
         }
 
@@ -43,8 +38,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// </returns>
         public override bool Equals(object obj)
         {
-            var other = obj as ConstructorMethod;
-            if (other != null)
+            if (obj is ConstructorMethod other)
             {
                 return this.Equals(other);
             }
@@ -66,10 +60,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// <summary>
         /// Gets information about the parameters of the method.
         /// </summary>
-        public IEnumerable<ParameterInfo> Parameters
-        {
-            get { return this.paramInfos; }
-        }
+        public IEnumerable<ParameterInfo> Parameters => this.paramInfos;
 
         /// <summary>
         /// Invokes the method with the supplied parameters.
@@ -84,7 +75,7 @@ namespace Ploeh.AutoFixture.Kernel
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "tinyurl", Justification = "Workaround for a bug in CA: https://connect.microsoft.com/VisualStudio/feedback/details/521030/")]
         public object Invoke(IEnumerable<object> parameters)
         {
-            if (this.Constructor.DeclaringType.IsAbstract && this.Constructor.IsPublic)
+            if (this.Constructor.DeclaringType.GetTypeInfo().IsAbstract && this.Constructor.IsPublic)
             {
                 throw new ObjectCreationException(
                                 string.Format(

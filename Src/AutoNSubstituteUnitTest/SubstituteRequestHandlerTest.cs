@@ -1,67 +1,62 @@
 ﻿using System;
+using System.Reflection;
+using AutoFixture.Kernel;
 using NSubstitute;
-using Ploeh.AutoFixture.Kernel;
 using Xunit;
 
-namespace Ploeh.AutoFixture.AutoNSubstitute.UnitTest
+namespace AutoFixture.AutoNSubstitute.UnitTest
 {
     public class SubstituteRequestHandlerTest
     {
         [Fact]
         public void ClassImplementsISpecimenBuilderToServeAsFixtureCustomization()
         {
-            // Fixture setup
-            // Exercise system
-            // Verify outcome
+            // Arrange
+            // Act
+            // Assert
             Assert.True(typeof(ISpecimenBuilder).IsAssignableFrom(typeof(SubstituteRequestHandler)));
-            // Teardown
         }
 
         [Fact]
         public void ConstructorThrowsArgumentNullExceptionWhenSubstituteConstructorIsNull()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var e = Assert.Throws<ArgumentNullException>(() => new SubstituteRequestHandler((ISpecimenBuilder)null));
-            // Verify outcome
+            // Assert
             Assert.Equal("substituteFactory", e.ParamName);
-            // Teardown
         }
 
         [Fact]
         public void SubstituteConstructorReturnsValueSpecifiedInConstructorToEnableTestingOfCustomizations()
         {
-            // Fixture setup
+            // Arrange
             var substituteConstructor = Substitute.For<ISpecimenBuilder>();
-            // Exercise system
+            // Act
             var sut = new SubstituteRequestHandler(substituteConstructor);
-            // Verify outcome
+            // Assert
             Assert.Same(substituteConstructor, sut.SubstituteFactory);
-            // Teardown
         }
 
         [Fact]
         public void CreateReturnsNoSpecimenWhenRequestIsNotAnExplicitSubstituteRequest()
         {
-            // Fixture setup
+            // Arrange
             var constructor = Substitute.For<ISpecimenBuilder>();
             var sut = new SubstituteRequestHandler(constructor);
             var request = typeof(IComparable);
             var context = Substitute.For<ISpecimenContext>();
-            // Exercise system
+            // Act
             object result = sut.Create(request, context);
-            // Verify outcome
-#pragma warning disable 618
-            var expected = new NoSpecimen(request);
-#pragma warning restore 618
+            // Assert
+            var expected = new NoSpecimen();
             Assert.Equal(expected, result);
-            // Teardown
         }
 
         [Fact]
         public void CreatePassesRequestedSubstituteTypeAndSpecimenContextToSubstituteConstructorAndReturnsInstanceItCreates()
         {
-            // Fixture setup
+            // Arrange
             var context = Substitute.For<ISpecimenContext>();
             Type targetType = typeof(IComparable);
             var constructedSubstute = Substitute.For(new[] { targetType}, new object[0]);
@@ -69,11 +64,10 @@ namespace Ploeh.AutoFixture.AutoNSubstitute.UnitTest
             constructor.Create(targetType, context).Returns(constructedSubstute);
             var sut = new SubstituteRequestHandler(constructor);
             var request = new SubstituteRequest(targetType);
-            // Exercise system
+            // Act
             object result = sut.Create(request, context);
-            // Verify outcome
+            // Assert
             Assert.Same(constructedSubstute, result);
-            // Teardown
         }
     }
 }

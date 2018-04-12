@@ -1,20 +1,19 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixture.AutoNSubstitute.UnitTest
+namespace AutoFixture.AutoNSubstitute.UnitTest
 {
     public class SubstituteAttributeTest
     {
         [Fact]
         public void ClassIsAnAttribute()
         {
-            // Fixture setup
-            // Exercise system
-            // Verify outcome
+            // Arrange
+            // Act
+            // Assert
             Assert.True(typeof(Attribute).IsAssignableFrom(typeof(SubstituteAttribute)));
-            // Teardown
         }
 
         [Theory]
@@ -23,25 +22,23 @@ namespace Ploeh.AutoFixture.AutoNSubstitute.UnitTest
         [InlineData(AttributeTargets.Field)]
         public void AttributeCanBeAppliedToCodeElementsSupportedBySubstituteAttributeRelay(AttributeTargets expectedTarget)
         {
-            // Fixture setup
-            var attributeUsage = typeof(SubstituteAttribute).GetCustomAttributes(false)
+            // Arrange
+            var attributeUsage = typeof(SubstituteAttribute).GetTypeInfo().GetCustomAttributes(false)
                 .OfType<AttributeUsageAttribute>().Single();
-            // Exercise system
+            // Act
             Assert.Equal(expectedTarget, attributeUsage.ValidOn & expectedTarget);
-            // Verify outcome
-            // Teardown
+            // Assert
         }
 
         [Fact]
         public void AttributeCanBeAppliedOnlyOnceBecauseDefiningMultipleSubstitutesForSingleArgumentIsMeaningless()
         {
-            // Fixture setup
-            var attributeUsage = typeof(SubstituteAttribute).GetCustomAttributes(false)
+            // Arrange
+            var attributeUsage = typeof(SubstituteAttribute).GetTypeInfo().GetCustomAttributes(false)
                 .OfType<AttributeUsageAttribute>().Single();
-            // Exercise system
+            // Act
             Assert.False(attributeUsage.AllowMultiple);
-            // Verify outcome
-            // Teardown
+            // Assert
         }
     }
 }

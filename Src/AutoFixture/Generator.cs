@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// Generates a perpetual sequence of items.
@@ -35,10 +35,7 @@ namespace Ploeh.AutoFixture
         /// </exception>
         public Generator(ISpecimenBuilder builder)
         {
-            if (builder == null)
-                throw new ArgumentNullException(nameof(builder));
-
-            this.builder = builder;
+            this.builder = builder ?? throw new ArgumentNullException(nameof(builder));
         }
 
         /// <summary>

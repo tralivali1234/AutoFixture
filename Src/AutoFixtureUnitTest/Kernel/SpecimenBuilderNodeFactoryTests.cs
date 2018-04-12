@@ -1,31 +1,26 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using AutoFixture.Dsl;
+using AutoFixture.Kernel;
 using Xunit;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.AutoFixture.Dsl;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class SpecimenBuilderNodeFactoryTests
     {
         [Fact]
         public void CreateComposerReturnsCorrectResult()
         {
-            // Fixture setup
-            // Exercise system
-            NodeComposer<int> actual = 
+            // Arrange
+            // Act
+            NodeComposer<int> actual =
                 SpecimenBuilderNodeFactory.CreateComposer<int>();
-            // Verify outcome
+            // Assert
             var expected = new NodeComposer<int>(
                 SpecimenBuilderNodeFactory.CreateTypedNode(
                     typeof(int),
                     new MethodInvoker(
                         new ModestConstructorQuery())));
             Assert.True(expected.GraphEquals(actual, new NodeComparer()));
-            // Teardown
         }
 
         [Theory]
@@ -36,14 +31,14 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [InlineData(typeof(Version))]
         public void CreateTypedNodeReturnsCorrectResult(Type targetType)
         {
-            // Fixture setup
+            // Arrange
             var factory = new DelegatingSpecimenBuilder();
-            // Exercise system
+            // Act
             FilteringSpecimenBuilder actual =
                 SpecimenBuilderNodeFactory.CreateTypedNode(
                     targetType,
                     factory);
-            // Verify outcome
+            // Assert
             var expected = new FilteringSpecimenBuilder(
                 new CompositeSpecimenBuilder(
                     new NoSpecimenOutputGuard(
@@ -57,7 +52,6 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
                     new ExactTypeSpecification(targetType)));
 
             Assert.True(expected.GraphEquals(actual, new NodeComparer()));
-            // Teardown
         }
     }
 }

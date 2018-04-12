@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Selects public constructors ordered by the most greedy constructor first.
@@ -31,13 +32,11 @@ namespace Ploeh.AutoFixture.Kernel
         /// </remarks>
         public IEnumerable<IMethod> SelectMethods(Type type)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
+            if (type == null) throw new ArgumentNullException(nameof(type));
 
-            return from ci in type.GetConstructors()
+            return from ci in type.GetTypeInfo().GetConstructors()
                    let parameters = ci.GetParameters()
+                   where parameters.All(p => p.ParameterType != type)
                    orderby parameters.Length descending
                    select new ConstructorMethod(ci) as IMethod;
         }

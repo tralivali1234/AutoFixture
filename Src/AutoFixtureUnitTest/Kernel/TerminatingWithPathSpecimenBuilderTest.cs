@@ -1,83 +1,74 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Reflection.Emit;
-using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.TestTypeFoundation;
+using AutoFixture;
+using AutoFixture.Kernel;
+using TestTypeFoundation;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class TerminatingWithPathSpecimenBuilderTest
     {
         [Fact]
         public void SutIsISpecimenBuilder()
         {
-            // Fixture setup
-            // Exercise system
-            var sut = new TerminatingWithPathSpecimenBuilder(new DelegatingTracingBuilder());
-            // Verify outcome
+            // Arrange
+            // Act
+            var sut = new TerminatingWithPathSpecimenBuilder(new DelegatingSpecimenBuilder());
+            // Assert
             Assert.IsAssignableFrom<ISpecimenBuilder>(sut);
-            // Teardown
         }
 
         [Fact]
         public void SutIsISpecimenBuilderNode()
         {
-            // Fixture setup
-            // Exercise system
-            var sut = new TerminatingWithPathSpecimenBuilder(new DelegatingTracingBuilder());
-            // Verify outcome
+            // Arrange
+            // Act
+            var sut = new TerminatingWithPathSpecimenBuilder(new DelegatingSpecimenBuilder());
+            // Assert
             Assert.IsAssignableFrom<ISpecimenBuilderNode>(sut);
-            // Teardown
-        }
-        
-        [Fact]
-        public void InitializeWithNullBuilderWillThrow()
-        {
-            // Fixture setup
-            // Exercise system and verify outcome
-            Assert.Throws<ArgumentNullException>(() =>
-                new TerminatingWithPathSpecimenBuilder(null));
-            // Teardown
         }
 
         [Fact]
-        public void TracerIsCorrect()
+        public void InitializeWithNullBuilderWillThrow()
         {
-            // Fixture setup
-            var expected = new DelegatingTracingBuilder();
-            // Exercise system
+            // Arrange
+            // Act & assert
+            Assert.Throws<ArgumentNullException>(() =>
+                new TerminatingWithPathSpecimenBuilder(null));
+        }
+
+        [Fact]
+        public void SpecimenBuilderIsCorrect()
+        {
+            // Arrange
+            var expected = new DelegatingSpecimenBuilder();
+            // Act
             var sut = new TerminatingWithPathSpecimenBuilder(expected);
-            // Verify outcome
-            Assert.Same(expected, sut.Tracer);
-            // Teardown
+            // Assert
+            Assert.Same(expected, sut.Builder);
         }
 
         [Fact]
         public void SutYieldsCorrectSequence()
         {
-            // Fixture setup
+            // Arrange
             var expected = new DelegatingSpecimenBuilder();
-            var tracer = new DelegatingTracingBuilder(expected);
-            var sut = new TerminatingWithPathSpecimenBuilder(tracer);
-            // Exercise system
-            // Verify outcome
+            var sut = new TerminatingWithPathSpecimenBuilder(expected);
+            // Act
+            // Assert
             Assert.Equal(expected, sut.Single());
             Assert.Equal(expected, sut.Cast<object>().Single());
-            // Teardown
         }
 
         [Fact]
         public void ComposeReturnsCorrectResult()
         {
-            // Fixture setup
-            var tracer = new DelegatingTracingBuilder();
-            var sut = new TerminatingWithPathSpecimenBuilder(tracer);
-            // Exercise system
+            // Arrange
+            var builder = new DelegatingSpecimenBuilder();
+            var sut = new TerminatingWithPathSpecimenBuilder(builder);
+            // Act
             var expectedBuilders = new[]
             {
                 new DelegatingSpecimenBuilder(),
@@ -85,133 +76,155 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
                 new DelegatingSpecimenBuilder()
             };
             var actual = sut.Compose(expectedBuilders);
-            // Verify outcome
+            // Assert
             var tw = Assert.IsAssignableFrom<TerminatingWithPathSpecimenBuilder>(actual);
-            var composite = Assert.IsAssignableFrom<CompositeSpecimenBuilder>(tw.Tracer.Builder);
+            var composite = Assert.IsAssignableFrom<CompositeSpecimenBuilder>(tw.Builder);
             Assert.True(expectedBuilders.SequenceEqual(composite));
-            // Teardown
         }
 
         [Fact]
         public void ComposeSingleItemReturnsCorrectResult()
         {
-            // Fixture setup
-            var tracer = new DelegatingTracingBuilder();
-            var sut = new TerminatingWithPathSpecimenBuilder(tracer);
-            // Exercise system
+            // Arrange
+            var builder = new DelegatingSpecimenBuilder();
+            var sut = new TerminatingWithPathSpecimenBuilder(builder);
+            // Act
             var expected = new DelegatingSpecimenBuilder();
             var actual = sut.Compose(new[] { expected });
-            // Verify outcome
+            // Assert
             var tw = Assert.IsAssignableFrom<TerminatingWithPathSpecimenBuilder>(actual);
-            Assert.Equal(expected, tw.Tracer.Builder);
-            // Teardown
+            Assert.Equal(expected, tw.Builder);
         }
 
         [Fact]
         public void CreateWillReturnCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var expectedSpecimen = new object();
-            var stubBuilder = new TracingBuilder(new DelegatingSpecimenBuilder
+            var stubBuilder = new DelegatingSpecimenBuilder
             {
                 OnCreate = (r, c) => expectedSpecimen
-            });
+            };
 
             var sut = new TerminatingWithPathSpecimenBuilder(stubBuilder);
-            // Exercise system
+            // Act
             var dummyRequest = new object();
             var dummyContainer = new DelegatingSpecimenContext();
             var result = sut.Create(dummyRequest, dummyContainer);
-            // Verify outcome
+            // Assert
             Assert.Equal(expectedSpecimen, result);
-            // Teardown
         }
 
         [Fact]
         public void CreateWillInvokeDecoratedBuilderWithCorrectParameters()
         {
-            // Fixture setup
+            // Arrange
             var expectedRequest = new object();
             var expectedContainer = new DelegatingSpecimenContext();
 
             var verified = false;
-            var mockBuilder = new TracingBuilder(new DelegatingSpecimenBuilder
+            var mockBuilder = new DelegatingSpecimenBuilder
             {
                 OnCreate = (r, c) => verified = expectedRequest == r && expectedContainer == c
-            });
+            };
 
             var sut = new TerminatingWithPathSpecimenBuilder(mockBuilder);
-            // Exercise system
+            // Act
             sut.Create(expectedRequest, expectedContainer);
-            // Verify outcome
+            // Assert
             Assert.True(verified, "Mock verified");
-            // Teardown
         }
 
         [Fact]
         public void SpecimenRequestsWillInitiallyBeEmpty()
         {
-            // Fixture setup
-            var tracer = new DelegatingTracingBuilder();
-            var sut = new TerminatingWithPathSpecimenBuilder(tracer);
-            // Exercise system and verify outcome
+            // Arrange
+            var builder = new DelegatingSpecimenBuilder();
+            var sut = new TerminatingWithPathSpecimenBuilder(builder);
+            // Act & assert
             Assert.Empty(sut.SpecimenRequests);
-            // Teardown
         }
 
         [Fact]
         public void SpecimenRequestsRaisedFromTracerAreRecordedCorrectly()
         {
-            // Fixture setup
-            var tracer = new DelegatingTracingBuilder();
-            var specimens = new[] { new object(), new object(), new object() };
-            var requestEvents = specimens.Select((o, i) => new RequestTraceEventArgs(o, i)).ToList();
-            var sut = new TerminatingWithPathSpecimenBuilder(tracer);
-            // Exercise system
-            requestEvents.ForEach(tracer.RaiseSpecimenRequested);
-            // Verify outcome
-            Assert.True(specimens.SequenceEqual(sut.SpecimenRequests));
-            // Teardown
+            // Arrange
+            var requests = new[] { new object(), new object(), new object() };
+            var requestQueue = new Queue<object>(requests);
+            var firstRequest = requestQueue.Dequeue();
+
+            object[] capturedRequests = null;
+            TerminatingWithPathSpecimenBuilder sut = null;
+
+            var builder = new DelegatingSpecimenBuilder
+            {
+                OnCreate = (r, c) =>
+                {
+                    if (requestQueue.Count > 0)
+                        return c.Resolve(requestQueue.Dequeue());
+
+                    capturedRequests = sut.SpecimenRequests.ToArray();
+                    return new object();
+                }
+            };
+
+            sut = new TerminatingWithPathSpecimenBuilder(builder);
+            // Cause sut to be executed recursively for multiple times.
+            var context = new SpecimenContext(sut);
+
+            // Act
+            sut.Create(firstRequest, context);
+
+            // Assert
+            Assert.NotNull(capturedRequests);
+            Assert.Equal(requests, capturedRequests);
         }
 
         [Fact]
         public void SpecimenRequestsAreEmptyWhenAllThatWereRequestedAreCreated()
         {
-            // Fixture setup
-            var tracer = new DelegatingTracingBuilder();
-            var specimens = new[] { new object(), new object(), new object() };
-            var requestEvents = specimens.Select(
-                (o, i) => new RequestTraceEventArgs(o, i)).ToList();
-            var createdEvents = specimens.Reverse().Select(
-                (o, i) => new SpecimenCreatedEventArgs(o, null, i)).ToList();
-            var sut = new TerminatingWithPathSpecimenBuilder(tracer);
-            // Exercise system
-            requestEvents.ForEach(tracer.RaiseSpecimenRequested);
-            createdEvents.ForEach(tracer.RaiseSpecimenCreated);
-            // Verify outcome
+            // Arrange
+            var requests = new[] { new object(), new object(), new object() };
+            var requestQueue = new Queue<object>(requests);
+            var firstRequest = requestQueue.Dequeue();
+
+            var builder = new DelegatingSpecimenBuilder
+            {
+                OnCreate = (r, c) => requestQueue.Count > 0
+                    ? c.Resolve(requestQueue.Dequeue())
+                    : new object()
+            };
+
+            var sut = new TerminatingWithPathSpecimenBuilder(builder);
+            // Cause sut to be executed recursively for multiple times.
+            var context = new SpecimenContext(sut);
+
+            // Act
+            sut.Create(firstRequest, context);
+
+            // Assert
             Assert.Empty(sut.SpecimenRequests);
-            // Teardown
         }
 
         [Fact]
         public void SpecimenRequestsAreEmptyAfterThrowing()
         {
-            // Fixture setup
-            var requests = new[] {new object(), new object(), new object() };
+            // Arrange
+            var requests = new[] { new object(), new object(), new object() };
             var requestQueue = new Queue<object>(requests);
             var firstRequest = requestQueue.Dequeue();
-            var tracer = new DelegatingTracingBuilder(new DelegatingSpecimenBuilder
+            var builder = new DelegatingSpecimenBuilder
             {
                 OnCreate = (r, c) => requestQueue.Count > 0
                     ? c.Resolve(requestQueue.Dequeue())
                     : new NoSpecimen()
-            });
-            var sut = new TerminatingWithPathSpecimenBuilder(tracer);
+            };
+            var sut = new TerminatingWithPathSpecimenBuilder(builder);
+            // Cause sut to be executed recursively for multiple times.
             var container = new SpecimenContext(sut);
 
-            // Exercise system and verify outcome
-            Assert.Throws<ObjectCreationException>(() =>
-                sut.Create(firstRequest, container));
+            // Act & assert
+            Assert.ThrowsAny<ObjectCreationException>(() => sut.Create(firstRequest, container));
 
             Assert.Empty(sut.SpecimenRequests);
         }
@@ -219,21 +232,20 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [Fact]
         public void CreateThrowsWhenNoSpecimenIsReturnedFromTheDecoratedGraph()
         {
-            // Fixture setup
-            var requests = new[] {new object(), new object(), new object()};
-            var tracer = new DelegatingTracingBuilder(new DelegatingSpecimenBuilder
+            // Arrange
+            var requests = new[] { new object(), new object(), new object() };
+            var builder = new DelegatingSpecimenBuilder
             {
                 // Returns NoSpecimen only on the last specimen request
-                OnCreate = (r, c) => (r == requests[2]) ? new NoSpecimen() : new object(),
-            });
+                OnCreate = (r, c) => r == requests[2] ? new NoSpecimen() : new object()
+            };
 
-            var sut = new TerminatingWithPathSpecimenBuilder(tracer);
+            var sut = new TerminatingWithPathSpecimenBuilder(builder);
             var container = new SpecimenContext(sut);
-            // Exercise system and verify outcome
-            Assert.DoesNotThrow(() => sut.Create(requests[0], container));
-            Assert.DoesNotThrow(() => sut.Create(requests[1], container));
-            Assert.Throws<ObjectCreationException>(() => sut.Create(requests[2], container));
-            // Teardown
+            // Act & assert
+            Assert.Null(Record.Exception(() => sut.Create(requests[0], container)));
+            Assert.Null(Record.Exception(() => sut.Create(requests[1], container)));
+            Assert.ThrowsAny<ObjectCreationException>(() => sut.Create(requests[2], container));
         }
 
         [Theory]
@@ -243,18 +255,14 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
             object request,
             string requestType)
         {
-            var tracer =
-                new DelegatingTracingBuilder(
-                    new DelegatingSpecimenBuilder
-                    {
-#pragma warning disable 618
-                        OnCreate = (r, c) => new NoSpecimen(request)
-#pragma warning restore 618
-                    });
-            var sut = new TerminatingWithPathSpecimenBuilder(tracer);
+            var builder = new DelegatingSpecimenBuilder
+            {
+                OnCreate = (r, c) => new NoSpecimen()
+            };
+            var sut = new TerminatingWithPathSpecimenBuilder(builder);
 
             var context = new SpecimenContext(sut);
-            var e = Assert.Throws<ObjectCreationException>(
+            var e = Assert.ThrowsAny<ObjectCreationException>(
                 () => sut.Create(request, context));
 
             Assert.Contains(
@@ -274,28 +282,174 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [Fact]
         public void CreateOnMultipleThreadsConcurrentlyWorks()
         {
-            // Fixture setup
-            var tracer = new DelegatingTracingBuilder(new DelegatingSpecimenBuilder
+            // Arrange
+            var builder = new DelegatingSpecimenBuilder
             {
                 OnCreate = (r, c) => 99
-            });
-            var sut = new TerminatingWithPathSpecimenBuilder(tracer);
-            var dummyContext = new DelegatingSpecimenContext()
-            {
-                OnResolve = (r) => 99
             };
-            // Exercise system
+            var sut = new TerminatingWithPathSpecimenBuilder(builder);
+            var dummyContext = new DelegatingSpecimenContext
+            {
+                OnResolve = r => 99
+            };
+            // Act
             int[] specimens = Enumerable.Range(0, 1000)
                 .AsParallel()
                     .WithDegreeOfParallelism(8)
                     .WithExecutionMode(ParallelExecutionMode.ForceParallelism)
                 .Select(x => (int)sut.Create(typeof(int), dummyContext))
                 .ToArray();
-            // Verify outcome
+            // Assert
             Assert.Equal(1000, specimens.Length);
             Assert.True(specimens.All(s => s == 99));
-            // Teardown
         }
 
+        [Fact]
+        public void ObjectCreationExceptionIsThrownIfCreationFails()
+        {
+            // Arrange
+            var request = new object();
+            var builder = new DelegatingSpecimenBuilder
+            {
+                OnCreate = (r, c) => throw new Exception()
+            };
+
+            var sut = new TerminatingWithPathSpecimenBuilder(builder);
+            var context = new DelegatingSpecimenContext();
+
+            // Act & assert
+            Assert.ThrowsAny<ObjectCreationException>(() => sut.Create(request, context));
+        }
+
+        [Fact]
+        public void ExceptionWithCorrectMessageIsThrownIfCreationFails()
+        {
+            // Arrange
+            var request = new object();
+            var builder = new DelegatingSpecimenBuilder
+            {
+                OnCreate = (r, c) => throw new Exception()
+            };
+
+            var sut = new TerminatingWithPathSpecimenBuilder(builder);
+            var context = new DelegatingSpecimenContext();
+
+            // Act & assert
+            var actualException = Assert.ThrowsAny<ObjectCreationException>(() => sut.Create(request, context));
+            Assert.Contains("failed with exception", actualException.Message);
+        }
+
+        [Fact]
+        public void InnerBuilderExceptionIsWrappedByCreationException()
+        {
+            // Arrange
+            var request = new object();
+            var exception = new Exception();
+            var builder = new DelegatingSpecimenBuilder
+            {
+                OnCreate = (r, c) => throw exception
+            };
+
+            var sut = new TerminatingWithPathSpecimenBuilder(builder);
+            var context = new DelegatingSpecimenContext();
+
+            // Act & assert
+            var actualEx = Assert.ThrowsAny<ObjectCreationException>(() => sut.Create(request, context));
+            Assert.Same(exception, actualEx.InnerException);
+        }
+
+        [Fact]
+        public void NestedExceptionIsWrappedForOneTimeOnly()
+        {
+            // Arrange
+            var requests = new[] { new object(), new object(), new object() };
+            var requestQueue = new Queue<object>(requests);
+            var firstRequest = requestQueue.Dequeue();
+
+            var builder = new DelegatingSpecimenBuilder
+            {
+                OnCreate = (r, c) => requestQueue.Count > 0
+                    ? c.Resolve(requestQueue.Dequeue())
+                    : throw new InvalidOperationException()
+            };
+
+            var sut = new TerminatingWithPathSpecimenBuilder(builder);
+            // Cause sut to be executed recursively for multiple times.
+            var context = new SpecimenContext(sut);
+
+            // Act & assert
+            var actualEx = Assert.ThrowsAny<ObjectCreationException>(() => sut.Create(firstRequest, context));
+            Assert.IsAssignableFrom<InvalidOperationException>(actualEx.InnerException);
+        }
+
+        [Fact]
+        public void ShouldWrapObjectCreationExceptionsFromInnerBuilders()
+        {
+            // Arrange
+            var request = new object();
+            var exceptionToThrow = new ObjectCreationException("Creation failed.");
+
+
+            var builder = new DelegatingSpecimenBuilder
+            {
+                OnCreate = (r, c) => throw exceptionToThrow
+            };
+
+            var sut = new TerminatingWithPathSpecimenBuilder(builder);
+            var context = new DelegatingSpecimenContext();
+
+            // Act & assert
+            var actualEx = Assert.ThrowsAny<ObjectCreationException>(() => sut.Create(request, context));
+            Assert.NotEqual(exceptionToThrow, actualEx);
+        }
+
+        [Fact]
+        public void NestedObjectCreationExceptionIsWrappedForOneTimeOnly()
+        {
+            // Arrange
+            var requests = new[] { new object(), new object(), new object() };
+            var requestQueue = new Queue<object>(requests);
+            var firstRequest = requestQueue.Dequeue();
+
+            var expectedInnerException = new ObjectCreationException();
+
+            var builder = new DelegatingSpecimenBuilder
+            {
+                OnCreate = (r, c) => requestQueue.Count > 0
+                    ? c.Resolve(requestQueue.Dequeue())
+                    : throw expectedInnerException
+            };
+
+            var sut = new TerminatingWithPathSpecimenBuilder(builder);
+            // Cause sut to be executed recursively for multiple times.
+            var context = new SpecimenContext(sut);
+
+            // Act & assert
+            var actualEx = Assert.ThrowsAny<ObjectCreationException>(() => sut.Create(firstRequest, context));
+            Assert.Equal(expectedInnerException, actualEx.InnerException);
+        }
+
+        [Fact]
+        public void ThrownExceptionIncludesInnerExceptionMessages()
+        {
+            // Arrange
+            var innerInnerException = new InvalidOperationException("INNER_INNER_EXCEPTION");
+            var innerException = new InvalidOperationException("WRAPPED_INNER_EXCEPTION", innerInnerException);
+
+            var builder = new DelegatingSpecimenBuilder
+            {
+                OnCreate = (r, c) => throw innerException
+            };
+
+            var request = new object();
+            var context = new DelegatingSpecimenContext();
+            var sut = new TerminatingWithPathSpecimenBuilder(builder);
+
+            // Act & assert
+            var actualEx = Assert.ThrowsAny<ObjectCreationException>(() => sut.Create(request, context));
+            Assert.Contains("WRAPPED_INNER_EXCEPTION", actualEx.Message);
+            Assert.Contains("INNER_INNER_EXCEPTION", actualEx.Message);
+
+        }
     }
 }

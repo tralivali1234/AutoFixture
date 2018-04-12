@@ -1,41 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using Ploeh.AutoFixture;
+﻿using System.ComponentModel.DataAnnotations;
+using AutoFixture;
 using Xunit;
 
-namespace Ploeh.AutoFixtureUnitTest.DataAnnotations
+namespace AutoFixtureUnitTest.DataAnnotations
 {
     public class StringLengthArgumentSupportTests
     {
         [Fact]
         public void FixtureCorrectlyCreatesShortText()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
-            // Exercise system
+            // Act
             var actual = fixture.Create<ClassWithShortStringLengthConstrainedConstructorArgument>();
-            // Verify outcome
+            // Assert
             Assert.True(
                 actual.ShortText.Length <= ClassWithShortStringLengthConstrainedConstructorArgument.ShortTextMaximumLength,
                 "AutoFixture should respect [StringLength] attribute on constructor arguments.");
-            // Teardown
         }
 
         [Fact]
         public void FixtureCorrectlyCreatesLongText()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
-            // Exercise system
+            // Act
             var actual = fixture.Create<ClassWithLongStringLengthConstrainedConstructorArgument>();
-            // Verify outcome
+            // Assert
             Assert.Equal(
                 ClassWithLongStringLengthConstrainedConstructorArgument.LongTextLength,
                 actual.LongText.Length);
-            // Teardown
         }
 
         private class ClassWithShortStringLengthConstrainedConstructorArgument

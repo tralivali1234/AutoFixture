@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Reflection;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
-    /// A specification that evaluates requests for types against a target type.
+    /// A specification that evaluates requests for types against a target type. 
+    /// Also matches generic type requests agains the specified open generic.
     /// </summary>
     public class ExactTypeSpecification : IRequestSpecification
     {
@@ -13,12 +15,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// <param name="type">The target type.</param>
         public ExactTypeSpecification(Type type)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            this.TargetType = type;
+            this.TargetType = type ?? throw new ArgumentNullException(nameof(type));
         }
 
         /// <summary>
@@ -36,12 +33,26 @@ namespace Ploeh.AutoFixture.Kernel
         /// </returns>
         public bool IsSatisfiedBy(object request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            if (request == null) throw new ArgumentNullException(nameof(request));
 
-            return this.TargetType.Equals(request);
+            var typeRequest = request as Type;
+            if (typeRequest == null)
+                return false;
+
+            if (this.TargetType == typeRequest)
+                return true;
+
+            if (this.IsOpenGenericDefinitionEqual(typeRequest))
+                return true;
+
+            return false;
+        }
+
+        private bool IsOpenGenericDefinitionEqual(Type request)
+        {
+            return this.TargetType.GetTypeInfo().IsGenericTypeDefinition
+                   && request.GetTypeInfo().IsGenericType
+                   && request.GetTypeInfo().GetGenericTypeDefinition() == this.TargetType;
         }
     }
 }

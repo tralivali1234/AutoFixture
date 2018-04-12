@@ -1,10 +1,9 @@
-﻿using Ploeh.AutoFixture.Kernel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// Relays a request for an <see cref="Func{T}" /> to a request for a
@@ -35,26 +34,23 @@ namespace Ploeh.AutoFixture
         /// </remarks>
         public object Create(object request, ISpecimenContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
+            if (context == null) throw new ArgumentNullException(nameof(context));
 
-            var t = request as Type;
-            if (t == null || !t.IsGenericType)
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+            var type = request as Type;
+            if (type == null)
+                return new NoSpecimen();
 
-            if (t.GetGenericTypeDefinition() != typeof(Lazy<>))
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+            if (!type.TryGetSingleGenericTypeArgument(typeof(Lazy<>), out Type lazyType))
+                return new NoSpecimen();
 
-            var builder = (ILazyBuilder)Activator
-                .CreateInstance(typeof(LazyBuilder<>)
-                .MakeGenericType(t.GetGenericArguments()));
+            var lazyBuilderType = typeof(LazyBuilder<>).MakeGenericType(lazyType);
+            var builder = (ILazyBuilder)Activator.CreateInstance(lazyBuilderType);
+
             return builder.Create(context);
         }
 
+        [SuppressMessage("Microsoft.Performance", "CA1812:AvoidUninstantiatedInternalClasses",
+            Justification = "It's activated via reflection.")]
         private class LazyBuilder<T> : ILazyBuilder
         {
             public object Create(ISpecimenContext context)

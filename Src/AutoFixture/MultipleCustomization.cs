@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// A customization that enables conventions for well-known types that represents multiple
@@ -29,6 +29,7 @@ namespace Ploeh.AutoFixture
     /// case latest customization to be added to a Fixture wins.
     /// </para>
     /// </remarks>
+    [Obsolete("This customization is no longer needed as builders are available out-of-the-box. It will be removed in future version of AutoFixture.")]
     public class MultipleCustomization : ICustomization
     {
         /// <summary>
@@ -39,10 +40,7 @@ namespace Ploeh.AutoFixture
         /// <seealso cref="MultipleCustomization" />
         public void Customize(IFixture fixture)
         {
-            if (fixture == null)
-            {
-                throw new ArgumentNullException(nameof(fixture));
-            }
+            if (fixture == null) throw new ArgumentNullException(nameof(fixture));
 
             fixture.ResidueCollectors.Add(new DictionaryRelay());
             fixture.ResidueCollectors.Add(new CollectionRelay());

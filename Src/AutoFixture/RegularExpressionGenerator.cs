@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Text.RegularExpressions;
-using Ploeh.AutoFixture.DataAnnotations;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
+using Fare;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// Creates a string that is guaranteed to match a RegularExpressionRequest.
@@ -20,23 +20,18 @@ namespace Ploeh.AutoFixture
         /// </returns>
         public object Create(object request, ISpecimenContext context)
         {
-            if (request == null)
-            {
-                return new NoSpecimen();
-            }
+            if (request == null) return new NoSpecimen();
 
             var regularExpressionRequest = request as RegularExpressionRequest;
             if (regularExpressionRequest == null)
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
             }
 
-            return RegularExpressionGenerator.CreateAnonymous(regularExpressionRequest);
+            return GenerateRegularExpression(regularExpressionRequest);
         }
 
-        private static object CreateAnonymous(RegularExpressionRequest request)
+        private static object GenerateRegularExpression(RegularExpressionRequest request)
         {
             string pattern = request.Pattern;
 
@@ -50,20 +45,14 @@ namespace Ploeh.AutoFixture
             }
             catch (InvalidOperationException)
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
             }
             catch (ArgumentException)
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
             }
 
-#pragma warning disable 618
-            return new NoSpecimen(request);
-#pragma warning restore 618
+            return new NoSpecimen();
         }
     }
 }

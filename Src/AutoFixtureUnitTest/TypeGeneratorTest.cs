@@ -1,23 +1,21 @@
 ﻿using System;
-using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.AutoFixtureUnitTest.Kernel;
+using AutoFixture;
+using AutoFixture.Kernel;
+using AutoFixtureUnitTest.Kernel;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest
+namespace AutoFixtureUnitTest
 {
     public class TypeGeneratorTest
     {
         [Fact]
         public void SutIsSpecimenBuilder()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new TypeGenerator();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<ISpecimenBuilder>(sut);
-            // Teardown
         }
 
         [Theory]
@@ -30,32 +28,28 @@ namespace Ploeh.AutoFixtureUnitTest
         [InlineData(typeof(string))]
         public void CreateNonTypeReturnsCorrectResult(object request)
         {
-            // Fixture setup
+            // Arrange
             var sut = new TypeGenerator();
-            // Exercise system
+            // Act
             var dummyContext = new DelegatingSpecimenContext();
             var result = sut.Create(request, dummyContext);
-            // Verify outcome
-#pragma warning disable 618
-            var expected = new NoSpecimen(request);
-#pragma warning restore 618
+            // Assert
+            var expected = new NoSpecimen();
             Assert.Equal(expected, result);
-            // Teardown
         }
 
         [Fact]
         public void CreateTypeReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = new TypeGenerator();
             var request = typeof(Type);
-            // Exercise system
+            // Act
             var dummyContext = new DelegatingSpecimenContext();
             var result = sut.Create(request, dummyContext);
-            // Verify outcome
+            // Assert
             var expected = typeof(object);
             Assert.Equal(expected, result);
-            // Teardown
         }
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Encapsulates an instance method. This is essentially an Adapter over
@@ -29,17 +29,11 @@ namespace Ploeh.AutoFixture.Kernel
         /// <seealso cref="Owner" />
         public InstanceMethod(MethodInfo instanceMethod, object owner)
         {
-            if (instanceMethod == null)
-            {
-                throw new ArgumentNullException(nameof(instanceMethod));
-            }
-            if (owner == null)
-            {
-                throw new ArgumentNullException(nameof(owner));
-            }
+            if (instanceMethod == null) throw new ArgumentNullException(nameof(instanceMethod));
+            if (owner == null) throw new ArgumentNullException(nameof(owner));
 
             this.Method = instanceMethod;
-            this.paramInfos = this.Method.GetParameters();
+            this.paramInfos = instanceMethod.GetParameters();
             this.Owner = owner;
         }
 
@@ -63,13 +57,12 @@ namespace Ploeh.AutoFixture.Kernel
         /// <see langword="true"/> if the specified <see cref="System.Object"/> is equal to this
         /// instance; otherwise, <see langword="false"/>.
         /// </returns>
-        /// <exception cref="T:System.NullReferenceException">
+        /// <exception cref="System.NullReferenceException">
         /// The <paramref name="obj"/> parameter is null.
         /// </exception>
         public override bool Equals(object obj)
         {
-            var other = obj as InstanceMethod;
-            if (other != null)
+            if (obj is InstanceMethod other)
             {
                 return this.Equals(other);
             }
@@ -91,10 +84,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// <summary>
         /// Gets information about the parameters of the method.
         /// </summary>
-        public IEnumerable<ParameterInfo> Parameters
-        {
-            get { return this.paramInfos; }
-        }
+        public IEnumerable<ParameterInfo> Parameters => this.paramInfos;
 
         /// <summary>
         /// Invokes the method with the supplied parameters.

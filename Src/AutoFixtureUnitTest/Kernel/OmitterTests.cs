@@ -1,107 +1,95 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 using Xunit;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class OmitterTests
     {
         [Fact]
         public void SutIsSpecimenBuilder()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new Omitter();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<ISpecimenBuilder>(sut);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithNullRequestThrows()
         {
-            // Fixture setup
+            // Arrange
             var sut = new Omitter();
-            // Exercise system and verify outcome
+            // Act & assert
             var dummyContext = new DelegatingSpecimenContext();
             Assert.Throws<ArgumentNullException>(() =>
                 sut.Create(null, dummyContext));
-            // Teardown
         }
 
         [Fact]
         public void CreateReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = new Omitter();
-            // Exercise system
+            // Act
             var dummyRequest = new object();
             var dummyContext = new DelegatingSpecimenContext();
             var actual = sut.Create(dummyRequest, dummyContext);
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<OmitSpecimen>(actual);
-            // Teardown
         }
 
         [Fact]
         public void SpecificationMatchesConstructorArgument()
         {
-            // Fixture setup
+            // Arrange
             var expected = new DelegatingRequestSpecification();
             var sut = new Omitter(expected);
-            // Exercise system
+            // Act
             IRequestSpecification actual = sut.Specification;
-            // Verify outcome
+            // Assert
             Assert.Equal(expected, actual);
-            // Teardown
         }
 
         [Fact]
         public void ConstructWithNullSpecificationThrows()
         {
-            // Fixture setup
-            // Exercise system and verify outcome
+            // Arrange
+            // Act & assert
             Assert.Throws<ArgumentNullException>(() =>
                 new Omitter(null));
-            // Teardown
         }
 
         [Fact]
         public void CreateWhenSpecificationIsFalseReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = new Omitter(new FalseRequestSpecification());
             var request = new object();
-            // Exercise system
+            // Act
             var dummyContext = new DelegatingSpecimenContext();
             var actual = sut.Create(request, dummyContext);
-            // Verify outcome
-#pragma warning disable 618
-            var expected = new NoSpecimen(request);
-#pragma warning restore 618
+            // Assert
+            var expected = new NoSpecimen();
             Assert.Equal(expected, actual);
-            // Teardown
         }
 
         [Fact]
         public void CreateWhenSpecificationMatchesRequestReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var request = new object();
             var specification = new DelegatingRequestSpecification
             {
                 OnIsSatisfiedBy = request.Equals
             };
             var sut = new Omitter(specification);
-            // Exercise system
+            // Act
             var dummyContext = new DelegatingSpecimenContext();
             var actual = sut.Create(request, dummyContext);
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<OmitSpecimen>(actual);
-            // Teardown
         }
     }
 }

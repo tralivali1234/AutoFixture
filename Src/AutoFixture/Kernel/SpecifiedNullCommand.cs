@@ -3,7 +3,7 @@ using System.Collections;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// A no-op that identifies a certain property or field.
@@ -16,7 +16,7 @@ namespace Ploeh.AutoFixture.Kernel
     /// with it.
     /// </para>
     /// </remarks>
-    [Obsolete("This class is no longer used, and will be removed in future versions.")]
+    [Obsolete("This class is no longer used, and will be removed in future versions.", true)]
     public class SpecifiedNullCommand<T, TProperty> : ISpecifiedSpecimenCommand<T>
     {
         /// <summary>
@@ -27,10 +27,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// <param name="propertyPicker">An expression that identifies a property or field.</param>
         public SpecifiedNullCommand(Expression<Func<T, TProperty>> propertyPicker)
         {
-            if (propertyPicker == null)
-            {
-                throw new ArgumentNullException(nameof(propertyPicker));
-            }
+            if (propertyPicker == null) throw new ArgumentNullException(nameof(propertyPicker));
 
             this.Member = propertyPicker.GetWritableMember().Member;
         }
@@ -60,10 +57,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// </returns>
         public bool IsSatisfiedBy(object request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            if (request == null) throw new ArgumentNullException(nameof(request));
 
             IEqualityComparer comparer = new MemberInfoEqualityComparer();
             return comparer.Equals(this.Member, request);

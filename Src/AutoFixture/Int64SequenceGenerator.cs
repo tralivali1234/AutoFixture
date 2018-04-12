@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// Creates a sequence of consecutive numbers, starting at 1.
@@ -12,16 +12,10 @@ namespace Ploeh.AutoFixture
         private long l;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Int64SequenceGenerator"/> class.
-        /// </summary>
-        public Int64SequenceGenerator()
-        {
-        }
-
-        /// <summary>
         /// Creates an anonymous number.
         /// </summary>
         /// <returns>The next number in a consecutive sequence.</returns>
+        [Obsolete("Please use the Create(request, context) method as this overload will be removed to make API uniform.")]
         public long Create()
         {
             return Interlocked.Increment(ref this.l);
@@ -32,10 +26,10 @@ namespace Ploeh.AutoFixture
         /// </summary>
         /// <remarks>Obsolete: Please move over to using <see cref="Create()">Create()</see> as this method will be removed in the next release</remarks>
         /// <returns>The next number in a consecutive sequence.</returns>
-        [Obsolete("Please move over to using Create() as this method will be removed in the next release")]
+        [Obsolete("Please move over to using Create() as this method will be removed in the next release", true)]
         public long CreateAnonymous()
         {
-            return Create();
+            return this.Create();
         }
 
         /// <summary>
@@ -51,12 +45,12 @@ namespace Ploeh.AutoFixture
         {
             if (!typeof(long).Equals(request))
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
             }
 
+#pragma warning disable 618
             return this.Create();
+#pragma warning restore 618
         }
     }
 }

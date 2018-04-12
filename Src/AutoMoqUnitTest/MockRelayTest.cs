@@ -1,72 +1,65 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+using System.Reflection;
+using AutoFixture.Kernel;
 using Moq;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.TestTypeFoundation;
+using TestTypeFoundation;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixture.AutoMoq.UnitTest
+namespace AutoFixture.AutoMoq.UnitTest
 {
     public class MockRelayTest
     {
         [Fact]
         public void SutIsSpecimenBuilder()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new MockRelay();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<ISpecimenBuilder>(sut);
-            // Teardown
         }
 
         [Fact]
         public void InitializeWithNullSpecificationThrows()
         {
-            // Fixture setup
-            // Exercise system and verify outcome
+            // Arrange
+            // Act & Assert
             Assert.Throws<ArgumentNullException>(() =>
                 new MockRelay(null));
-            // Teardown
         }
 
         [Fact]
         public void SpecificationIsCorrectWhenInitializedWithSpecification()
         {
-            // Fixture setup
+            // Arrange
             var expected = new Mock<IRequestSpecification>().Object;
             var sut = new MockRelay(expected);
-            // Exercise system
+            // Act
             IRequestSpecification result = sut.MockableSpecification;
-            // Verify outcome
+            // Assert
             Assert.Equal(expected, result);
-            // Teardown
         }
 
         [Fact]
         public void SpecificationIsNotNullWhenInitializedWithDefaultConstructor()
         {
-            // Fixture setup
+            // Arrange
             var sut = new MockRelay();
-            // Exercise system
+            // Act
             var result = sut.MockableSpecification;
-            // Verify outcome
+            // Assert
             Assert.NotNull(result);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithNullContextThrows()
         {
-            // Fixture setup
+            // Arrange
             var sut = new MockRelay();
             var dummyRequest = new object();
-            // Exercise system and verify outcome
+            // Act & Assert
             Assert.Throws<ArgumentNullException>(() =>
                 sut.Create(dummyRequest, null));
-            // Teardown
         }
 
         [Theory]
@@ -77,17 +70,14 @@ namespace Ploeh.AutoFixture.AutoMoq.UnitTest
         [InlineData(typeof(string))]
         public void CreateWithNonAbstractionRequestReturnsCorrectResult(object request)
         {
-            // Fixture setup
+            // Arrange
             var sut = new MockRelay();
             var dummyContext = new Mock<ISpecimenContext>().Object;
-            // Exercise system
+            // Act
             var result = sut.Create(request, dummyContext);
-            // Verify outcome
-#pragma warning disable 618
-            var expectedResult = new NoSpecimen(request);
-#pragma warning restore 618
+            // Assert
+            var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Theory]
@@ -95,7 +85,7 @@ namespace Ploeh.AutoFixture.AutoMoq.UnitTest
         [InlineData(typeof(IInterface))]
         public void CreateWithAbstractionRequestReturnsCorrectResult(Type request)
         {
-            // Fixture setup
+            // Arrange
             var mockType = typeof(Mock<>).MakeGenericType(request);
 
             var mock = (Mock)Activator.CreateInstance(mockType);
@@ -103,17 +93,16 @@ namespace Ploeh.AutoFixture.AutoMoq.UnitTest
             contextStub.Setup(ctx => ctx.Resolve(mockType)).Returns(mock);
 
             var sut = new MockRelay();
-            // Exercise system
+            // Act
             var result = sut.Create(request, contextStub.Object);
-            // Verify outcome
+            // Assert
             Assert.Equal(mock.Object, result);
-            // Teardown
         }
 
         [Fact]
         public void CreateReturnsCorrectResultWhenContextReturnsNonMock()
         {
-            // Fixture setup
+            // Arrange
             var request = typeof(IInterface);
             var mockType = typeof(Mock<>).MakeGenericType(request);
 
@@ -121,21 +110,18 @@ namespace Ploeh.AutoFixture.AutoMoq.UnitTest
             contextStub.Setup(ctx => ctx.Resolve(mockType)).Returns(new object());
 
             var sut = new MockRelay();
-            // Exercise system
+            // Act
             var result = sut.Create(request, contextStub.Object);
-            // Verify outcome
-#pragma warning disable 618
-            var expectedResult = new NoSpecimen(request);
-#pragma warning restore 618
+            // Assert
+            var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Theory]
         [ClassData(typeof (ValidNonMockSpecimens))]
         public void CreateReturnsCorrectResultWhenContextReturnsValidNonMockSpecimen(object validNonMockSpecimen)
         {
-            // Fixture setup
+            // Arrange
             var request = typeof (IInterface);
             var mockType = typeof (Mock<>).MakeGenericType(request);
 
@@ -143,11 +129,10 @@ namespace Ploeh.AutoFixture.AutoMoq.UnitTest
             contextStub.Setup(ctx => ctx.Resolve(mockType)).Returns(validNonMockSpecimen);
 
             var sut = new MockRelay();
-            // Exercise system
+            // Act
             var result = sut.Create(request, contextStub.Object);
-            // Verify outcome
+            // Assert
             Assert.Equal(validNonMockSpecimen, result);
-            // Teardown
         }
 
         [Theory]
@@ -157,7 +142,7 @@ namespace Ploeh.AutoFixture.AutoMoq.UnitTest
         public void CreateReturnsCorrectResultWhenSpecificationIsSatisfied(
             Type request)
         {
-            // Fixture setup
+            // Arrange
             var specificationStub = new Mock<IRequestSpecification>();
             specificationStub
                 .Setup(s => s.IsSatisfiedBy(request))
@@ -173,17 +158,16 @@ namespace Ploeh.AutoFixture.AutoMoq.UnitTest
                 .Returns(expected);
 
             var sut = new MockRelay(specificationStub.Object);
-            // Exercise system
+            // Act
             var actual = sut.Create(request, contextStub.Object);
-            // Verify outcome
+            // Assert
             Assert.Equal(expected.Object, actual);
-            // Teardown
         }
 
         [Fact]
         public void CreateWhenSpecificationIsSatisfiedButRequestIsNotTypeReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var specificationStub = new Mock<IRequestSpecification>();
             specificationStub
                 .Setup(s => s.IsSatisfiedBy(It.IsAny<object>()))
@@ -192,15 +176,12 @@ namespace Ploeh.AutoFixture.AutoMoq.UnitTest
             var sut = new MockRelay(specificationStub.Object);
 
             var request = new object();
-            // Exercise system
+            // Act
             var dummyContext = new Mock<ISpecimenContext>().Object;
             var actual = sut.Create(request, dummyContext);
-            // Verify outcome
-#pragma warning disable 618
-            var expected = new NoSpecimen(request);
-#pragma warning restore 618
+            // Assert
+            var expected = new NoSpecimen();
             Assert.Equal(expected, actual);
-            // Teardown
         }
     }
 }

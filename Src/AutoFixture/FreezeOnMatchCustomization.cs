@@ -1,7 +1,7 @@
 using System;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// A customization that freezes specimens of a specific <see cref="Type"/>
@@ -20,53 +20,45 @@ namespace Ploeh.AutoFixture
         /// <summary>
         /// Initializes a new instance of the <see cref="FreezeOnMatchCustomization"/> class.
         /// </summary>
-        /// <remarks>
-        /// The constructed customization will use the frozen specimen
-        /// to satisfy requests for the exact same type.
-        /// This mimics the behavior of the <see cref="FreezingCustomization"/>.
-        /// </remarks>
-        /// <param name="targetType">The <see cref="Type"/> to freeze.</param>
+        /// <param name="request">The request used to create a specimen to freeze.</param>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="targetType"/> is <see langword="null"/>.
+        /// <paramref name="request"/> is <see langword="null"/>.
         /// </exception>
-        public FreezeOnMatchCustomization(Type targetType)
-            : this(targetType, new ExactTypeSpecification(targetType))
+        public FreezeOnMatchCustomization(object request)
         {
+            this.Request = request ?? throw new ArgumentNullException(nameof(request));
+            this.Matcher = new EqualRequestSpecification(request);
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FreezeOnMatchCustomization"/> class.
         /// </summary>
-        /// <param name="targetType">The <see cref="Type"/> to freeze.</param>
+        /// <param name="request">The request used to create a specimen to freeze.</param>
         /// <param name="matcher">
         /// The <see cref="IRequestSpecification"/> used to match the requests
         /// that will be satisfied by the frozen specimen.
         /// </param>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="targetType"/> or<paramref name="matcher"/> is null.
+        /// <paramref name="request"/> or <paramref name="matcher"/> is null.
         /// </exception>
         public FreezeOnMatchCustomization(
-            Type targetType,
+            object request,
             IRequestSpecification matcher)
         {
-            if (targetType == null)
-            {
-                throw new ArgumentNullException(nameof(targetType));
-            }
-
-            if (matcher == null)
-            {
-                throw new ArgumentNullException(nameof(matcher));
-            }
-
-            this.TargetType = targetType;
-            this.Matcher = matcher;
+            this.Request = request ?? throw new ArgumentNullException(nameof(request));
+            this.Matcher = matcher ?? throw new ArgumentNullException(nameof(matcher));
         }
 
         /// <summary>
         /// The <see cref="Type"/> of the frozen specimen.
         /// </summary>
-        public Type TargetType { get; }
+        [Obsolete("Please use the Request property instead.")]
+        public Type TargetType => this.Request as Type;
+
+        /// <summary>
+        /// The request used to resolve specimens. By default that is TargetType.
+        /// </summary>
+        public object Request { get; }
 
         /// <summary>
         /// The <see cref="IRequestSpecification"/> used to match the requests
@@ -80,27 +72,24 @@ namespace Ploeh.AutoFixture
         /// <param name="fixture">The fixture to customize.</param>
         public void Customize(IFixture fixture)
         {
-            if (fixture == null)
-            {
-                throw new ArgumentNullException(nameof(fixture));
-            }
+            if (fixture == null) throw new ArgumentNullException(nameof(fixture));
 
-            FreezeTypeForMatchingRequests(fixture);
+            this.FreezeSpecimenForMatchingRequests(fixture);
         }
 
-        private void FreezeTypeForMatchingRequests(IFixture fixture)
+        private void FreezeSpecimenForMatchingRequests(IFixture fixture)
         {
             fixture.Customizations.Insert(
                 0,
                 new FilteringSpecimenBuilder(
-                    FreezeTargetType(fixture),
+                    this.FreezeSpecimen(fixture),
                     this.Matcher));
         }
 
-        private ISpecimenBuilder FreezeTargetType(IFixture fixture)
+        private ISpecimenBuilder FreezeSpecimen(IFixture fixture)
         {
             var context = new SpecimenContext(fixture);
-            var specimen = context.Resolve(this.TargetType);
+            var specimen = context.Resolve(this.Request);
             return new FixedBuilder(specimen);
         }
     }

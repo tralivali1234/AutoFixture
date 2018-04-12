@@ -1,70 +1,84 @@
 ﻿using System;
+using System.Reflection;
+using AutoFixture.Kernel;
 using NSubstitute;
 using NSubstitute.Exceptions;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.TestTypeFoundation;
+using TestTypeFoundation;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixture.AutoNSubstitute.UnitTest
+namespace AutoFixture.AutoNSubstitute.UnitTest
 {
     public class SubstituteRelayTest
     {
         [Fact]
         public void ClassImplementsISpecimenBuilderToServeAsResidueCollector()
         {
-            // Fixture setup
-            // Exercise system
-            // Verify outcome
-            Assert.True(typeof(ISpecimenBuilder).IsAssignableFrom(typeof(SubstituteRelay)));
-            // Teardown
+            // Arrange
+            // Act
+            var sut = new SubstituteRelay();
+            // Assert
+            Assert.IsAssignableFrom<ISpecimenBuilder>(sut);
+        }
+
+        [Fact]
+        public void DefaultSpecificationShouldBeValid()
+        {
+            // Arrange
+            // Act
+            var sut = new SubstituteRelay();
+            // Assert
+            Assert.IsType<AbstractTypeSpecification>(sut.Specification);
+        }
+
+        [Fact]
+        public void CustomSpecificationIsPreserved()
+        {
+            // Arrange
+            var specification = new TrueRequestSpecification();
+            // Act
+            var sut = new SubstituteRelay(specification);
+            // Assert
+            Assert.Same(specification, sut.Specification);
         }
 
         [Fact]
         public void CreateThrowsArgumentNullExceptionWhenContextIsNullBecauseItsRequired()
         {
-            // Fixture setup
+            // Arrange
             var sut = new SubstituteRelay();
             var request = new object();
-            // Exercise system
+            // Act
             var e = Assert.Throws<ArgumentNullException>(() => sut.Create(request, null));
-            // Verify outcome
+            // Assert
             Assert.Equal("context", e.ParamName);
-            // Teardown
         }
 
         [Fact]
         public void CreateReturnsNoSpecimenWhenRequestIsNotAType()
         {
-            // Fixture setup
+            // Arrange
             var sut = new SubstituteRelay();
             object request = "beer";
             var context = Substitute.For<ISpecimenContext>();
-            // Exercise system
+            // Act
             object result = sut.Create(request, context);
-            // Verify outcome
-#pragma warning disable 618
-            var expected = new NoSpecimen(request);
-#pragma warning restore 618
+            // Assert
+            var expected = new NoSpecimen();
             Assert.Equal(expected, result);
-            // Teardown
         }
 
         [Fact]
         public void CreateReturnsNoSpecimenWhenRequestedTypeIsNotAbstract()
         {
-            // Fixture setup
+            // Arrange
             var sut = new SubstituteRelay();
             object request = typeof(string);
             var context = Substitute.For<ISpecimenContext>();
-            // Exercise system
+            // Act
             object result = sut.Create(request, context);
-            // Verify outcome
-#pragma warning disable 618
-            var expected = new NoSpecimen(request);
-#pragma warning restore 618
+            // Assert
+            var expected = new NoSpecimen();
             Assert.Equal(expected, result);
-            // Teardown
         }
 
         [Theory]
@@ -72,35 +86,48 @@ namespace Ploeh.AutoFixture.AutoNSubstitute.UnitTest
         [InlineData(typeof(IInterface))]
         public void CreateReturnsObjectResolvedFromContextWhenRequestedTypeIsAbstractOrInterface(Type requestedType)
         {
-            // Fixture setup
+            // Arrange
             var sut = new SubstituteRelay();
             object request = requestedType;
             object substitute = Substitute.For(new Type[] { requestedType }, new object[0]);
             var context = Substitute.For<ISpecimenContext>();
             context.Resolve(Arg.Is<SubstituteRequest>(r => r.TargetType == requestedType)).Returns(substitute);
-            // Exercise system
+            // Act
             object result = sut.Create(request, context);
-            // Verify outcome
+            // Assert
             Assert.Same(substitute, result);
-            // Teardown
         }
 
         [Fact]
         public void CreateThrowsInvalidOperationExceptionWhenResolvedObjectIsNotSubstituteAssumingInvalidConfiguration()
         {
-            // Fixture setup
+            // Arrange
             var sut = new SubstituteRelay();
             var request = typeof(IComparable);
             var notASubstitute = new object();
             var context = Substitute.For<ISpecimenContext>();
             context.Resolve(Arg.Any<object>()).Returns(notASubstitute);
-            // Exercise system
+            // Act
             var e = Assert.Throws<InvalidOperationException>(() => sut.Create(request, context));
-            // Verify outcome
+            // Assert
             Assert.Contains(request.FullName, e.Message);
             Assert.Contains(typeof(SubstituteRequestHandler).FullName, e.Message); 
             Assert.IsType<NotASubstituteException>(e.InnerException);
-            // Teardown
+        }
+
+        [Fact]
+        public void ShouldNotRelayRequestIfSpecificationDoesNotMatch()
+        {
+            // Arrange
+            var falseSpecification = new FalseRequestSpecification();
+            var sut = new SubstituteRelay(falseSpecification);
+            var request = typeof(IInterface);
+            var context = Substitute.For<ISpecimenContext>();
+
+            // Act
+            var result = sut.Create(request, context);
+            // Assert
+            Assert.IsType<NoSpecimen>(result);
         }
     }
 }

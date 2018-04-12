@@ -1,61 +1,75 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using AutoFixture.Kernel;
 using Moq;
-using Ploeh.AutoFixture.Kernel;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixture.AutoMoq.UnitTest
+namespace AutoFixture.AutoMoq.UnitTest
 {
+    [Obsolete]
     public class AutoConfiguredMoqCustomizationTest
     {
         [Fact]
+        public void IsInheritedFromAutoMoqCustomization()
+        {
+            // Arrange
+            var sut = new AutoConfiguredMoqCustomization();
+            // Act & Assert
+            Assert.IsAssignableFrom<AutoMoqCustomization>(sut);
+        }
+
+        [Fact]
+        public void SetsConfigureMembersPropertyToTrue()
+        {
+            // Arrange
+            var sut = new AutoConfiguredMoqCustomization();
+            // Act & Assert
+            Assert.True(sut.ConfigureMembers);
+        }
+
+        [Fact]
         public void CtorThrowsWhenRelayIsNull()
         {
-            // Exercise system and verify outcome
+            // Act & Assert
             Assert.Throws<ArgumentNullException>(() => new AutoConfiguredMoqCustomization(null));
         }
 
         [Fact]
         public void RelayIsMockRelayByDefault()
         {
-            // Fixture setup
+            // Arrange
             var sut = new AutoConfiguredMoqCustomization();
-            // Exercise system 
+            // Act
             var relay = sut.Relay;
-            // Verify outcome
+            // Assert
             Assert.IsType<MockRelay>(relay);
-            // Teardown
         }
 
         [Fact]
         public void CustomizeThrowsWhenFixtureIsNull()
         {
-            // Fixture setup
+            // Arrange
             var sut = new AutoConfiguredMoqCustomization();
-            // Exercise system and verify outcome
+            // Act & Assert
             Assert.Throws<ArgumentNullException>(
                 () => sut.Customize(null));
-            // Teardown
         }
 
         [Fact]
         public void CustomizeAddsPostprocessorToCustomizations()
         {
-            // Fixture setup
+            // Arrange
             var customizations = new List<ISpecimenBuilder>();
             var fixture = new Mock<IFixture> {DefaultValue = DefaultValue.Mock};
             fixture.Setup(f => f.Customizations)
                    .Returns(customizations);
 
             var sut = new AutoConfiguredMoqCustomization();
-            // Exercise system
+            // Act
             sut.Customize(fixture.Object);
-            // Verify outcome
-            Assert.True(customizations.Any(builder => builder is Postprocessor));
-            // Teardown
+            // Assert
+            Assert.Contains(customizations, builder => builder is Postprocessor);
         }
 
         [Theory]
@@ -64,27 +78,26 @@ namespace Ploeh.AutoFixture.AutoMoq.UnitTest
         [InlineData(typeof(AutoMockPropertiesCommand))]
         public void CustomizeAddsMockCommandsToPostprocessor(Type expectedCommandType)
         {
-            // Fixture setup
+            // Arrange
             var customizations = new List<ISpecimenBuilder>();
             var fixture = new Mock<IFixture> {DefaultValue = DefaultValue.Mock};
             fixture.Setup(f => f.Customizations)
                    .Returns(customizations);
 
             var sut = new AutoConfiguredMoqCustomization();
-            // Exercise system
+            // Act
             sut.Customize(fixture.Object);
-            // Verify outcome
+            // Assert
             var postprocessor = (Postprocessor) customizations.Single(builder => builder is Postprocessor);
             var compositeCommand = (CompositeSpecimenCommand) postprocessor.Command;
 
-            Assert.True(compositeCommand.Commands.Any(command => command.GetType() == expectedCommandType));
-            // Teardown
+            Assert.Contains(compositeCommand.Commands, command => command.GetType() == expectedCommandType);
         }
 
         [Fact]
         public void CustomizeAddsRelayToResidueCollectors()
         {
-            // Fixture setup
+            // Arrange
             var relay = new Mock<ISpecimenBuilder>();
             var collectors = new List<ISpecimenBuilder>();
             var fixture = new Mock<IFixture> {DefaultValue = DefaultValue.Mock};
@@ -92,11 +105,10 @@ namespace Ploeh.AutoFixture.AutoMoq.UnitTest
                    .Returns(collectors);
 
             var sut = new AutoConfiguredMoqCustomization(relay.Object);
-            // Exercise system
+            // Act
             sut.Customize(fixture.Object);
-            // Verify outcome
+            // Assert
             Assert.Contains(relay.Object, collectors);
-            // Teardown
         }
     }
 }

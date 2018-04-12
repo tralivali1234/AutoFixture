@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Creates a new specimen from a <see cref="SeededRequest"/> using a function.
@@ -14,12 +14,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// <param name="factory">The function that will create the specimen from a seed.</param>
         public SeededFactory(Func<T, T> factory)
         {
-            if (factory == null)
-            {
-                throw new ArgumentNullException(nameof(factory));
-            }
-
-            this.Factory = factory;
+            this.Factory = factory ?? throw new ArgumentNullException(nameof(factory));
         }
 
         /// <summary>
@@ -47,24 +42,18 @@ namespace Ploeh.AutoFixture.Kernel
             var seededRequest = request as SeededRequest;
             if (seededRequest == null)
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
             }
 
             if (!seededRequest.Request.Equals(typeof(T)))
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
             }
 
             if ((seededRequest.Seed != null)
                 && !(seededRequest.Seed is T))
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
             }
             var seed = (T)seededRequest.Seed;
 

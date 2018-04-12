@@ -1,38 +1,36 @@
 ﻿using System;
 using System.Linq;
-using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture;
+using AutoFixture.Kernel;
 using Xunit;
 
-namespace Ploeh.AutoFixtureUnitTest
+namespace AutoFixtureUnitTest
 {
     public class NumericSequencePerTypeCustomizationTest
     {
         [Fact]
         public void SutIsCustomization()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new NumericSequencePerTypeCustomization();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<ICustomization>(sut);
-            // Teardown
         }
 
         [Fact]
         public void CustomizeWithNullThrowsArgumentNullException()
         {
-            // Fixture setup
+            // Arrange
             var sut = new NumericSequencePerTypeCustomization();
-            // Exercise system and verify outcome
-            Assert.Throws(typeof(ArgumentNullException), () => sut.Customize(null));
-            // Teardown
+            // Act & assert
+            Assert.Throws<ArgumentNullException>(() => sut.Customize(null));
         }
 
         [Fact]
         public void CustomizeAddsSpecializedNumericSpecimenBuildersToFixture()
         {
-            // Fixture setup
+            // Arrange
             var expectedBuilders = new[]
             {
                 typeof(ByteSequenceGenerator),
@@ -49,21 +47,20 @@ namespace Ploeh.AutoFixtureUnitTest
             };
             var fixture = new Fixture();
             var sut = new NumericSequencePerTypeCustomization();
-            // Exercise system
+            // Act
             sut.Customize(fixture);
             var result = fixture.Customizations
                 .OfType<CompositeSpecimenBuilder>()
                 .SelectMany(i => i)
                 .Select(i => i.GetType());
-            // Verify outcome
+            // Assert
             Assert.True(expectedBuilders.SequenceEqual(result));
-            // Teardown
         }
 
         [Fact]
         public void CreateAnonymousWithNumericSequencePerTypeCustomizationWillReturnCorrectValues()
         {
-            // Fixture setup
+            // Arrange
             var expectedValues = new object[]
             {
                 (byte)1,
@@ -80,7 +77,7 @@ namespace Ploeh.AutoFixtureUnitTest
             };
             var sut = new Fixture();
             var customization = new NumericSequencePerTypeCustomization();
-            // Exercise system
+            // Act
             sut.Customize(customization);
             var results = new object[]
             {
@@ -96,9 +93,8 @@ namespace Ploeh.AutoFixtureUnitTest
                 sut.Create<uint>(),
                 sut.Create<ulong>()
             };
-            // Verify outcome
+            // Assert
             Assert.True(expectedValues.SequenceEqual(results));
-            // Teardown
         }
     }
 }

@@ -1,8 +1,7 @@
-﻿using System.Linq;
+﻿using System.Reflection;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixture.AutoFakeItEasy.UnitTest
+namespace AutoFixture.AutoFakeItEasy.UnitTest
 {
     public class DependencyConstraints
     {
@@ -13,12 +12,11 @@ namespace Ploeh.AutoFixture.AutoFakeItEasy.UnitTest
         [InlineData("xunit.extensions")]
         public void AutoFakeItEasyDoesNotReference(string assemblyName)
         {
-            // Fixture setup
-            // Exercise system
-            var references = typeof(AutoFakeItEasyCustomization).Assembly.GetReferencedAssemblies();
-            // Verify outcome
-            Assert.False(references.Any(an => an.Name == assemblyName));
-            // Teardown
+            // Arrange
+            // Act
+            var references = typeof(AutoFakeItEasyCustomization).GetTypeInfo().Assembly.GetReferencedAssemblies();
+            // Assert
+            Assert.DoesNotContain(references, an => an.Name == assemblyName);
         }
 
         [Theory]
@@ -26,12 +24,11 @@ namespace Ploeh.AutoFixture.AutoFakeItEasy.UnitTest
         [InlineData("Moq")]
         public void AutoFakeItEasyUnitTestsDoNotReference(string assemblyName)
         {
-            // Fixture setup
-            // Exercise system
-            var references = this.GetType().Assembly.GetReferencedAssemblies();
-            // Verify outcome
-            Assert.False(references.Any(an => an.Name == assemblyName));
-            // Teardown
+            // Arrange
+            // Act
+            var references = this.GetType().GetTypeInfo().Assembly.GetReferencedAssemblies();
+            // Assert
+            Assert.DoesNotContain(references, an => an.Name == assemblyName);
         }
     }
 }

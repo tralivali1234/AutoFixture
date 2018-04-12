@@ -1,8 +1,8 @@
 ﻿using System;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 using Rhino.Mocks.Interfaces;
 
-namespace Ploeh.AutoFixture.AutoRhinoMock
+namespace AutoFixture.AutoRhinoMock
 {
     /// <summary>
     /// Provides pre- and post-condition checks for requests for mock instances.
@@ -10,8 +10,6 @@ namespace Ploeh.AutoFixture.AutoRhinoMock
     /// <seealso cref="Create(object, ISpecimenContext)" />
     public class RhinoMockAroundAdvice : ISpecimenBuilder
     {
-        private readonly ISpecimenBuilder builder;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="RhinoMockAroundAdvice"/> class with an
         /// <see cref="ISpecimenBuilder" /> to decorate.
@@ -26,22 +24,14 @@ namespace Ploeh.AutoFixture.AutoRhinoMock
         /// <seealso cref="Builder" />
         public RhinoMockAroundAdvice(ISpecimenBuilder builder)
         {
-            if (builder == null)
-            {
-                throw new ArgumentNullException("builder");
-            }
-
-            this.builder = builder;
+            this.Builder = builder ?? throw new ArgumentNullException(nameof(builder));
         }
 
         /// <summary>
         /// Gets the decorated builder supplied through the constructor.
         /// </summary>
         /// <seealso cref="RhinoMockAroundAdvice(ISpecimenBuilder)" />
-        public ISpecimenBuilder Builder
-        {
-            get { return this.builder; }
-        }
+        public ISpecimenBuilder Builder { get; }
 
         /// <summary>
         /// Creates a new specimen based on a request.
@@ -68,18 +58,14 @@ namespace Ploeh.AutoFixture.AutoRhinoMock
         {
             if (!request.IsMockable())
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
             }
 
-            var built = this.builder.Create(request, context);
+            var built = this.Builder.Create(request, context);
             var m = built as IMockedObject;
             if (m == null)
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
             }
 
             return m;

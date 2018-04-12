@@ -1,35 +1,32 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.TestTypeFoundation;
+using AutoFixture.Kernel;
+using TestTypeFoundation;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixture.AutoRhinoMock.UnitTest
+namespace AutoFixture.AutoRhinoMock.UnitTest
 {
     public class RhinoMockConstructorQueryTest
     {
         [Fact]
         public void SutIsMethodQuery()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new RhinoMockConstructorQuery();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<IMethodQuery>(sut);
-            // Teardown
         }
 
         [Fact]
         public void SelectMethodsFromNullTypeThrows()
         {
-            // Fixture setup
+            // Arrange
             var sut = new RhinoMockConstructorQuery();
-            // Exercise system and verify outcome
+            // Act & Assert
             Assert.Throws<ArgumentNullException>(() =>
                 sut.SelectMethods(null));
-            // Teardown
         }
 
         [Theory]
@@ -38,14 +35,13 @@ namespace Ploeh.AutoFixture.AutoRhinoMock.UnitTest
         [InlineData(typeof(AbstractType))]
         public void SelectMethodsReturnsCorrectResultForNonInterfaces(Type t)
         {
-            // Fixture setup
+            // Arrange
             var expectedCount = t.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Length;
             var sut = new RhinoMockConstructorQuery();
-            // Exercise system
+            // Act
             var result = sut.SelectMethods(t);
-            // Verify outcome
+            // Assert
             Assert.Equal(expectedCount, result.Count());
-            // Teardown
         }
 
         [Theory]
@@ -55,13 +51,12 @@ namespace Ploeh.AutoFixture.AutoRhinoMock.UnitTest
         [InlineData(typeof(IComparable<int>))]
         public void SelectMethodsReturnsCorrectNumberOfMethodsForInterface(Type t)
         {
-            // Fixture setup
+            // Arrange
             var sut = new RhinoMockConstructorQuery();
-            // Exercise system
+            // Act
             var result = sut.SelectMethods(t);
-            // Verify outcome
-            Assert.Equal(1, result.Count());
-            // Teardown
+            // Assert
+            Assert.Single(result);
         }
 
         [Theory]
@@ -71,14 +66,13 @@ namespace Ploeh.AutoFixture.AutoRhinoMock.UnitTest
         [InlineData(typeof(IComparable<int>))]
         public void SelectMethodsReturnsCorrectResultForInterface(Type t)
         {
-            // Fixture setup
+            // Arrange
             var sut = new RhinoMockConstructorQuery();
-            // Exercise system
+            // Act
             var result = sut.SelectMethods(t);
-            // Verify outcome
+            // Assert
             var method = Assert.IsAssignableFrom<RhinoMockConstructorMethod>(result.Single());
             Assert.Equal(t, method.MockTargetType);
-            // Teardown
         }
 
         [Theory]
@@ -88,14 +82,13 @@ namespace Ploeh.AutoFixture.AutoRhinoMock.UnitTest
         [InlineData(typeof(IComparable<int>))]
         public void SelectMethodsReturnsResultWithNoParametersForInterface(Type t)
         {
-            // Fixture setup
+            // Arrange
             var sut = new RhinoMockConstructorQuery();
-            // Exercise system
+            // Act
             var result = sut.SelectMethods(t);
-            // Verify outcome
+            // Assert
             var method = Assert.IsAssignableFrom<RhinoMockConstructorMethod>(result.Single());
             Assert.Empty(method.Parameters);
-            // Teardown
         }
     }
 }

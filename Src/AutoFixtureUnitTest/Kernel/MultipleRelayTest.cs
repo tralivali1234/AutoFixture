@@ -1,47 +1,43 @@
 ﻿using System;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class MultipleRelayTest
     {
         [Fact]
         public void SutIsSpecimenBuilder()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new MultipleRelay();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<ISpecimenBuilder>(sut);
-            // Teardown
         }
 
         [Fact]
         public void CountIsProperWritableProperty()
         {
-            // Fixture setup
+            // Arrange
             var sut = new MultipleRelay();
             var expectedCount = 1;
-            // Exercise system
+            // Act
             sut.Count = expectedCount;
             int result = sut.Count;
-            // Verify outcome
+            // Assert
             Assert.Equal(expectedCount, result);
-            // Teardown
         }
 
         [Fact]
         public void DefaultCountIsCorrect()
         {
-            // Fixture setup
+            // Arrange
             var sut = new MultipleRelay();
-            // Exercise system
+            // Act
             var result = sut.Count;
-            // Verify outcome
+            // Assert
             Assert.Equal(3, result);
-            // Teardown
         }
 
         [Theory]
@@ -49,41 +45,36 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [InlineData(-21)]
         public void SettingInvalidCountThrows(int count)
         {
-            // Fixture setup
+            // Arrange
             var sut = new MultipleRelay();
-            // Exercise system and verify outcome
+            // Act & assert
             Assert.Throws<ArgumentOutOfRangeException>(() =>
                 sut.Count = count);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithNullContextThrows()
         {
-            // Fixture setup
+            // Arrange
             var sut = new MultipleRelay();
             var dummyRequest = new object();
-            // Exercise system and verify outcome
+            // Act & assert
             Assert.Throws<ArgumentNullException>(() =>
                 sut.Create(dummyRequest, null));
-            // Teardown
         }
 
         [Fact]
         public void CreateWithAnonymousRequestReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = new MultipleRelay();
             var request = new object();
-            // Exercise system
+            // Act
             var dummyContainer = new DelegatingSpecimenContext();
             var result = sut.Create(request, dummyContainer);
-            // Verify outcome
-#pragma warning disable 618
-            var expectedResult = new NoSpecimen(request);
-#pragma warning restore 618
+            // Assert
+            var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Theory]
@@ -92,37 +83,31 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [InlineData("foo")]
         public void CreateWithInvalidRequestReturnsCorrectResult(object request)
         {
-            // Fixture setup
+            // Arrange
             var sut = new MultipleRelay();
-            // Exercise system
+            // Act
             var dummyContainer = new DelegatingSpecimenContext();
             var result = sut.Create(request, dummyContainer);
-            // Verify outcome
-#pragma warning disable 618
-            var expectedResult = new NoSpecimen(request);
-#pragma warning restore 618
+            // Assert
+            var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithManyRequestReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var request = new MultipleRequest(new object());
             var count = 7;
             var expectedTranslation = new FiniteSequenceRequest(request.Request, 7);
             var expectedResult = new object();
-#pragma warning disable 618
-            var container = new DelegatingSpecimenContext { OnResolve = r => expectedTranslation.Equals(r) ? expectedResult : new NoSpecimen(r) };
-#pragma warning restore 618
+            var container = new DelegatingSpecimenContext { OnResolve = r => expectedTranslation.Equals(r) ? expectedResult : new NoSpecimen() };
 
             var sut = new MultipleRelay { Count = count };
-            // Exercise system
+            // Act
             var result = sut.Create(request, container);
-            // Verify outcome
+            // Assert
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
     }
 }

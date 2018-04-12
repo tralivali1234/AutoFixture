@@ -1,7 +1,8 @@
 ﻿using System;
-using Ploeh.AutoFixture.Kernel;
+using System.Reflection;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture.AutoFakeItEasy
+namespace AutoFixture.AutoFakeItEasy
 {
     /// <summary>
     /// Provides pre- and post-condition checks for requests for fake instances.
@@ -9,8 +10,6 @@ namespace Ploeh.AutoFixture.AutoFakeItEasy
     /// <seealso cref="Create(object, ISpecimenContext)" />
     public class FakeItEasyBuilder : ISpecimenBuilder
     {
-        private readonly ISpecimenBuilder builder;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="FakeItEasyBuilder"/> class with an
         /// <see cref="ISpecimenBuilder" /> to decorate.
@@ -25,22 +24,14 @@ namespace Ploeh.AutoFixture.AutoFakeItEasy
         /// <seealso cref="Builder" />
         public FakeItEasyBuilder(ISpecimenBuilder builder)
         {
-            if (builder == null)
-            {
-                throw new ArgumentNullException("builder");
-            }
-
-            this.builder = builder;
+            this.Builder = builder ?? throw new ArgumentNullException(nameof(builder));
         }
 
         /// <summary>
         /// Gets the decorated builder supplied through the constructor.
         /// </summary>
         /// <seealso cref="FakeItEasyBuilder(ISpecimenBuilder)" />
-        public ISpecimenBuilder Builder
-        {
-            get { return this.builder; }
-        }
+        public ISpecimenBuilder Builder { get; }
 
         /// <summary>
         /// Creates a new specimen based on a request.
@@ -68,17 +59,13 @@ namespace Ploeh.AutoFixture.AutoFakeItEasy
             var type = request as Type;
             if (!type.IsFake())
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
             }
 
-            var fake = this.builder.Create(request, context);
+            var fake = this.Builder.Create(request, context);
             if (!type.IsInstanceOfType(fake))
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
             }
 
             return fake;

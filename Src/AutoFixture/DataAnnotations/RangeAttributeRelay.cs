@@ -1,14 +1,12 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.Globalization;
-using System.Linq;
 using System.Reflection;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture.DataAnnotations
+namespace AutoFixture.DataAnnotations
 {
     /// <summary>
-    /// Relays a request for a range number to a <see cref="RangedNumberRequest"/>.
+    /// Relays a request for a ranged request to a <see cref="RangedRequest"/>.
     /// </summary>
     public class RangeAttributeRelay : ISpecimenBuilder
     {
@@ -18,8 +16,8 @@ namespace Ploeh.AutoFixture.DataAnnotations
         /// <param name="request">The request that describes what to create.</param>
         /// <param name="context">A container that can be used to create other specimens.</param>
         /// <returns>
-        /// A specimen created from a <see cref="RangedNumberRequest"/> encapsulating the operand
-        /// type, the minimum and the maximum of the requested number, if possible; otherwise,
+        /// A specimen created from a <see cref="RangedRequest"/> encapsulating the operand
+        /// type, the minimum and the maximum of the requested value, if possible; otherwise,
         /// a <see cref="NoSpecimen"/> instance.
         /// </returns>
         public object Create(object request, ISpecimenContext context)
@@ -34,45 +32,43 @@ namespace Ploeh.AutoFixture.DataAnnotations
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var customAttributeProvider = request as ICustomAttributeProvider;
-            if (customAttributeProvider == null)
-            {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
-            }
-
-            var rangeAttribute = customAttributeProvider.GetCustomAttributes(typeof(RangeAttribute), inherit: true).Cast<RangeAttribute>().SingleOrDefault();
+            var rangeAttribute = TypeEnvy.GetAttribute<RangeAttribute>(request);
             if (rangeAttribute == null)
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
             }
 
-            return context.Resolve(RangeAttributeRelay.Create(rangeAttribute, request));
+            var memberType = GetMemberType(rangeAttribute, request);
+            var rangedRequest =
+                new RangedRequest(
+                    memberType,
+                    rangeAttribute.OperandType,
+                    rangeAttribute.Minimum,
+                    rangeAttribute.Maximum);
+
+            return context.Resolve(rangedRequest);
         }
 
-        private static RangedNumberRequest Create(RangeAttribute rangeAttribute, object request)
+        private static Type GetMemberType(RangeAttribute rangeAttribute, object request)
         {
-            Type conversionType = null;
+            Type conversionType;
+            switch (request)
+            {
+                case PropertyInfo pi:
+                    conversionType = pi.PropertyType;
+                    break;
 
-            var pi = request as PropertyInfo;
-            if (pi != null)
-            {
-                conversionType = pi.PropertyType;
-            }
-            else
-            {
-                var fi = request as FieldInfo;
-                if (fi != null)
-                {
+                case FieldInfo fi:
                     conversionType = fi.FieldType;
-                }
-                else
-                {
+                    break;
+
+                case ParameterInfo pi:
+                    conversionType = pi.ParameterType;
+                    break;
+
+                default:
                     conversionType = rangeAttribute.OperandType;
-                }
+                    break;
             }
 
             Type underlyingType = Nullable.GetUnderlyingType(conversionType);
@@ -81,11 +77,7 @@ namespace Ploeh.AutoFixture.DataAnnotations
                 conversionType = underlyingType;
             }
 
-            return new RangedNumberRequest(
-                conversionType,
-                Convert.ChangeType(rangeAttribute.Minimum, conversionType, CultureInfo.CurrentCulture),
-                Convert.ChangeType(rangeAttribute.Maximum, conversionType, CultureInfo.CurrentCulture)
-                );
+            return conversionType;
         }
     }
 }

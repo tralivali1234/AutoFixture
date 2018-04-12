@@ -1,16 +1,15 @@
 ﻿//#define ALLOWCONSOLE
 
-using System;
 using System.IO;
 using System.Text;
 
-namespace Ploeh.AutoFixtureUnitTest
+namespace AutoFixtureUnitTest
 {
     internal static class TestConsole
     {
         internal static TextWriter Out
         {
-            get 
+            get
             {
 #if ALLOWCONSOLE
                 return Console.Out;
@@ -22,6 +21,10 @@ namespace Ploeh.AutoFixtureUnitTest
 
         private class NullWriter : TextWriter
         {
+            public override void Write(char value)
+            {
+            }
+
             public override Encoding Encoding
             {
                 get { return Encoding.Unicode; }

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Decorates an <see cref="IRequestSpecification"/> and returns the opposite result.
@@ -16,12 +16,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// </param>
         public InverseRequestSpecification(IRequestSpecification specification)
         {
-            if (specification == null)
-            {
-                throw new ArgumentNullException(nameof(specification));
-            }
-
-            this.Specification = specification;
+            this.Specification = specification ?? throw new ArgumentNullException(nameof(specification));
         }
 
         /// <summary>

@@ -1,37 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Ploeh.AutoFixture.Kernel;
+﻿using System.Linq;
+using AutoFixture.Kernel;
 using Xunit;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class NullRecursionHandlerTests
     {
         [Fact]
         public void SutIsRecursionHandler()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new NullRecursionHandler();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<IRecursionHandler>(sut);
-            // Teardown
         }
 
         [Fact]
         public void HandleRecursiveRequestReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = new NullRecursionHandler();
-            // Exercise system
+            // Act
             var dummyRequest = new object();
             var dummyRequests = Enumerable.Empty<object>();
             var actual = sut.HandleRecursiveRequest(dummyRequest, dummyRequests);
-            // Verify outcome
+            // Assert
             Assert.Null(actual);
-            // Teardown
         }
     }
 }

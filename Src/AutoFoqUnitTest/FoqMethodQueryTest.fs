@@ -1,54 +1,56 @@
-﻿module Ploeh.AutoFixture.AutoFoq.UnitTest.FoqMethodQueryTest
+﻿module AutoFixture.AutoFoq.UnitTest.FoqMethodQueryTest
 
-open Ploeh.AutoFixture.Kernel
-open Ploeh.AutoFixture.AutoFoq
-open Ploeh.AutoFixture.AutoFoq.UnitTest.TestDsl
-open Ploeh.TestTypeFoundation
+open AutoFixture.Kernel
+open AutoFixture.AutoFoq
+open AutoFixture.AutoFoq.UnitTest.TestDsl
+open TestTypeFoundation
 open System
 open System.Reflection
 open Swensen.Unquote.Assertions
 open Xunit
-open Xunit.Extensions
+
+let dummyBuilder =
+    { new ISpecimenBuilder with
+            member this.Create(r, c) = obj() }
 
 [<Fact>]
 let SutIsMethodQuery() =
-    // Fixture setup
-    // Exercise system
-    let sut = FoqMethodQuery()
-    // Verify outcome
+    // Arrange
+    // Act
+    let sut = FoqMethodQuery dummyBuilder
+    // Assert
     verify <@ sut |> implements<IMethodQuery> @>
-    // Teardown
 
 [<Fact>]
 let SelectMethodThrowsForNullType() =
-    // Fixture setup
-    let sut = FoqMethodQuery()
-    // Exercise system and verify outcome
+    // Arrange
+    let sut = FoqMethodQuery dummyBuilder
+    // Act & Assert
     raises<ArgumentNullException> <@ sut.SelectMethods(null) @>
 
 [<Fact>]
 let SelectMethodReturnsMethodForInterface() =
-    // Fixture setup
+    // Arrange
     let requestType = typeof<IInterface>
-    let sut = FoqMethodQuery()
-    // Exercise system
+    let sut = FoqMethodQuery dummyBuilder
+    // Act
     let result = sut.SelectMethods(requestType)
-    // Verify outcome
+    // Assert
     verify <@ result |> implements<seq<IMethod>> @>
 
 [<Fact>]
 let SelectMethodReturnsMethodWithoutParametersForInterface() =
-    // Fixture setup
+    // Arrange
     let requestType = typeof<IInterface>
-    let sut = FoqMethodQuery()
-    // Exercise system
+    let sut = FoqMethodQuery dummyBuilder
+    // Act
     let result = (sut.SelectMethods(requestType) |> Seq.head).Parameters
-    // Verify outcome
+    // Assert
     verify <@ result |> Seq.isEmpty @>
 
-[<Theory>][<PropertyData("TypesWithConstructors")>]
+[<Theory>][<MemberData("TypesWithConstructors")>]
 let MethodsAreReturnedInCorrectOrder (request: Type) =
-    // Fixture setup
+    // Arrange
     let expected = 
         request.GetConstructors(
                 BindingFlags.Public 
@@ -56,36 +58,45 @@ let MethodsAreReturnedInCorrectOrder (request: Type) =
             ||| BindingFlags.NonPublic) 
         |> Seq.sortBy(fun ci -> ci.GetParameters().Length) 
         |> Seq.map(fun ci -> ci.GetParameters().Length)
-    let sut = FoqMethodQuery()
-    // Exercise system
+    let sut = FoqMethodQuery dummyBuilder
+    // Act
     let result = 
         sut.SelectMethods(request)
         |> Seq.map(fun ci -> ci.Parameters |> Seq.length)
-    // Verify outcome
+    // Assert
     verify <@ (expected, result) ||> Seq.forall2 (=) @>
-    // Teardown   
 
-[<Theory>][<PropertyData("TypesWithConstructors")>]
+[<Theory>][<MemberData("TypesWithConstructors")>]
 let SelectMethodsDefineCorrectParameters (request: Type) =
-    // Fixture setup
+    // Arrange
     let expected =
         request.GetConstructors(
                 BindingFlags.Public 
             ||| BindingFlags.Instance
             ||| BindingFlags.NonPublic)         
         |> Seq.map(fun ci -> ci.GetParameters())
-    let sut = FoqMethodQuery()
-    // Exercise system
+    let sut = FoqMethodQuery dummyBuilder
+    // Act
     let result = 
         sut.SelectMethods(request)
         |> Seq.map(fun ci -> ci.Parameters)
-    // Verify outcome
+    // Assert
     verify
         <@ expected |> Seq.forall(fun expectedParameters -> 
                result |> Seq.exists(fun resultParameters -> 
                    expectedParameters = 
                        (resultParameters |> Seq.toArray))) @>
-    // Teardown
+
+[<Fact>]
+let ``Builder is correct`` () =
+    let expected =
+        { new ISpecimenBuilder with
+              member this.Create(r, c) = obj() }
+    let sut = FoqMethodQuery expected
+
+    let actual = sut.Builder
+
+    verify <@ expected = actual @>
 
 let TypesWithConstructors : seq<Type[]> = 
     seq {

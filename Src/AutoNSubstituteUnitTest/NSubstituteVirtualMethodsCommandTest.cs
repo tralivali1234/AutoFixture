@@ -1,167 +1,160 @@
 ﻿using System;
+using AutoFixture.AutoNSubstitute.UnitTest.TestTypes;
+using AutoFixture.Kernel;
 using NSubstitute;
-using Ploeh.AutoFixture.AutoNSubstitute.UnitTest.TestTypes;
-using Ploeh.AutoFixture.Kernel;
 using Xunit;
 
-namespace Ploeh.AutoFixture.AutoNSubstitute.UnitTest
+// This class tests the obsolete component, so disable the warning.
+#pragma warning disable 618
+
+namespace AutoFixture.AutoNSubstitute.UnitTest
 {
     public class NSubstituteVirtualMethodsCommandTest
     {
         [Fact]
         public void SetupThrowsWhenSubstituteIsNull()
         {
-            // Fixture setup
+            // Arrange
             var context = Substitute.For<ISpecimenContext>();
             var sut = new NSubstituteVirtualMethodsCommand();
-            // Exercise system and verify outcome
+            // Act & Assert
             Assert.Throws<ArgumentNullException>(
                 () => sut.Execute(null, context));
-            // Teardown
         }
 
         [Fact]
         public void SetupThrowsWhenContextIsNull()
         {
-            // Fixture setup
+            // Arrange
             var mock = Substitute.For<object>();
             var sut = new NSubstituteVirtualMethodsCommand();
-            // Exercise system and verify outcome
+            // Act & Assert
             Assert.Throws<ArgumentNullException>(
                 () => sut.Execute(mock, null));
-            // Teardown
         }
 
         [Fact]
         public void SetsUpInterfaceMethodsToRetrieveReturnValueFromContext()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             var frozenString = fixture.Freeze<string>();
             var substitute = Substitute.For<IInterfaceWithParameterlessMethod>();
             var sut = new NSubstituteVirtualMethodsCommand();
-            // Exercise system
+            // Act
             sut.Execute(substitute, new SpecimenContext(fixture));
-            // Verify outcome
+            // Assert
             var result = substitute.Method();
             Assert.Same(frozenString, result);
-            // Teardown
         }
 
         [Fact]
         public void SetsUpVirtualMethodsToRetrieveReturnValueFromContext()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             var frozenString = fixture.Freeze<string>();
             var substitute = Substitute.For<TypeWithVirtualMembers>();
             var sut = new NSubstituteVirtualMethodsCommand();
-            // Exercise system
+            // Act
             sut.Execute(substitute, new SpecimenContext(fixture));
-            // Verify outcome
+            // Assert
             var result = substitute.VirtualMethod();
             Assert.Equal(frozenString, result);
-            // Teardown
         }
 
         [Fact]
         public void SetsUpPropertyGettersToRetrieveReturnValueFromContext()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             var frozenString = fixture.Freeze<string>();
             var substitute = Substitute.For<IInterfaceWithProperty>();
             var sut = new NSubstituteVirtualMethodsCommand();
-            // Exercise system
+            // Act
             sut.Execute(substitute, new SpecimenContext(fixture));
-            // Verify outcome
+            // Assert
             var result = substitute.Property;
             Assert.Equal(frozenString, result);
-            // Teardown
         }
 
         [Fact]
         public void SetsUpMethodsWithParameters()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             var anonymousString = fixture.Create<string>();
             var frozenString = fixture.Freeze<string>();
             var substitute = Substitute.For<IInterfaceWithMethod>();
             var sut = new NSubstituteVirtualMethodsCommand();
-            // Exercise system
+            // Act
             sut.Execute(substitute, new SpecimenContext(fixture));
-            // Verify outcome
+            // Assert
             var result = substitute.Method(anonymousString);
             Assert.Same(frozenString, result);
-            // Teardown
         }
 
         [Fact]
         public void SetsUpMethodsWithOutParameters()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             var frozenInt = fixture.Freeze<int>();
             var substitute = Substitute.For<IInterfaceWithOutMethod>();
             var sut = new NSubstituteVirtualMethodsCommand();
-            // Exercise system
+            // Act
             sut.Execute(substitute, new SpecimenContext(fixture));
-            // Verify outcome
+            // Assert
             int outResult;
             substitute.Method(out outResult);
             Assert.Equal(frozenInt, outResult);
-            // Teardown
         }
 
         [Fact]
         public void IgnoresVoidMethodsWithOutParameters()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             var frozenInt = fixture.Freeze<int>();
             var substitute = Substitute.For<IInterfaceWithOutVoidMethod>();
             var sut = new NSubstituteVirtualMethodsCommand();
-            // Exercise system
+            // Act
             sut.Execute(substitute, new SpecimenContext(fixture));
-            // Verify outcome
+            // Assert
             int outResult;
             substitute.Method(out outResult);
             Assert.NotEqual(frozenInt, outResult);
-            // Teardown
         }
 
         [Fact]
         public void SetsUpIndexers()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             var anonymousIndex = fixture.Create<int>();
             var frozenInt = fixture.Freeze<int>();
             var substitute = Substitute.For<IInterfaceWithIndexer>();
             var sut = new NSubstituteVirtualMethodsCommand();
-            // Exercise system
+            // Act
             sut.Execute(substitute, new SpecimenContext(fixture));
-            // Verify outcome
+            // Assert
             int result = substitute[anonymousIndex];
             Assert.Equal(frozenInt, result);
-            // Teardown
         }
 
         [Fact]
         public void SetsUpMethodsLazily()
         {
-            // Fixture setup
+            // Arrange
             var context = Substitute.For<ISpecimenContext>();
             var substitute = Substitute.For<IInterfaceWithParameterlessMethod>();
             var sut = new NSubstituteVirtualMethodsCommand();
-            // Exercise system
+            // Act
             sut.Execute(substitute, context);
-            // Verify outcome
+            // Assert
             context.Received(0).Resolve(Arg.Any<object>());
             substitute.Method();
             context.Received(1).Resolve(Arg.Any<object>());
-            // Teardown
         }
 
         [Fact]
@@ -182,13 +175,13 @@ namespace Ploeh.AutoFixture.AutoNSubstitute.UnitTest
         [Fact]
         public void IgnoresSealedMethods()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             var frozenString = fixture.Freeze<string>();
             var substitute = Substitute.For<TypeWithSealedMembers>();
             var sut = new NSubstituteVirtualMethodsCommand();
-            // Exercise system and verify outcome
-            Assert.DoesNotThrow(() => sut.Execute(substitute, new SpecimenContext(fixture)));
+            // Act & Assert
+            Assert.Null(Record.Exception(() => sut.Execute(substitute, new SpecimenContext(fixture))));
 
             Assert.NotEqual(frozenString, substitute.ImplicitlySealedMethod());
             Assert.NotEqual(frozenString, substitute.ExplicitlySealedMethod());
@@ -197,35 +190,35 @@ namespace Ploeh.AutoFixture.AutoNSubstitute.UnitTest
         [Fact]
         public void IgnoresVoidMethods()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             var substitute = Substitute.For<IInterfaceWithVoidMethod>();
             var sut = new NSubstituteVirtualMethodsCommand();
-            // Exercise system and verify outcome
-            Assert.DoesNotThrow(() => sut.Execute(substitute, new SpecimenContext(fixture)));
+            // Act & Assert
+            Assert.Null(Record.Exception(() => sut.Execute(substitute, new SpecimenContext(fixture))));
         }
 
         [Fact]
         public void IgnoresVoidMethodsWithParameters()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             var substitute = Substitute.For<IInterfaceWithParameterVoidMethod>();
             var sut = new NSubstituteVirtualMethodsCommand();
-            // Exercise system and verify outcome
-            Assert.DoesNotThrow(() => sut.Execute(substitute, new SpecimenContext(fixture)));
+            // Act & Assert
+            Assert.Null(Record.Exception(() => sut.Execute(substitute, new SpecimenContext(fixture))));
         }
 
         [Fact]
         public void IgnoresGenericMethods()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             var frozenString = fixture.Freeze<string>();
             var substitute = Substitute.For<IInterfaceWithGenericMethod>();
             var sut = new NSubstituteVirtualMethodsCommand();
-            // Exercise system and verify outcome
-            Assert.DoesNotThrow(() => sut.Execute(substitute, new SpecimenContext(fixture)));
+            // Act & Assert
+            Assert.Null(Record.Exception(() => sut.Execute(substitute, new SpecimenContext(fixture))));
 
             Assert.NotEqual(frozenString, substitute.GenericMethod<string>());
         }
@@ -233,12 +226,12 @@ namespace Ploeh.AutoFixture.AutoNSubstitute.UnitTest
         [Fact]
         public void IgnoresStaticMethods()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             var substitute = Substitute.For<TypeWithStaticMethod>();
             var sut = new NSubstituteVirtualMethodsCommand();
-            // Exercise system and verify outcome
-            Assert.DoesNotThrow(() => sut.Execute(substitute, new SpecimenContext(fixture)));
+            // Act & Assert
+            Assert.Null(Record.Exception(() => sut.Execute(substitute, new SpecimenContext(fixture))));
         }
 
         [Fact]
@@ -248,7 +241,7 @@ namespace Ploeh.AutoFixture.AutoNSubstitute.UnitTest
             var specimen = new ConcreteTypeWithVirtualMembers();
             var sut = new NSubstituteVirtualMethodsCommand();
 
-            Assert.DoesNotThrow(() => sut.Execute(specimen, context));
+            Assert.Null(Record.Exception(() => sut.Execute(specimen, context)));
             context.DidNotReceiveWithAnyArgs().Resolve(null);
         }
 
@@ -372,52 +365,49 @@ namespace Ploeh.AutoFixture.AutoNSubstitute.UnitTest
         [Fact]
         public void SetsUpInterfaceBaseMethodsToRetrieveReturnValueFromContext()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             var frozenString = fixture.Freeze<string>();
             var substitute = Substitute.For<IDerivedInterface>();
 
             var sut = new NSubstituteVirtualMethodsCommand();
-            // Exercise system
+            // Act
             sut.Execute(substitute, new SpecimenContext(fixture));
-            // Verify outcome
+            // Assert
             var result = substitute.Method();
             Assert.Same(frozenString, result);
-            // Teardown
         }
 
         [Fact]
         public void SetsUpInterfaceNewMethodsToRetrieveReturnValueFromContext()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             var frozenString = fixture.Freeze<string>();
             var substitute = Substitute.For<IInterfaceWithNewMethod>();
 
             var sut = new NSubstituteVirtualMethodsCommand();
-            // Exercise system
+            // Act
             sut.Execute(substitute, new SpecimenContext(fixture));
-            // Verify outcome
+            // Assert
             var result = substitute.Method(0);
             Assert.Same(frozenString, result);
-            // Teardown
         }
 
         [Fact]
         public void SetsUpInterfaceShadowedMethodsToRetrieveReturnValueFromContext()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             var frozenString = fixture.Freeze<string>();
             var substitute = Substitute.For<IInterfaceWithNewMethod>();
 
             var sut = new NSubstituteVirtualMethodsCommand();
-            // Exercise system
+            // Act
             sut.Execute(substitute, new SpecimenContext(fixture));
-            // Verify outcome
+            // Assert
             var result = (substitute as IInterfaceWithShadowedMethod).Method(0);
             Assert.Same(frozenString, result);
-            // Teardown
         }
     }
 }

@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// Provides convenience methods to perform (partially) anonymous Commands.
@@ -29,10 +26,8 @@ namespace Ploeh.AutoFixture
             this ISpecimenBuilder builder,
             Action<T> action)
         {
-            if (builder == null)
-                throw new ArgumentNullException(nameof(builder));
-            if (action == null)
-                throw new ArgumentNullException(nameof(action));
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
+            if (action == null) throw new ArgumentNullException(nameof(action));
             
             action(builder.Create<T>());
         }
@@ -58,10 +53,8 @@ namespace Ploeh.AutoFixture
             this ISpecimenBuilder builder,
             Action<T1, T2> action)
         {
-            if (builder == null)
-                throw new ArgumentNullException(nameof(builder));
-            if (action == null)
-                throw new ArgumentNullException(nameof(action));
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
+            if (action == null) throw new ArgumentNullException(nameof(action));
             
             action(builder.Create<T1>(), builder.Create<T2>());
         }
@@ -90,10 +83,8 @@ namespace Ploeh.AutoFixture
             this ISpecimenBuilder builder,
             Action<T1, T2, T3> action)
         {
-            if (builder == null)
-                throw new ArgumentNullException(nameof(builder));
-            if (action == null)
-                throw new ArgumentNullException(nameof(action));
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
+            if (action == null) throw new ArgumentNullException(nameof(action));
 
             action(
                 builder.Create<T1>(),
@@ -128,10 +119,8 @@ namespace Ploeh.AutoFixture
             this ISpecimenBuilder builder,
             Action<T1, T2, T3, T4> action)
         {
-            if (builder == null)
-                throw new ArgumentNullException(nameof(builder));
-            if (action == null)
-                throw new ArgumentNullException(nameof(action));
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
+            if (action == null) throw new ArgumentNullException(nameof(action));
 
             action(
                 builder.Create<T1>(),

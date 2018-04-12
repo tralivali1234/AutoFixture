@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Reflection;
+using AutoFixture.Kernel;
 using Moq;
-using Ploeh.AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture.AutoMoq
+namespace AutoFixture.AutoMoq
 {
     /// <summary>
     /// Relays a request for an interface or an abstract class to a request for a
@@ -10,8 +11,6 @@ namespace Ploeh.AutoFixture.AutoMoq
     /// </summary>
     public class MockRelay : ISpecimenBuilder
     {
-        private readonly IRequestSpecification mockableSpecification;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="MockRelay"/> class.
         /// </summary>
@@ -29,12 +28,7 @@ namespace Ploeh.AutoFixture.AutoMoq
         /// </param>
         public MockRelay(IRequestSpecification mockableSpecification)
         {
-            if (mockableSpecification == null)
-            {
-                throw new ArgumentNullException("mockableSpecification");
-            }
-
-            this.mockableSpecification = mockableSpecification;
+            this.MockableSpecification = mockableSpecification ?? throw new ArgumentNullException(nameof(mockableSpecification));
         }
 
         /// <summary>
@@ -54,10 +48,7 @@ namespace Ploeh.AutoFixture.AutoMoq
         /// </para>
         /// </remarks>
         /// <seealso cref="MockRelay(IRequestSpecification)" />
-        public IRequestSpecification MockableSpecification
-        {
-            get { return this.mockableSpecification; }
-        }
+        public IRequestSpecification MockableSpecification { get; }
 
         /// <summary>
         /// Creates a new specimen based on a request.
@@ -70,30 +61,23 @@ namespace Ploeh.AutoFixture.AutoMoq
         /// </returns>
         public object Create(object request, ISpecimenContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException("context");
+            if (context == null) throw new ArgumentNullException(nameof(context));
 
-            if (!this.mockableSpecification.IsSatisfiedBy(request))
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+            if (!this.MockableSpecification.IsSatisfiedBy(request))
+                return new NoSpecimen();
 
             var t = request as Type;
             if (t == null)
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
 
-            var result = MockRelay.ResolveMock(t, context);
+            var result = ResolveMock(t, context);
             // Note: null is a valid specimen (e.g., returned by NullRecursionHandler)
             if (result is NoSpecimen || result is OmitSpecimen || result == null)
                 return result;
 
             var m = result as Mock;
             if (m == null)
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
 
             return m.Object;
         }
@@ -112,8 +96,7 @@ namespace Ploeh.AutoFixture.AutoMoq
                 if (t == null)
                     return false;
 
-                return (t != null)
-                    && ((t.IsAbstract) || (t.IsInterface));
+                return t.GetTypeInfo().IsAbstract || t.GetTypeInfo().IsInterface;
             }
         }
     }

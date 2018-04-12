@@ -1,32 +1,30 @@
-﻿using Ploeh.AutoFixture.Kernel;
+﻿using AutoFixture.Kernel;
 using Xunit;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class TrueRequestSpecificationTest
     {
         [Fact]
         public void SutIsRequestSpecification()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new TrueRequestSpecification();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<IRequestSpecification>(sut);
-            // Teardown
         }
 
         [Fact]
         public void IsSatisfiedByReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = new TrueRequestSpecification();
-            // Exercise system
+            // Act
             var dummyRequest = new object();
             var result = sut.IsSatisfiedBy(dummyRequest);
-            // Verify outcome
+            // Assert
             Assert.True(result);
-            // Teardown
         }
     }
 }

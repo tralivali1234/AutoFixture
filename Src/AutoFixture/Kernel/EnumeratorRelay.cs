@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Relays a request for <see cref="IEnumerator{T}" /> to 
@@ -35,53 +36,41 @@ namespace Ploeh.AutoFixture.Kernel
         /// </remarks>
         public object Create(object request, ISpecimenContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
+            if (context == null) throw new ArgumentNullException(nameof(context));
 
-            var t = request as Type;
-            if (t == null)
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+            var type = request as Type;
+            if (type == null)
+                return new NoSpecimen();
 
-            var typeArguments = t.GetGenericArguments();
-            if (typeArguments.Length != 1 ||
-                typeof (IEnumerator<>) != t.GetGenericTypeDefinition())
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+            if (!type.TryGetSingleGenericTypeArgument(typeof(IEnumerator<>), out Type enumeratorType))
+                return new NoSpecimen();
 
             var specimenBuilder = (ISpecimenBuilder) Activator.CreateInstance(
-                typeof (EnumeratorRelay<>).MakeGenericType(typeArguments));
+                typeof (EnumeratorRelay<>).MakeGenericType(enumeratorType));
             return specimenBuilder.Create(request, context);
         }
     }
 
+    [SuppressMessage("Microsoft.Performance", "CA1812:AvoidUninstantiatedInternalClasses", 
+        Justification = "It's activated via reflection.")]
     internal class EnumeratorRelay<T> : ISpecimenBuilder
     {
         public object Create(object request, ISpecimenContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
+            if (context == null) throw new ArgumentNullException(nameof(context));
 
             var t = request as Type;
             if (t == null)
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
 
             if (t != typeof(IEnumerator<T>))
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
 
             var enumerable =
                 context.Resolve(typeof (IEnumerable<T>)) as IEnumerable<T>;
 
             if (enumerable == null)
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
 
             return enumerable.GetEnumerator();
         }

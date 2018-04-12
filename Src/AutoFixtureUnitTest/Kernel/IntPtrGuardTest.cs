@@ -1,21 +1,19 @@
 ﻿using System;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class IntPtrGuardTest
     {
         [Fact]
         public void SutIsSpecimenBuilder()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new IntPtrGuard();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<ISpecimenBuilder>(sut);
-            // Teardown
         }
 
         [Theory]
@@ -31,29 +29,25 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [InlineData(typeof(int))]
         public void AnythingElseThanAnIntPtrRequestReturnsCorrectResult(object request)
         {
-            // Fixture setup
+            // Arrange
             var sut = new IntPtrGuard();
-            // Exercise system
+            // Act
             var dummyContext = new DelegatingSpecimenContext();
             var result = sut.Create(request, dummyContext);
-            // Verify outcome
-#pragma warning disable 618
-            var expectedResult = new NoSpecimen(request);
-#pragma warning restore 618
+            // Assert
+            var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Fact]
         public void CreateFromIntPtrRequestThrows()
         {
-            // Fixture setup
+            // Arrange
             var sut = new IntPtrGuard();
             var dummyContext = new DelegatingSpecimenContext();
-            // Exercise system and verify outcome
+            // Act & assert
             Assert.Throws<IllegalRequestException>(() =>
                 sut.Create(typeof(IntPtr), dummyContext));
-            // Teardown
         }
     }
 }

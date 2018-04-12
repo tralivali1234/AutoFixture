@@ -1,39 +1,34 @@
-﻿using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.AutoFixtureUnitTest.Kernel;
-using Ploeh.TestTypeFoundation;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using AutoFixture;
+using AutoFixture.Kernel;
+using AutoFixtureUnitTest.Kernel;
+using TestTypeFoundation;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest
+namespace AutoFixtureUnitTest
 {
     public abstract class LazyRelayTest<T>
     {
         [Fact]
         public void SutIsSpecimenBuilder()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new LazyRelay();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<ISpecimenBuilder>(sut);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithNullContextThrows()
         {
-            // Fixture setup
+            // Arrange
             var sut = new LazyRelay();
             var dummyRequest = new object();
-            // Exercise system and verify outcome
+            // Act & assert
             Assert.Throws<ArgumentNullException>(() =>
                 sut.Create(dummyRequest, null));
-            // Teardown
         }
 
         [Theory]
@@ -49,17 +44,14 @@ namespace Ploeh.AutoFixtureUnitTest
         [InlineData("abc")]
         public void CreateWithNonTypeRequestReturnsNoSpecimen(object request)
         {
-            // Fixture setup
+            // Arrange
             var sut = new LazyRelay();
             var dummyContext = new DelegatingSpecimenContext();
-            // Exercise system
+            // Act
             var actual = sut.Create(request, dummyContext);
-            // Verify outcome
-#pragma warning disable 618
-            var expected = new NoSpecimen(request);
-#pragma warning restore 618
+            // Assert
+            var expected = new NoSpecimen();
             Assert.Equal(expected, actual);
-            // Teardown
         }
 
         [Theory]
@@ -69,17 +61,14 @@ namespace Ploeh.AutoFixtureUnitTest
         public void CreateWithNonGenericTypeRequestReturnsNoSpecimen(
             Type request)
         {
-            // Fixture setup
+            // Arrange
             var sut = new LazyRelay();
             var dummyContext = new DelegatingSpecimenContext();
-            // Exercise system
+            // Act
             var actual = sut.Create(request, dummyContext);
-            // Verify outcome
-#pragma warning disable 618
-            var expected = new NoSpecimen(request);
-#pragma warning restore 618
+            // Assert
+            var expected = new NoSpecimen();
             Assert.Equal(expected, actual);
-            // Teardown
         }
 
         [Theory]
@@ -89,52 +78,54 @@ namespace Ploeh.AutoFixtureUnitTest
         public void CreateWithNonLazyRequestReturnsNoSpecimen(
             Type request)
         {
-            // Fixture setup
+            // Arrange
             var sut = new LazyRelay();
             var dummyContext = new DelegatingSpecimenContext();
-            // Exercise system
+            // Act
             var actual = sut.Create(request, dummyContext);
-            // Verify outcome
-#pragma warning disable 618
-            var expected = new NoSpecimen(request);
-#pragma warning restore 618
+            // Assert
+            var expected = new NoSpecimen();
             Assert.Equal(expected, actual);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithLazyRequestReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = new LazyRelay();
             var @delegate = new Func<T>(() => default(T));
             var contextStub =
                 new DelegatingSpecimenContext { OnResolve = t => @delegate };
-            // Exercise system
+            // Act
             var result = sut.Create(typeof(Lazy<T>), contextStub);
             var actual = Assert.IsAssignableFrom<Lazy<T>>(result);
-            // Verify outcome
+            // Assert
             var expected = new Lazy<T>(@delegate);
             Assert.Equal(expected.Value, actual.Value);
-            // Teardown
         }
     }
 
     public class LazyRelayTestOfInt32
-        : LazyRelayTest<int> { }
+        : LazyRelayTest<int>
+    { }
 
     public class LazyRelayTestOfString
-        : LazyRelayTest<string> { }
+        : LazyRelayTest<string>
+    { }
 
     public class LazyRelayTestOfVersion
-        : LazyRelayTest<Version> { }
+        : LazyRelayTest<Version>
+    { }
 
     public class LazyRelayTestOfSingleParameterType
-        : LazyRelayTest<SingleParameterType<int>> { }
+        : LazyRelayTest<SingleParameterType<int>>
+    { }
 
     public class LazyRelayTestOfDoubleParameterType
-        : LazyRelayTest<DoubleParameterType<int, string>> { }
+        : LazyRelayTest<DoubleParameterType<int, string>>
+    { }
 
     public class LazyRelayTestOfTripleParameterType
-        : LazyRelayTest<TripleParameterType<int, string, Version>> { }
+        : LazyRelayTest<TripleParameterType<int, string, Version>>
+    { }
 }

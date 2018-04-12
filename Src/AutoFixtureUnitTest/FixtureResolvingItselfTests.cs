@@ -1,25 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.Kernel;
+﻿using AutoFixture;
+using AutoFixture.Kernel;
 using Xunit;
 
-namespace Ploeh.AutoFixtureUnitTest
+namespace AutoFixtureUnitTest
 {
     public abstract class FixtureResolvingItselfTests<T>
     {
         [Fact]
         public void FixtureCanResolveItself()
         {
-            // Fixture setup
+            // Arrange
             var sut = new Fixture();
-            // Exercise system
+            // Act
             var actual = sut.Create<T>();
-            // Verify outcome
+            // Assert
             Assert.Equal<object>(sut, actual);
-            // Teardown
         }
     }
 

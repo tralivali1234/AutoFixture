@@ -1,7 +1,7 @@
-﻿using Ploeh.AutoFixture;
+﻿using AutoFixture;
 using Xunit;
 
-namespace Ploeh.AutoFixtureDocumentationTest.Intermediate
+namespace AutoFixtureDocumentationTest.Intermediate
 {
     public class RegisterExample
     {
@@ -36,32 +36,30 @@ namespace Ploeh.AutoFixtureDocumentationTest.Intermediate
         [Fact]
         public void ManuallyRegisteringWithAnonymousParameter()
         {
-            // Fixture setup
+            // Arrange
             Fixture fixture = new Fixture();
             int anonymousNumber = fixture.Create<int>();
             string knownText = "This text is not anonymous";
             fixture.Register<IMyInterface>(() => 
                 new FakeMyInterface(anonymousNumber, knownText));
-            // Exercise system
+            // Act
             MyClass sut = fixture.Create<MyClass>();
-            // Verify outcome
+            // Assert
             Assert.NotNull(sut);
-            // Teardown
         }
 
         [Fact]
         public void RegisterWithAnonymousParameter()
         {
-            // Fixture setup
+            // Arrange
             Fixture fixture = new Fixture();
             string knownText = "This text is not anonymous";
             fixture.Register<int, string, IMyInterface>((i, s) => 
                 new FakeMyInterface(i, knownText));
-            // Exercise system
+            // Act
             MyClass sut = fixture.Create<MyClass>();
-            // Verify outcome
+            // Assert
             Assert.NotNull(sut);
-            // Teardown
         }
     }
 }

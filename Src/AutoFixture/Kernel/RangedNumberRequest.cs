@@ -1,11 +1,12 @@
 ﻿using System;
-using System.ComponentModel;
+using System.Globalization;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Encapsulates a range for values of a given type.
     /// </summary>
+    [PreserveInRequestPath]
     public class RangedNumberRequest : IEquatable<RangedNumberRequest>
     {
         /// <summary>
@@ -16,24 +17,13 @@ namespace Ploeh.AutoFixture.Kernel
         /// <param name="maximum">The maximum.</param>
         public RangedNumberRequest(Type operandType, object minimum, object maximum)
         {
-            if (operandType == null)
-            {
-                throw new ArgumentNullException(nameof(operandType));
-            }
+            if (operandType == null) throw new ArgumentNullException(nameof(operandType));
+            if (minimum == null) throw new ArgumentNullException(nameof(minimum));
+            if (maximum == null) throw new ArgumentNullException(nameof(maximum));
 
-            if (minimum == null)
+            if (((IComparable)minimum).CompareTo((IComparable)maximum) > 0)
             {
-                throw new ArgumentNullException(nameof(minimum));
-            }
-
-            if (maximum == null)
-            {
-                throw new ArgumentNullException(nameof(maximum));
-            }
-
-            if (((IComparable)minimum).CompareTo((IComparable)maximum) >= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(minimum), "Minimum must be lower than Maximum.");
+                throw new ArgumentOutOfRangeException(nameof(minimum), "Minimum must be lower or equal Maximum.");
             }
 
             this.OperandType = operandType;
@@ -66,13 +56,12 @@ namespace Ploeh.AutoFixture.Kernel
         /// <returns>
         ///   <c>true</c> if the specified <see cref="System.Object"/> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
-        /// <exception cref="T:System.NullReferenceException">
+        /// <exception cref="System.NullReferenceException">
         /// The <paramref name="obj"/> parameter is null.
         ///   </exception>
         public override bool Equals(object obj)
         {
-            var other = obj as RangedNumberRequest;
-            if (other != null)
+            if (obj is RangedNumberRequest other)
             {
                 return this.Equals(other);
             }
@@ -110,6 +99,20 @@ namespace Ploeh.AutoFixture.Kernel
             return this.OperandType == other.OperandType
                 && object.Equals(this.Minimum, other.Minimum)
                 && object.Equals(this.Maximum, other.Maximum);
+        }
+
+        /// <inheritdoc />
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return string.Format(
+                CultureInfo.CurrentCulture,
+                "RangedNumberRequest (OperandType: {0}, Minimum: [{1}] {2}, Maximum: [{3}] {4})",
+                this.OperandType.FullName,
+                this.Minimum.GetType().Name,
+                this.Minimum,
+                this.Maximum.GetType().Name,
+                this.Maximum);
         }
     }
 }

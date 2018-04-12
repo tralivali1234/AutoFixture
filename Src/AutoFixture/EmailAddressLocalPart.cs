@@ -1,16 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
+#if SYSTEM_NET_MAIL
     /// <summary>
     /// Represents the local part of the email address, defined as everything up to, but not including, the @ sign.  
     /// Since EmailAddressLocalPart is used in constructing MailAddress, enforcement of rules on a valid email address
     /// is performed by <see cref="System.Net.Mail.MailAddress"/> and not EmailAddressLocalPart other than as noted. 
     /// </summary>
+#else
+    /// <summary>
+    /// Represents the local part of the email address, defined as everything up to, but not including, the @ sign.  
+    /// Since EmailAddressLocalPart is used in constructing MailAddress, enforcement of rules on a valid email address
+    /// is performed by System.Net.Mail.MailAddress and not EmailAddressLocalPart other than as noted. 
+    /// </summary>
+#endif
     public class EmailAddressLocalPart
     {
         /// <summary>
@@ -20,15 +24,8 @@ namespace Ploeh.AutoFixture
         /// <param name="localPart">The local part.</param>                
         public EmailAddressLocalPart(string localPart)
         {
-            if (localPart == null)
-            {
-                throw new ArgumentNullException(nameof(localPart));
-            }
-
-            if (localPart.Length == 0)
-            {
-                throw new ArgumentException("localPart cannot be empty");
-            }
+            if (localPart == null) throw new ArgumentNullException(nameof(localPart));
+            if (localPart.Length == 0) throw new ArgumentException("Value cannot be empty", nameof(localPart));
 
             this.LocalPart = localPart;
         }
@@ -47,15 +44,14 @@ namespace Ploeh.AutoFixture
         ///   <c>true</c> if the specified <see cref="System.Object"/> is equal to this instance; 
         /// otherwise, <c>false</c>.
         /// </returns>
-        /// <exception cref="T:System.NullReferenceException">
+        /// <exception cref="NullReferenceException">
         /// The <paramref name="obj"/> parameter is null.
         ///   </exception>
         public override bool Equals(object obj)
         {
-            var other = obj as EmailAddressLocalPart;
-            if (other != null)
+            if (obj is EmailAddressLocalPart other)
             {
-                return this.LocalPart.Equals(other.LocalPart);
+                return this.LocalPart.Equals(other.LocalPart, StringComparison.Ordinal);
             }
 
             return base.Equals(obj);

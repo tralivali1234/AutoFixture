@@ -4,16 +4,16 @@ using System.Linq;
 using System.Reflection;
 using FakeItEasy;
 
-namespace Ploeh.AutoFixture.AutoFakeItEasy
+namespace AutoFixture.AutoFakeItEasy
 {
     internal static class FakeItEasyType
     {
         internal static bool IsFake(this Type type)
         {
-            return (type != null
-                && type.IsGenericType
-                && typeof(Fake<>).IsAssignableFrom(type.GetGenericTypeDefinition())
-                && !type.GetFakedType().IsGenericParameter);
+            return type != null
+                   && type.GetTypeInfo().IsGenericType
+                   && typeof(Fake<>).IsAssignableFrom(type.GetGenericTypeDefinition())
+                   && !type.GetFakedType().IsGenericParameter;
         }
 
         internal static ConstructorInfo GetDefaultConstructor(this Type type)
@@ -28,7 +28,7 @@ namespace Ploeh.AutoFixture.AutoFakeItEasy
 
         internal static Type GetFakedType(this Type type)
         {
-            return type.GetGenericArguments().Single();
+            return type.GetTypeInfo().GetGenericArguments().Single();
         }
     }
 }

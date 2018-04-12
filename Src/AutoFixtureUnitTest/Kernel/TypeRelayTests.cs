@@ -1,27 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Runtime.InteropServices;
+using AutoFixture;
+using AutoFixture.Kernel;
+using TestTypeFoundation;
 using Xunit;
-using Ploeh.AutoFixture.Kernel;
-using Xunit.Extensions;
-using Ploeh.AutoFixture;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class TypeRelayTests
     {
         [Fact]
         public void SutIsSpecimenBuilder()
         {
-            // Fixture setup
+            // Arrange
             var dummyFrom = typeof(object);
             var dummyTo = typeof(object);
             var sut = new TypeRelay(dummyFrom, dummyTo);
-            // Exercise system
-            // Verify outcome
+            // Act
+            // Assert
             Assert.IsAssignableFrom<ISpecimenBuilder>(sut);
-            // Teardown
+        }
+
+        [Fact]
+        public void ConstructorArgumentsShouldBeExposedByProperties()
+        {
+            // Arrange
+            var from = typeof(object);
+            var to = typeof(string);
+
+            // Act
+            var sut = new TypeRelay(from, to);
+
+            // Assert
+            Assert.Equal(from, sut.From);
+            Assert.Equal(to, sut.To);
         }
 
         [Theory]
@@ -40,19 +53,16 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         public void CreateFromNonMatchingRequestReturnsCorrectResult(
             object request)
         {
-            // Fixture setup
-            var from = typeof(OperatingSystem);
+            // Arrange
+            var from = typeof(ConcreteType);
             var dummyTo = typeof(object);
             var sut = new TypeRelay(from, dummyTo);
-            // Exercise system
+            // Act
             var dummyContext = new DelegatingSpecimenContext();
             var actual = sut.Create(request, dummyContext);
-            // Verify outcome
-#pragma warning disable 618
-            var expected = new NoSpecimen(request);
-#pragma warning restore 618
+            // Assert
+            var expected = new NoSpecimen();
             Assert.Equal(expected, actual);
-            // Teardown
         }
 
         [Theory]
@@ -64,54 +74,50 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
             Type from,
             Type to)
         {
-            // Fixture setup
+            // Arrange
             var sut = new TypeRelay(from, to);
             var expected = new object();
             var context = new DelegatingSpecimenContext
             {
                 OnResolve = r => to.Equals(r) ? expected : new object()
             };
-            // Exercise system
+            // Act
             var actual = sut.Create(from, context);
-            // Verify outcome
+            // Assert
             Assert.Equal(expected, actual);
-            // Teardown
         }
 
         [Fact]
         public void ConstructWithNullFromThrows()
         {
-            // Fixture setup
+            // Arrange
             var dummyTo = typeof(object);
-            // Exercise system and verify outcome
+            // Act & assert
             Assert.Throws<ArgumentNullException>(() =>
                 new TypeRelay(null, dummyTo));
-            // Teardown
         }
 
         [Fact]
         public void ConstructWithNullToThrows()
         {
-            // Fixture setup
+            // Arrange
             var dummyFrom = typeof(object);
-            // Exercise system and verify outcome
+            // Act & assert
             Assert.Throws<ArgumentNullException>(() =>
                 new TypeRelay(dummyFrom, null));
-            // Teardown
         }
 
         [Fact]
         public void CreateWithNullContextThrows()
         {
-            // Fixture setup
+            // Arrange
             var dummyFrom = typeof(object);
             var dummyTo = typeof(object);
             var sut = new TypeRelay(dummyFrom, dummyTo);
-            // Exercise system and verify outcome
+            // Act & assert
             var dummyRequest = new object();
             Assert.Throws<ArgumentNullException>(() =>
                 sut.Create(dummyRequest, null));
-            // Teardown
         }
 
         [Fact]
@@ -126,6 +132,89 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
             var actual = fixture.Create<BaseType>();
 
             Assert.IsAssignableFrom<DerivedType>(actual);
+        }
+
+
+        [Fact]
+        public void ShouldNotFailIfOpenGenericsIsPassedToConstructor()
+        {
+            // Arrange
+            var openFrom = typeof(IEnumerable<>);
+            var openTo = typeof(List<>);
+
+            // Act & assert
+            Assert.Null(Record.Exception(() =>
+                new TypeRelay(openFrom, openTo)));
+        }
+
+        [Theory]
+        [InlineData(typeof(IEnumerable<>), typeof(string))]
+        [InlineData(typeof(string), typeof(IEnumerable<>))]
+        public void ShouldFailIfConstructedWithOpenAndNonOpenType(Type from, Type to)
+        {
+            // Act & assert
+            var ex = Assert.Throws<ArgumentException>(() =>
+                new TypeRelay(from, to));
+            Assert.Contains("open generic", ex.Message);
+        }
+
+        [Theory]
+        [InlineData(typeof(IEnumerable<>), typeof(List<>), typeof(IEnumerable<string>), typeof(List<string>))]
+        [InlineData(typeof(IReadOnlyDictionary<,>), typeof(IDictionary<,>), typeof(IReadOnlyDictionary<string, byte>), typeof(IDictionary<string, byte>))]
+        [InlineData(typeof(Nullable<>), typeof(IEnumerable<>), typeof(int?), typeof(IEnumerable<int>))]
+        public void ShouldRelayOpenGenericsCorrectly(Type from, Type to, Type request, Type expectedRelay)
+        {
+            // Arrange
+            var sut = new TypeRelay(from, to);
+
+            var expectedResult = new object();
+            var context = new DelegatingSpecimenContext
+            {
+                OnResolve = r => expectedRelay.Equals(r) ? expectedResult : new NoSpecimen()
+            };
+
+            // Act
+            var result = sut.Create(request, context);
+
+            // Assert
+            Assert.Equal(expectedResult, result);
+        }
+
+        [Fact]
+        public void IgnoresRequestIfGenericTypeDoesNotMatchExactly()
+        {
+            // Arrange
+            var from = typeof(IEnumerable<>);
+            var to = typeof(List<>);
+            var sut = new TypeRelay(from, to);
+
+            var request = typeof(int[]);
+            var dummyContext = new DelegatingSpecimenContext
+            {
+                OnResolve = _ => new object()
+            };
+
+            // Act
+            var result = sut.Create(request, dummyContext);
+
+            // Assert
+            Assert.IsType<NoSpecimen>(result);
+        }
+
+        [Fact]
+        public void FailsAtResolveIfImproperMappingIsSpecified()
+        {
+            // Arrange
+            var from = typeof(IEnumerable<>);
+            var to = typeof(Nullable<>);
+            var sut = new TypeRelay(from, to);
+
+            var request = typeof(IEnumerable<string>);
+            var dummyContext = new DelegatingSpecimenContext();
+
+            // Act & assert
+            Assert.Throws<ArgumentException>(() =>
+                sut.Create(request, dummyContext));
         }
 
         private abstract class BaseType { }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Decorates another method invoking it supplying missing parameters
@@ -16,10 +16,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// <param name="method">The <see cref="IMethod"/> to decorate.</param>
         public MissingParametersSupplyingMethod(IMethod method)
         {
-            if (method == null)
-                throw new ArgumentNullException(nameof(method));
-
-            this.Method = method;
+            this.Method = method ?? throw new ArgumentNullException(nameof(method));
         }
 
         /// <summary>
@@ -30,10 +27,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// <summary>
         /// Gets information about the parameters of the method.
         /// </summary>
-        public IEnumerable<ParameterInfo> Parameters
-        {
-            get { return Method.Parameters; }
-        }
+        public IEnumerable<ParameterInfo> Parameters => this.Method.Parameters;
 
         /// <summary>
         /// Determines whether the specified <see cref="System.Object"/> is equal to this instance.
@@ -42,13 +36,12 @@ namespace Ploeh.AutoFixture.Kernel
         /// <returns>
         ///   <c>true</c> if the specified <see cref="System.Object"/> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
-        /// <exception cref="T:System.NullReferenceException">
+        /// <exception cref="System.NullReferenceException">
         /// The <paramref name="obj"/> parameter is null.
         ///   </exception>
         public override bool Equals(object obj)
         {
-            var other = obj as MissingParametersSupplyingMethod;
-            if (other != null)
+            if (obj is MissingParametersSupplyingMethod other)
             {
                 return this.Equals(other);
             }
@@ -101,7 +94,7 @@ namespace Ploeh.AutoFixture.Kernel
                 parameter.ParameterType.IsArray)
                 return Array.CreateInstance(parameter.ParameterType.GetElementType(), 0);
 
-            return parameter.ParameterType.IsValueType ? 
+            return parameter.ParameterType.GetTypeInfo().IsValueType ?
                 Activator.CreateInstance(parameter.ParameterType) : 
                 null;
         }
@@ -113,8 +106,8 @@ namespace Ploeh.AutoFixture.Kernel
         /// <returns>The result of the method call.</returns>
         public object Invoke(IEnumerable<object> parameters)
         {
-            var arguments = GetArguments(Method.Parameters, parameters.ToArray());
-            return Method.Invoke(arguments);
+            var arguments = GetArguments(this.Method.Parameters, parameters.ToArray());
+            return this.Method.Invoke(arguments);
         }
     }
 }

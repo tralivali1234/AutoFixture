@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// Customizes an <see cref="IFixture"/> by using all contained <see cref="Customizations"/>.
@@ -24,12 +24,7 @@ namespace Ploeh.AutoFixture
         /// <param name="customizations">The customizations.</param>
         public CompositeCustomization(params ICustomization[] customizations)
         {
-            if (customizations == null)
-            {
-                throw new ArgumentNullException(nameof(customizations));
-            }
-
-            this.Customizations = customizations;
+            this.Customizations = customizations ?? throw new ArgumentNullException(nameof(customizations));
         }
 
         /// <summary>

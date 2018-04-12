@@ -1,72 +1,66 @@
 ﻿using System;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.TestTypeFoundation;
+using AutoFixture.Kernel;
+using TestTypeFoundation;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class SeedRequestSpecificationTest
     {
         [Fact]
         public void SutIsRequestSpecification()
         {
-            // Fixture setup
+            // Arrange
             var dummyType = typeof(object);
-            // Exercise system
+            // Act
             var sut = new SeedRequestSpecification(dummyType);
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<IRequestSpecification>(sut);
-            // Teardown
         }
 
         [Fact]
         public void InitializeWithNullTypeThrows()
         {
-            // Fixture setup
-            // Exercise system and verify outcome
+            // Arrange
+            // Act & assert
             Assert.Throws<ArgumentNullException>(() =>
                 new SeedRequestSpecification(null));
-            // Teardown
         }
 
         [Fact]
         public void TargetTypeIsCorrect()
         {
-            // Fixture setup
+            // Arrange
             var expectedType = typeof(DayOfWeek);
             var sut = new SeedRequestSpecification(expectedType);
-            // Exercise system
+            // Act
             Type result = sut.TargetType;
-            // Verify outcome
+            // Assert
             Assert.Equal(expectedType, result);
-            // Teardown
         }
 
         [Fact]
         public void IsSatisfiedByNullThrows()
         {
-            // Fixture setup
+            // Arrange
             var dummyType = typeof(object);
             var sut = new SeedRequestSpecification(dummyType);
-            // Exercise system and verify outcome
+            // Act & assert
             Assert.Throws<ArgumentNullException>(() =>
                 sut.IsSatisfiedBy(null));
-            // Teardown
         }
 
         [Fact]
         public void IsSatisfiedByNonSeedReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var dummyType = typeof(object);
             var sut = new SeedRequestSpecification(dummyType);
             var nonSeedRequest = new object();
-            // Exercise system
+            // Act
             var result = sut.IsSatisfiedBy(nonSeedRequest);
-            // Verify outcome
+            // Assert
             Assert.False(result);
-            // Teardown
         }
 
         [Theory]
@@ -76,15 +70,14 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [InlineData(typeof(PropertyHolder<string>), typeof(FieldHolder<string>), false)]
         public void IsSatisfiedByReturnsCorrectResult(Type specType, Type seedRequestType, bool expectedResult)
         {
-            // Fixture setup
+            // Arrange
             var sut = new SeedRequestSpecification(specType);
             var dummySeed = new object();
             var seededRequest = new SeededRequest(seedRequestType, dummySeed);
-            // Exercise system
+            // Act
             var result = sut.IsSatisfiedBy(seededRequest);
-            // Verify outcome
+            // Assert
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
     }
 }

@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Ploeh.AutoFixture.Kernel;
+using System.Reflection;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture.AutoMoq
+namespace AutoFixture.AutoMoq
 {
     /// <summary>
     /// Selects appropriate constructors to create <see cref="Moq.Mock{T}"/> instances.
     /// </summary>
     public class MockConstructorQuery : IMethodQuery
     {
+        private static readonly DelegateSpecification DelegateSpecification = new DelegateSpecification();
+
         /// <summary>
         /// Selects constructors for the supplied <see cref="Moq.Mock{T}"/> type.
         /// </summary>
@@ -41,7 +44,7 @@ namespace Ploeh.AutoFixture.AutoMoq
             }
 
             var mockType = type.GetMockedType();
-            if (mockType.IsInterface || mockType.IsDelegate())
+            if (mockType.GetTypeInfo().IsInterface || DelegateSpecification.IsSatisfiedBy(mockType))
             {
                 return new[] { new ConstructorMethod(type.GetDefaultConstructor()) };
             }

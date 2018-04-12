@@ -1,23 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
+    [Obsolete]
     public class ObservableCollectionSpecificationTest
     {
         [Fact]
         public void SutIsRequestSpecification()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new ObservableCollectionSpecification();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<IRequestSpecification>(sut);
-            // Teardown
         }
 
         [Theory]
@@ -34,13 +33,12 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [InlineData(typeof(Version[]))]
         public void IsSatisfiedByNonEnumerableRequestReturnsCorrectResult(object request)
         {
-            // Fixture setup
+            // Arrange
             var sut = new ObservableCollectionSpecification();
-            // Exercise system
+            // Act
             var result = sut.IsSatisfiedBy(request);
-            // Verify outcome
+            // Assert
             Assert.False(result);
-            // Teardown
         }
 
         [Theory]
@@ -50,13 +48,12 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [InlineData(typeof(Collection<Version>))]
         public void IsSatisfiedByEnumerableNonObservableRequestReturnsCorrectResult(Type request)
         {
-            // Fixture setup
+            // Arrange
             var sut = new ObservableCollectionSpecification();
-            // Exercise system
+            // Act
             var result = sut.IsSatisfiedBy(request);
-            // Verify outcome
+            // Assert
             Assert.False(result);
-            // Teardown
         }
 
         [Theory]
@@ -66,13 +63,12 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [InlineData(typeof(ObservableCollection<Version>))]
         public void IsSatisfiedByEnumerableRequestReturnsCorrectResult(Type request)
         {
-            // Fixture setup
+            // Arrange
             var sut = new ObservableCollectionSpecification();
-            // Exercise system
+            // Act
             var result = sut.IsSatisfiedBy(request);
-            // Verify outcome
+            // Assert
             Assert.True(result);
-            // Teardown
         }
     }
 }

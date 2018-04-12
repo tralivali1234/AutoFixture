@@ -2,29 +2,28 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture;
+using AutoFixture.Kernel;
 using Xunit;
 
-namespace Ploeh.AutoFixtureUnitTest
+namespace AutoFixtureUnitTest
 {
     public class DefaultPrimitiveBuildersTest
     {
         [Fact]
         public void SutIsSpecimenBuilders()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new DefaultPrimitiveBuilders();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<IEnumerable<ISpecimenBuilder>>(sut);
-            // Teardown
         }
 
         [Fact]
         public void SutHasCorrectContents()
         {
-            // Fixture setup
+            // Arrange
             var expectedBuilderTypes = new[]
                 {
                     typeof(StringGenerator),
@@ -34,7 +33,7 @@ namespace Ploeh.AutoFixtureUnitTest
                     typeof(RandomCharSequenceGenerator),
                     typeof(UriGenerator),
                     typeof(UriSchemeGenerator),
-                    typeof(RangedNumberGenerator),
+                    typeof(RandomRangedNumberGenerator),
                     typeof(RegularExpressionGenerator),
                     typeof(RandomDateTimeSequenceGenerator),
                     typeof(BooleanSwitch),
@@ -43,51 +42,49 @@ namespace Ploeh.AutoFixtureUnitTest
                     typeof(DelegateGenerator),
                     typeof(TaskGenerator),
                     typeof(IntPtrGuard),
+#if SYSTEM_NET_MAIL
                     typeof(MailAddressGenerator),
+#endif
                     typeof(EmailAddressLocalPartGenerator),
                     typeof(DomainNameGenerator)
                  };
-            // Exercise system
+            // Act
             var sut = new DefaultPrimitiveBuilders();
-            // Verify outcome
+            // Assert
             Assert.True(expectedBuilderTypes.SequenceEqual(sut.Select(b => b.GetType())));
-            // Teardown
         }
 
         [Fact]
         public void NonGenericEnumeratorMatchesGenericEnumerator()
         {
-            // Fixture setup
+            // Arrange
             var sut = new DefaultPrimitiveBuilders();
-            // Exercise system
+            // Act
             IEnumerable result = sut;
-            // Verify outcome
+            // Assert
             Assert.True(sut.Select(b => b.GetType()).SequenceEqual(result.Cast<object>().Select(o => o.GetType())));
-            // Teardown
         }
 
         [Fact]
         public void StringGeneratorHasFactoryThatCreatesCorrectType()
         {
-            // Fixture setup
+            // Arrange
             var sut = new DefaultPrimitiveBuilders();
-            // Exercise system
+            // Act
             var result = sut.OfType<StringGenerator>().Single();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<Guid>(result.Factory());
-            // Teardown
         }
 
         [Fact]
         public void StringGeneratorFactoryReturnsNewInstancesForEachCall()
         {
-            // Fixture setup
+            // Arrange
             var sut = new DefaultPrimitiveBuilders();
-            // Exercise system
+            // Act
             var result = sut.OfType<StringGenerator>().Single();
-            // Verify outcome
+            // Assert
             Assert.NotEqual(result.Factory(), result.Factory());
-            // Teardown
         }
     }
 }

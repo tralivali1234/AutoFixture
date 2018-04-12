@@ -4,13 +4,33 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Creates new <see cref="Delegate"/> instances.
     /// </summary>
     public class DelegateGenerator : ISpecimenBuilder
     {
+        /// <summary>
+        /// The specification used to verify that request is for the supported delegate type.
+        /// </summary>
+        public IRequestSpecification Specification { get; }
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="DelegateGenerator"/> type.
+        /// </summary>
+        public DelegateGenerator() : this(new DelegateSpecification())
+        {
+        }
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="DelegateGenerator"/> type.
+        /// </summary>
+        public DelegateGenerator(IRequestSpecification delegateSpecification)
+        {
+            this.Specification = delegateSpecification ?? throw new ArgumentNullException(nameof(delegateSpecification));
+        }
+
         /// <summary>
         /// Creates a new <see cref="Delegate"/> instance.
         /// </summary>
@@ -23,30 +43,18 @@ namespace Ploeh.AutoFixture.Kernel
         /// </returns>
         public object Create(object request, ISpecimenContext context)
         {
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
+            if (context == null) throw new ArgumentNullException(nameof(context));
 
             var delegateType = request as Type;
-
             if (delegateType == null)
-            {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
-            }
+                return new NoSpecimen();
 
-            if (!typeof(Delegate).IsAssignableFrom(delegateType))
-            {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
-            }
+            if(!this.Specification.IsSatisfiedBy(delegateType))
+                return new NoSpecimen();
 
-            var delegateMethod = delegateType.GetMethod("Invoke");
-            var methodSpecimenParams = DelegateGenerator.CreateMethodSpecimenParameters(delegateMethod);
-            var methodSpecimenBody = DelegateGenerator.CreateMethodSpecimenBody(delegateMethod, context);
+            var delegateMethod = delegateType.GetTypeInfo().GetMethod("Invoke");
+            var methodSpecimenParams = CreateMethodSpecimenParameters(delegateMethod);
+            var methodSpecimenBody = CreateMethodSpecimenBody(delegateMethod, context);
 
             var delegateSpecimen = Expression.Lambda(delegateType, methodSpecimenBody, methodSpecimenParams).Compile();
 
@@ -55,9 +63,8 @@ namespace Ploeh.AutoFixture.Kernel
 
         private static IEnumerable<ParameterExpression> CreateMethodSpecimenParameters(MethodInfo request)
         {
-            int paramCount = 0;
-            var parameters = request.GetParameters().Select(
-                param => Expression.Parameter(param.ParameterType, String.Concat("arg", paramCount++)));
+            var parameters = request.GetParameters()
+                .Select((param, i) => Expression.Parameter(param.ParameterType, string.Concat("arg", i)));
 
             return parameters;
         }

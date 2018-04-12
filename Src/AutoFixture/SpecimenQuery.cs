@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// Provides convenience methods to perform (partially) anonymous Queries.
@@ -32,10 +29,8 @@ namespace Ploeh.AutoFixture
             this ISpecimenBuilder builder,
             Func<T, TResult> function)
         {
-            if (builder == null)
-                throw new ArgumentNullException(nameof(builder));
-            if (function == null)
-                throw new ArgumentNullException(nameof(function));
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
+            if (function == null) throw new ArgumentNullException(nameof(function));
 
             return function(builder.Create<T>());
         }
@@ -64,10 +59,8 @@ namespace Ploeh.AutoFixture
             this ISpecimenBuilder builder,
             Func<T1, T2, TResult> function)
         {
-            if (builder == null)
-                throw new ArgumentNullException(nameof(builder));
-            if (function == null)
-                throw new ArgumentNullException(nameof(function));
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
+            if (function == null) throw new ArgumentNullException(nameof(function));
 
             return function(builder.Create<T1>(), builder.Create<T2>());
         }
@@ -99,10 +92,8 @@ namespace Ploeh.AutoFixture
             this ISpecimenBuilder builder,
             Func<T1, T2, T3, TResult> function)
         {
-            if (builder == null)
-                throw new ArgumentNullException(nameof(builder));
-            if (function == null)
-                throw new ArgumentNullException(nameof(function));
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
+            if (function == null) throw new ArgumentNullException(nameof(function));
 
             return function(
                 builder.Create<T1>(),
@@ -140,10 +131,8 @@ namespace Ploeh.AutoFixture
             this ISpecimenBuilder builder,
             Func<T1, T2, T3, T4, TResult> function)
         {
-            if (builder == null)
-                throw new ArgumentNullException(nameof(builder));
-            if (function == null)
-                throw new ArgumentNullException(nameof(function));
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
+            if (function == null) throw new ArgumentNullException(nameof(function));
 
             return function(
                 builder.Create<T1>(),

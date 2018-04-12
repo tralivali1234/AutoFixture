@@ -1,4 +1,10 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/qlmobf6rt05pmt7e/branch/master?svg=true)](https://ci.appveyor.com/project/AutoFixture/autofixture/branch/master) [![NuGet version](https://img.shields.io/nuget/v/AutoFixture.svg)](https://www.nuget.org/packages/AutoFixture)
+[![Build status](https://ci.appveyor.com/api/projects/status/qlmobf6rt05pmt7e/branch/master?svg=true)](https://ci.appveyor.com/project/AutoFixture/autofixture/branch/master) [![NuGet version](https://img.shields.io/nuget/vpre/AutoFixture.svg)](https://www.nuget.org/packages/AutoFixture) <a href="https://twitter.com/AutoFixture"><img src="https://img.shields.io/twitter/follow/AutoFixture.svg?style=social&label=@AutoFixture" alt="AutoFixture" align="right" /></a>
+
+## Announcement - v4 was released 🎈
+
+Refer to the [v4 Release Notes](https://github.com/AutoFixture/AutoFixture/wiki/v4.0-Release-Notes) for information about the breaking changes, new features, enhancements and fixes.
+
+❗️❗️❗️ Notice, the default namespace prefix has been changed from `Ploeh.AutoFixture` to `AutoFixture` because [Mark](https://github.com/ploeh) stopped to maintain this project. Please use the text replace feature of your IDE to quickly fix all the namespace imports in your code. See more detail [here](https://github.com/AutoFixture/AutoFixture/wiki/v4.0-Release-Notes#%EF%B8%8F%EF%B8%8F-removed-the-ploeh-namespace-and-assembly-name-prefix).
 
 ## Project Description ##
 
@@ -20,20 +26,19 @@ When writing unit tests, you typically need to create some objects that represen
 
 AutoFixture can help by creating such [Anonymous Variables](http://blogs.msdn.com/ploeh/archive/2008/11/17/anonymous-variables.aspx) for you. Here's a simple example:
 
-```csharp
-[TestMethod]
+```c#
+[Fact]
 public void IntroductoryTest()
 {
-    // Fixture setup
+    // Arrange
     Fixture fixture = new Fixture();
 
     int expectedNumber = fixture.Create<int>();
     MyClass sut = fixture.Create<MyClass>();
-    // Exercise system
+    // Act
     int result = sut.Echo(expectedNumber);
-    // Verify outcome
-    Assert.AreEqual<int>(expectedNumber, result, "Echo");
-    // Teardown
+    // Assert
+    Assert.Equal(expectedNumber, result);
 }
 ```
 
@@ -44,7 +49,7 @@ The example also illustrates how AutoFixture can be used as a [SUT Factory](http
 Given the right combination of unit testing framework and extensions for AutoFixture, we can further reduce the above test to be even more declarative: 
 
 [xUnit](http://blog.ploeh.dk/2010/10/08/AutoDataTheoriesWithAutoFixture.aspx) 
-```csharp
+```c#
 [Theory, AutoData]
 public void IntroductoryTest(
     int expectedNumber, MyClass sut)
@@ -56,7 +61,7 @@ public void IntroductoryTest(
 and 
 
 [NUnit](http://gertjvr.wordpress.com/2013/09/25/howto-autofixture-nunit2)
-```csharp
+```c#
 [Test, AutoData]
 public void IntroductoryTest(
     int expectedNumber, MyClass sut)
@@ -70,11 +75,30 @@ Notice how we can reduce unit tests to state only the relevant parts of the test
 
 Using AutoFixture is as easy as referencing the library and creating a new instance of the Fixture class!
 
+## .NET platforms compatibility table
+
+| Product                    | .NET Framework            | .NET Standard            |
+| -------------------------- | ------------------------  | ------------------------ |
+| AutoFixture                | :heavy_check_mark: 4.5.2  | :heavy_check_mark: 1.5   |
+| AutoFixture.SeedExtensions | :heavy_check_mark: 4.5.2  | :heavy_check_mark: 1.5   |
+| AutoFixture.xUnit          | :heavy_check_mark: 4.5.2  | :heavy_minus_sign:       |
+| AutoFixture.xUnit2         | :heavy_check_mark: 4.5.2  | :heavy_check_mark: 1.5   |
+| AutoFixture.NUnit2         | :heavy_check_mark: 4.5.2  | :heavy_minus_sign:       |
+| AutoFixture.NUnit3         | :heavy_check_mark: 4.5.2  | :heavy_check_mark: 1.5   |
+| AutoFakeItEasy             | :heavy_check_mark: 4.5.2  | :heavy_check_mark: 1.6   |
+| AutoFoq                    | :heavy_check_mark: 4.5.2  | :heavy_minus_sign:       |
+| AutoMoq                    | :heavy_check_mark: 4.5.2  | :heavy_check_mark: 1.5   |
+| AutoNSubstitute            | :heavy_check_mark: 4.5.2  | :heavy_check_mark: 1.5   |
+| AutoRhinoMock              | :heavy_check_mark: 4.5.2  | :heavy_minus_sign:       |
+| Idioms                     | :heavy_check_mark: 4.5.2  | :heavy_check_mark: 2.0   |
+| Idioms.FsCheck             | :heavy_check_mark: 4.5.2  | :heavy_check_mark: 2.0   |
+
 ## Downloads
 
 AutoFixture is available via NuGet:
 
 * [AutoFixture](http://nuget.org/packages/AutoFixture)
+* [AutoFixture.SeedExtensions](http://nuget.org/packages/AutoFixture.SeedExtensions)
 * [AutoFixture.AutoMoq](http://nuget.org/packages/AutoFixture.AutoMoq)
 * [AutoFixture.AutoRhinoMocks](http://nuget.org/packages/AutoFixture.AutoRhinoMocks)
 * [AutoFixture.AutoFakeItEasy](http://nuget.org/packages/AutoFixture.AutoFakeItEasy)
@@ -85,7 +109,6 @@ AutoFixture is available via NuGet:
 * [AutoFixture.NUnit2](http://nuget.org/packages/AutoFixture.NUnit2)
 * [AutoFixture.NUnit3](http://nuget.org/packages/AutoFixture.NUnit3)
 * [AutoFixture.Idioms](http://nuget.org/packages/AutoFixture.Idioms)
-* [SemanticComparison](http://nuget.org/packages/SemanticComparison)
 
 ### vNext feed
 The artifacts of the next major version are published to [the MyGet feed](https://www.myget.org/gallery/autofixture):

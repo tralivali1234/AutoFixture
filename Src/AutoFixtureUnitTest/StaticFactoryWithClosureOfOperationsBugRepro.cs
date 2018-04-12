@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
+using AutoFixture;
 using Xunit;
-using Ploeh.AutoFixture;
 
-namespace Ploeh.AutoFixtureUnitTest
+namespace AutoFixtureUnitTest
 {
     /* This class contains regression tests against this bug:
      * http://autofixture.codeplex.com/workitem/4256 */
@@ -14,17 +11,16 @@ namespace Ploeh.AutoFixtureUnitTest
         [Fact]
         public void CreateWithOmitOnRecursionThrowsAppropriateException()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             fixture.Behaviors
                 .OfType<ThrowingRecursionBehavior>()
                 .ToList()
                 .ForEach(b => fixture.Behaviors.Remove(b));
             fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-            // Exercise system and verify outcome
-            Assert.Throws<ObjectCreationException>(() =>
+            // Act & assert
+            Assert.ThrowsAny<ObjectCreationException>(() =>
                 fixture.Create<ClosureOfOperationsHost>());
-            // Teardown
         }
 
         private class ClosureOfOperationsHost

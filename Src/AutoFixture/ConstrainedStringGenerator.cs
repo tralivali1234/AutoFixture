@@ -1,8 +1,8 @@
 ﻿using System;
-using Ploeh.AutoFixture.Kernel;
 using System.Text;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// Creates a constrained string.
@@ -19,25 +19,15 @@ namespace Ploeh.AutoFixture
         /// </returns>
         public object Create(object request, ISpecimenContext context)
         {
-            if (request == null)
-            {
-                return new NoSpecimen();
-            }
-
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
+            if (context == null) throw new ArgumentNullException(nameof(context));
 
             var constrain = request as ConstrainedStringRequest;
             if (constrain == null)
             {
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+                return new NoSpecimen();
             }
 
-            return ConstrainedStringGenerator.Create(constrain.MinimumLength, constrain.MaximumLength, context);
+            return Create(constrain.MinimumLength, constrain.MaximumLength, context);
         }
 
         private static string Create(int minimumLength, int maximumLength, ISpecimenContext context)

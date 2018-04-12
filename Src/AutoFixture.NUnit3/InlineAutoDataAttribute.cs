@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
+using AutoFixture.Kernel;
 using NUnit.Framework.Interfaces;
 using NUnit.Framework.Internal;
-using NUnit.Framework.Internal.Builders;
-using Ploeh.AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture.NUnit3
+namespace AutoFixture.NUnit3
 {
     /// <summary>
     /// This attribute acts as a TestCaseAttribute but allow incomplete parameter values, 
@@ -14,18 +15,29 @@ namespace Ploeh.AutoFixture.NUnit3
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
     [CLSCompliant(false)]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1813:AvoidUnsealedAttributes", Justification = "This attribute is the root of a potential attribute hierarchy.")]
+    [SuppressMessage("Microsoft.Performance", "CA1813:AvoidUnsealedAttributes", Justification = "This attribute is the root of a potential attribute hierarchy.")]
     public class InlineAutoDataAttribute : Attribute, ITestBuilder
     {
-        private readonly object[] _existingParameterValues;
-        private readonly IFixture _fixture;
+        private readonly object[] existingParameterValues;
+        private readonly Lazy<IFixture> fixtureLazy;
+        private IFixture Fixture => this.fixtureLazy.Value;
+        private ITestMethodBuilder testMethodBuilder = new FixedNameTestMethodBuilder();
+        
+        /// <summary>
+        /// Gets or sets the current <see cref="ITestMethodBuilder"/> strategy.
+        /// </summary>
+        public ITestMethodBuilder TestMethodBuilder
+        {
+            get => this.testMethodBuilder;
+            set => this.testMethodBuilder = value ?? throw new ArgumentNullException(nameof(value));
+        }
 
         /// <summary>
         /// Construct a <see cref="InlineAutoDataAttribute"/>
         /// with parameter values for test method
         /// </summary>
         public InlineAutoDataAttribute(params object[] arguments)
-            : this(new Fixture(), arguments)
+            : this(() => new Fixture(), arguments)
         {
         }
 
@@ -33,29 +45,35 @@ namespace Ploeh.AutoFixture.NUnit3
         /// Construct a <see cref="InlineAutoDataAttribute"/> with an <see cref="IFixture"/> 
         /// and parameter values for test method
         /// </summary>
+        [Obsolete("This constructor overload is deprecated because it offers poor performance, and will be removed in a future version. " +
+                  "Please use the overload with a factory method, so fixture will be constructed only if needed.")]
         protected InlineAutoDataAttribute(IFixture fixture, params object[] arguments)
         {
-            if (null == fixture)
-            {
-                throw new ArgumentNullException(nameof(fixture));
-            }
+            if (null == fixture) throw new ArgumentNullException(nameof(fixture));
+            if (null == arguments) throw new ArgumentNullException(nameof(arguments));
 
-            if (null == arguments)
-            {
-                throw new ArgumentNullException(nameof(arguments));
-            }
+            this.fixtureLazy = new Lazy<IFixture>(() => fixture, LazyThreadSafetyMode.None);
+            this.existingParameterValues = arguments;
+        }
+        
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AutoDataAttribute"/> class
+        /// with the supplied <paramref name="fixtureFactory"/>. Fixture will be created
+        /// on demand using the provided factory.
+        /// </summary>
+        protected InlineAutoDataAttribute(Func<IFixture> fixtureFactory, params object[] arguments)
+        {
+            if (null == fixtureFactory) throw new ArgumentNullException(nameof(fixtureFactory));
+            if (null == arguments) throw new ArgumentNullException(nameof(arguments));
 
-            this._fixture = fixture;
-            this._existingParameterValues = arguments;
+            this.fixtureLazy = new Lazy<IFixture>(fixtureFactory, LazyThreadSafetyMode.PublicationOnly);
+            this.existingParameterValues = arguments;
         }
 
         /// <summary>
         /// Gets the parameter values for the test method.
         /// </summary>
-        public IEnumerable<object> Arguments
-        {
-            get { return this._existingParameterValues; }
-        }
+        public IEnumerable<object> Arguments => this.existingParameterValues;
 
         /// <summary>
         ///     Construct one or more TestMethods from a given MethodInfo,
@@ -66,39 +84,24 @@ namespace Ploeh.AutoFixture.NUnit3
         /// <returns>One or more TestMethods</returns>
         public IEnumerable<TestMethod> BuildFrom(IMethodInfo method, Test suite)
         {
-            var test = new NUnitTestCaseBuilder().BuildTestMethod(method, suite, this.GetParametersForMethod(method));
+            var test = this.TestMethodBuilder.Build(
+                method, suite, this.GetParameterValues(method), this.existingParameterValues.Length);
 
             yield return test;
-        }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "This method is always expected to return an instance of the TestCaseParameters class.")]
-        private TestCaseParameters GetParametersForMethod(IMethodInfo method)
-        {
-            try
-            {
-                var parameters = method.GetParameters();
-
-                var parameterValues = this.GetParameterValues(parameters);
-
-                return new TestCaseParameters(parameterValues.ToArray());
-            }
-            catch (Exception ex)
-            {
-                return new TestCaseParameters(ex);
-            }
         }
 
         /// <summary>
         /// Get values for a collection of <see cref="IParameterInfo"/>
         /// </summary>
-        private IEnumerable<object> GetParameterValues(IEnumerable<IParameterInfo> parameters)
+        private IEnumerable<object> GetParameterValues(IMethodInfo method)
         {
-            return this._existingParameterValues.Concat(this.GetMissingValues(parameters));
+            var parameters = method.GetParameters();
+            return this.existingParameterValues.Concat(this.GetMissingValues(parameters));
         }
 
         private IEnumerable<object> GetMissingValues(IEnumerable<IParameterInfo> parameters)
         {
-            var parametersWithoutValues = parameters.Skip(this._existingParameterValues.Count());
+            var parametersWithoutValues = parameters.Skip(this.existingParameterValues.Length);
 
             return parametersWithoutValues.Select(this.GetValueForParameter);
         }
@@ -108,19 +111,22 @@ namespace Ploeh.AutoFixture.NUnit3
         /// </summary>
         private object GetValueForParameter(IParameterInfo parameterInfo)
         {
-            CustomizeFixtureByParameter(parameterInfo);
+            this.CustomizeFixtureByParameter(parameterInfo);
 
-            return new SpecimenContext(this._fixture)
+            return new SpecimenContext(this.Fixture)
                 .Resolve(parameterInfo.ParameterInfo);
         }
 
         private void CustomizeFixtureByParameter(IParameterInfo parameter)
         {
-            var customizeAttributes = parameter.GetCustomAttributes<CustomizeAttribute>(false);
+            var customizeAttributes = parameter.GetCustomAttributes<Attribute>(false)
+                .OfType<IParameterCustomizationSource>()
+                .OrderBy(x => x, new CustomizeAttributeComparer());
+
             foreach (var ca in customizeAttributes)
             {
                 var customization = ca.GetCustomization(parameter.ParameterInfo);
-                this._fixture.Customize(customization);
+                this.Fixture.Customize(customization);
             }
         }
     }

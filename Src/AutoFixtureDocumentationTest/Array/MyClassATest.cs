@@ -1,8 +1,8 @@
 ﻿using System.Linq;
-using Ploeh.AutoFixture;
+using AutoFixture;
 using Xunit;
 
-namespace Ploeh.AutoFixtureDocumentationTest.Array
+namespace AutoFixtureDocumentationTest.Array
 {
     public class MyClassATest
     {
@@ -13,62 +13,58 @@ namespace Ploeh.AutoFixtureDocumentationTest.Array
         [Fact]
         public void CreatedSutCanHaveItemsAssignedSubsequently()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
-            // Exercise system
+            // Act
             var mc = fixture.Create<MyClassA>();
             mc.Items = fixture.CreateMany<MyClassB>().ToArray();
-            // Verify outcome
+            // Assert
             Assert.True(mc.Items.Length > 0);
             Assert.True(mc.Items.All(x => x != null));
-            // Teardown
         }
 
         [Fact]
         public void BuiltSutWillHavePopulatedItems()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
-            // Exercise system
+            // Act
             var mc = fixture.Build<MyClassA>()
                 .With(x => x.Items, 
                     fixture.CreateMany<MyClassB>().ToArray())
                 .Create();
-            // Verify outcome
+            // Assert
             Assert.True(mc.Items.Length > 0, "Non-empty array");
             Assert.True(mc.Items.All(x => x != null), "No item should be null");
-            // Teardown
         }
 
         [Fact]
         public void CustomizedSutWillHavePopulatedItems()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             fixture.Customize<MyClassA>(ob =>
                 ob.With(x => x.Items, 
                     fixture.CreateMany<MyClassB>().ToArray()));
-            // Exercise system
+            // Act
             var mc = fixture.Create<MyClassA>();
-            // Verify outcome
+            // Assert
             Assert.True(mc.Items.Length > 0, "Non-empty array");
             Assert.True(mc.Items.All(x => x != null), "No item should be null");
-            // Teardown
         }
 
         [Fact]
         public void RegisterArrayWillProperlyPopulateItems()
         {
-            // Fixture setup
+            // Arrange
             var fixture = new Fixture();
             fixture.Register<MyClassB[]>(() => 
                 fixture.CreateMany<MyClassB>().ToArray());
-            // Exercise system
+            // Act
             var mc = fixture.Create<MyClassA>();
-            // Verify outcome
+            // Assert
             Assert.True(mc.Items.Length > 0, "Non-empty array");
             Assert.True(mc.Items.All(x => x != null), "No item should be null");
-            // Teardown
         }
     }
 }

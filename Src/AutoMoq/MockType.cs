@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
+using AutoFixture.Kernel;
 using Moq;
 using Moq.Language;
 using Moq.Language.Flow;
-using Ploeh.AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture.AutoMoq
+namespace AutoFixture.AutoMoq
 {
     /// <summary>
     /// Contains extension methods to manipulate/setup instances of <see cref="Mock{T}"/>.
@@ -29,8 +28,8 @@ namespace Ploeh.AutoFixture.AutoMoq
                                                                                 ISpecimenBuilder fixture)
             where TMock : class
         {
-            if (setup == null) throw new ArgumentNullException("setup");
-            if (fixture == null) throw new ArgumentNullException("fixture");
+            if (setup == null) throw new ArgumentNullException(nameof(setup));
+            if (fixture == null) throw new ArgumentNullException(nameof(fixture));
 
             return setup.ReturnsUsingContext(new SpecimenContext(fixture));
         }
@@ -38,19 +37,9 @@ namespace Ploeh.AutoFixture.AutoMoq
         internal static bool IsMock(this Type type)
         {
             return (type != null
-                && type.IsGenericType
+                && type.GetTypeInfo().IsGenericType
                 && typeof(Mock<>).IsAssignableFrom(type.GetGenericTypeDefinition())
                 && !type.GetMockedType().IsGenericParameter);
-        }
-
-        internal static bool IsDelegate(this Type type)
-        {
-            /* Test against MulticastDelegate instead of Delegate base class
-             * because Brad Abrams says that we "should pretend that [Delegate 
-             * and MulticaseDelegate] are merged and that only 
-             * MulticastDelegate exists."
-             * http://blogs.msdn.com/b/brada/archive/2004/02/05/68415.aspx */
-            return typeof(MulticastDelegate).IsAssignableFrom(type.BaseType);
         }
 
         internal static ConstructorInfo GetDefaultConstructor(this Type type)
@@ -71,7 +60,7 @@ namespace Ploeh.AutoFixture.AutoMoq
 
         internal static Type GetMockedType(this Type type)
         {
-            return type.GetGenericArguments().Single();
+            return type.GetTypeInfo().GetGenericArguments().Single();
         }
 
         internal static IReturnsResult<TMock> ReturnsUsingContext<TMock, TResult>(this IReturns<TMock, TResult> setup,

@@ -1,9 +1,10 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using NUnit.Framework;
-using Ploeh.TestTypeFoundation;
+using TestTypeFoundation;
 
-namespace Ploeh.AutoFixture.NUnit3.UnitTest
+namespace AutoFixture.NUnit3.UnitTest
 {
     [TestFixture]
     public class Scenario
@@ -28,7 +29,7 @@ namespace Ploeh.AutoFixture.NUnit3.UnitTest
         }
 
         [Test, AutoData]
-        public void AutoTestCaseProvidesMultipleObjects(PropertyHolder<Version> ph, SingleParameterType<OperatingSystem> spt)
+        public void AutoTestCaseProvidesMultipleObjects(PropertyHolder<Version> ph, SingleParameterType<ConcreteType> spt)
         {
             Assert.NotNull(ph);
             Assert.NotNull(ph.Property);
@@ -56,12 +57,11 @@ namespace Ploeh.AutoFixture.NUnit3.UnitTest
         public void IntroductoryTest(
             int expectedNumber, MyClass sut)
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             int result = sut.Echo(expectedNumber);
-            // Verify outcome
+            // Assert
             Assert.AreEqual(expectedNumber, result);
-            // Teardown
         }
 
         [Test, AutoData]
@@ -331,7 +331,7 @@ namespace Ploeh.AutoFixture.NUnit3.UnitTest
             Assert.AreNotEqual(p1, p2.Field);
         }
 
-        [Theory]
+        [Test]
         [InlineAutoData(1, 2, 3)]
         public void InlineAutoDataTakesParameterValues(int p1, int p2, int p3)
         {
@@ -340,7 +340,7 @@ namespace Ploeh.AutoFixture.NUnit3.UnitTest
             Assert.That(p3, Is.EqualTo(3));
         }
 
-        [Theory]
+        [Test]
         [InlineAutoData]
         public void InlineAutoDataProvidesParameterValuesWhenNoneGiven(string p1, string p2, string p3)
         {
@@ -349,7 +349,7 @@ namespace Ploeh.AutoFixture.NUnit3.UnitTest
             Assert.That(p3, Is.Not.Null);
         }
 
-        [Theory]
+        [Test]
         [InlineAutoData("alpha", "beta")]
         public void InlineAutoDataProvidesParameterValuesWhenMissing(string p1, string p2, string p3)
         {
@@ -358,7 +358,7 @@ namespace Ploeh.AutoFixture.NUnit3.UnitTest
             Assert.That(p3, Is.Not.Null);
         }
 
-        [Theory]
+        [Test]
         [InlineAutoData]
         [InlineAutoData]
         [InlineAutoData]
@@ -369,16 +369,16 @@ namespace Ploeh.AutoFixture.NUnit3.UnitTest
             Assert.That(p3, Is.Not.Null);
         }
 
-        [Theory]
+        [Test]
         [InlineAutoData(1)]
         public void InlineAutoDataCanBeUsedWithFrozen(int p1, int p2, [Frozen]string p3, string p4)
         {
             Assert.That(p3, Is.EqualTo(p4));
         }
 
-        [Theory, AutoData]
+        [Test, AutoData]
         public void NoAutoPropertiesAttributeLeavesPropertiesUnset(
-            [NoAutoProperties]PropertyHolder<object> ph1, 
+            [NoAutoProperties]PropertyHolder<object> ph1,
             [NoAutoProperties]PropertyHolder<string> ph2,
             [NoAutoProperties]PropertyHolder<int> ph3
             )
@@ -386,6 +386,13 @@ namespace Ploeh.AutoFixture.NUnit3.UnitTest
             Assert.That(ph1.Property, Is.EqualTo(default(object)));
             Assert.That(ph2.Property, Is.EqualTo(default(string)));
             Assert.That(ph3.Property, Is.EqualTo(default(int)));
+        }
+
+        [Test, AutoData]
+        public void FreezeParameterWithStringLengthConstraintShouldCreateConstrainedSpecimen(
+            [Frozen, StringLength(3)]string p)
+        {
+            Assert.True(p.Length == 3);
         }
     }
 }

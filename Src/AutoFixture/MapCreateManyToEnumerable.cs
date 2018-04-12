@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// Maps a call to
@@ -47,8 +45,7 @@ namespace Ploeh.AutoFixture
         /// <seealso cref="MapCreateManyToEnumerable" />
         public void Customize(IFixture fixture)
         {
-            if (fixture == null)
-                throw new ArgumentNullException(nameof(fixture));
+            if (fixture == null) throw new ArgumentNullException(nameof(fixture));
 
             fixture.Customizations.Insert(0, new MultipleToEnumerableRelay());
         }

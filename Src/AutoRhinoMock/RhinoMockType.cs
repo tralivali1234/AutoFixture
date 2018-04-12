@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Ploeh.AutoFixture.AutoRhinoMock
+namespace AutoFixture.AutoRhinoMock
 {
     internal static class RhinoMockType
     {
@@ -13,13 +13,13 @@ namespace Ploeh.AutoFixture.AutoRhinoMock
 
         internal static bool IsMockable(this object request)
         {
-            var t = request as Type;
-            if (t == null)
+            var type = request as Type;
+            if (type == null)
             {
                 return false;
             }
 
-            return (t.IsInterface || t.IsAbstract);
+            return type.IsInterface || type.IsAbstract;
         }
     }
 }

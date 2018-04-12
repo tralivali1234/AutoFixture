@@ -1,10 +1,7 @@
-﻿using Ploeh.AutoFixture.Kernel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// A customization that will turn off the auto population of properties on the target type
@@ -22,10 +19,7 @@ namespace Ploeh.AutoFixture
         /// </exception>
         public NoAutoPropertiesCustomization(Type targetType)
         {
-            if (targetType == null)
-            {
-                throw new ArgumentNullException(nameof(targetType));
-            }
+            if (targetType == null) throw new ArgumentNullException(nameof(targetType));
 
             this.targetType = targetType;
         }

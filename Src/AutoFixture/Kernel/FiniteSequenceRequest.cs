@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Signals that many similar instances are requested.
@@ -20,14 +20,9 @@ namespace Ploeh.AutoFixture.Kernel
         /// <param name="count">The number of instances requested.</param>
         public FiniteSequenceRequest(object request, int count)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            if (request == null) throw new ArgumentNullException(nameof(request));
             if (count < 0)
-            {
                 throw new ArgumentOutOfRangeException(nameof(count), string.Format(CultureInfo.CurrentCulture, "The requested count must be a positive number (or zero), but was {0}.", count));
-            }        
 
             this.request = request;
             this.count = count;
@@ -41,13 +36,12 @@ namespace Ploeh.AutoFixture.Kernel
         /// <see langword="true"/> if the specified <see cref="Object"/> is equal to this instance;
         /// otherwise, <see langword="false"/>.
         /// </returns>
-        /// <exception cref="T:System.NullReferenceException">
+        /// <exception cref="System.NullReferenceException">
         /// The <paramref name="obj"/> parameter is null.
         /// </exception>
         public override bool Equals(object obj)
         {
-            var other = obj as FiniteSequenceRequest;
-            if (other != null)
+            if (obj is FiniteSequenceRequest other)
             {
                 return this.Equals(other);
             }

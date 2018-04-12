@@ -1,9 +1,9 @@
 using System;
 using System.Reflection;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 using Xunit;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class TypeArgumentsCannotBeInferredExceptionTests
     {
@@ -26,14 +26,14 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         public void InitializeWithNullMethodInfoThrows()
         {
             Assert.Throws<ArgumentNullException>(
-                () => new TypeArgumentsCannotBeInferredException((MethodInfo) null));
+                () => new TypeArgumentsCannotBeInferredException((MethodInfo)null));
         }
 
         [Fact]
         public void MessageWillBeDefineWhenInitializedWithMethodInfo()
         {
             Action dummy = delegate { };
-            var sut = new TypeArgumentsCannotBeInferredException(dummy.Method);
+            var sut = new TypeArgumentsCannotBeInferredException(dummy.GetMethodInfo());
 
             var result = sut.Message;
 
@@ -47,7 +47,7 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
             var sut = new TypeArgumentsCannotBeInferredException(expectedMessage);
 
             var result = sut.Message;
-            
+
             Assert.Equal(expectedMessage, result);
         }
 
@@ -58,7 +58,7 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
             var sut = new TypeArgumentsCannotBeInferredException("Anonymous message.", expectedException);
 
             var result = sut.InnerException;
-            
+
             Assert.Equal(expectedException, result);
         }
     }

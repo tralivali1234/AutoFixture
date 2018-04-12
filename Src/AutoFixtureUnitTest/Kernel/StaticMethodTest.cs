@@ -1,98 +1,90 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.TestTypeFoundation;
+using AutoFixture.Kernel;
+using TestTypeFoundation;
 using Xunit;
-using Xunit.Extensions;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class StaticMethodTest
     {
         [Fact]
         public void SutIsMethod()
         {
-            // Fixture setup
+            // Arrange
             Action dummy = delegate { };
-            // Exercise system
-            var sut = new StaticMethod(dummy.Method);
-            // Verify outcome
+            // Act
+            var sut = new StaticMethod(dummy.GetMethodInfo());
+            // Assert
             Assert.IsAssignableFrom<IMethod>(sut);
-            // Teardown
         }
 
         [Fact]
         public void InitializeOneParamsConstructorWithNullMethodInfoThrows()
         {
-            // Fixture setup
-            // Exercise system and verify outcome
+            // Arrange
+            // Act & assert
             Assert.Throws<ArgumentNullException>(() =>
                 new StaticMethod(null));
-            // Teardown
         }
 
         [Fact]
         public void InitializeWithNullMethodInfoThrows()
         {
-            // Fixture setup
+            // Arrange
             Action dummy = delegate { };
-            // Exercise system and verify outcome
+            // Act & assert
             Assert.Throws<ArgumentNullException>(() =>
-                new StaticMethod(null, dummy.Method.GetParameters()));
-            // Teardown
+                new StaticMethod(null, dummy.GetMethodInfo().GetParameters()));
         }
 
         [Fact]
         public void InitializeWithNullMethodParametersThrows()
         {
-            // Fixture setup
+            // Arrange
             Action dummy = delegate { };
-            // Exercise system and verify outcome
+            // Act & assert
             Assert.Throws<ArgumentNullException>(() =>
-                new StaticMethod(dummy.Method, null));
-            // Teardown
+                new StaticMethod(dummy.GetMethodInfo(), null));
         }
 
         [Fact]
         public void MethodIsCorrect()
         {
-            // Fixture setup
-            var expectedMethod = ((Action)delegate { }).Method;
+            // Arrange
+            var expectedMethod = ((Action)delegate { }).GetMethodInfo();
             var sut = new StaticMethod(expectedMethod);
-            // Exercise system
+            // Act
             var result = sut.Method;
-            // Verify outcome
+            // Assert
             Assert.Equal(expectedMethod, result);
-            // Teardown
         }
 
         [Fact]
         public void ParametersIsCorrectWhenPassedOnOneParamsConstructor()
         {
-            // Fixture setup
+            // Arrange
             Action<object> dummy = delegate { };
-            var expectedParameters = dummy.Method.GetParameters();
-            var sut = new StaticMethod(dummy.Method);
-            // Exercise system
+            var expectedParameters = dummy.GetMethodInfo().GetParameters();
+            var sut = new StaticMethod(dummy.GetMethodInfo());
+            // Act
             var result = sut.Parameters;
-            // Verify outcome
+            // Assert
             Assert.True(expectedParameters.SequenceEqual(result));
-            // Teardown
         }
 
         [Fact]
         public void ParametersIsCorrect()
         {
-            // Fixture setup
+            // Arrange
             Action<int, double> dummy = delegate { };
-            var expectedParameters = dummy.Method.GetParameters();
-            var sut = new StaticMethod(dummy.Method, expectedParameters);
-            // Exercise system
+            var expectedParameters = dummy.GetMethodInfo().GetParameters();
+            var sut = new StaticMethod(dummy.GetMethodInfo(), expectedParameters);
+            // Act
             var result = sut.Parameters;
-            // Verify outcome
+            // Assert
             Assert.True(expectedParameters.SequenceEqual(result));
-            // Teardown
         }
 
         [Theory]
@@ -101,144 +93,134 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [InlineData(typeof(TypeWithFactoryMethod), 2, new object[] { new[] { "ab", "c" } })]
         public void InvokeWithFactoryMethodReturnsCorrectResult(Type targetType, int index, object values)
         {
-            // Fixture setup
+            // Arrange
             var method = (from mi in targetType
                               .GetMethods(BindingFlags.Static | BindingFlags.Public)
                           where mi.ReturnType == targetType
                           select mi).ElementAt(index);
             var sut = new StaticMethod(method);
 
-            // Exercise system
+            // Act
             var result = sut.Invoke((object[])values);
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom(targetType, result);
-            // Teardown
         }
 
         [Fact]
         public void SutIsEquatable()
         {
-            // Fixture setup
-            var method = ((Action<object>)delegate { }).Method;
-            // Exercise system
+            // Arrange
+            var method = ((Action<object>)delegate { }).GetMethodInfo();
+            // Act
             var sut = new StaticMethod(method);
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<IEquatable<StaticMethod>>(sut);
-            // Teardown
         }
 
         [Fact]
         public void SutDoesNotEqualNullObject()
         {
-            // Fixture setup
-            var method = ((Action<object>)delegate { }).Method;
+            // Arrange
+            var method = ((Action<object>)delegate { }).GetMethodInfo();
             var sut = new StaticMethod(method);
-            // Exercise system
+            // Act
             var result = sut.Equals((object)null);
-            // Verify outcome
+            // Assert
             Assert.False(result);
-            // Teardown
         }
 
         [Fact]
         public void SutDoesNotEqualNullSut()
         {
-            // Fixture setup
-            var method = ((Action<object>)delegate { }).Method;
+            // Arrange
+            var method = ((Action<object>)delegate { }).GetMethodInfo();
             var sut = new StaticMethod(method);
-            // Exercise system
+            // Act
             var result = sut.Equals((StaticMethod)null);
-            // Verify outcome
+            // Assert
             Assert.False(result);
-            // Teardown
         }
 
         [Fact]
         public void SutDoesNotEqualSomeOtherObject()
         {
-            // Fixture setup
-            var method = ((Action<object>)delegate { }).Method;
+            // Arrange
+            var method = ((Action<object>)delegate { }).GetMethodInfo();
             var sut = new StaticMethod(method);
-            // Exercise system
+            // Act
             var result = sut.Equals(new object());
-            // Verify outcome
+            // Assert
             Assert.False(result);
-            // Teardown
         }
 
         [Fact]
         public void SutDoesNotEqualOtherObjectWithDifferentMethod()
         {
-            // Fixture setup
-            var method = ((Action<object>)delegate { }).Method;
+            // Arrange
+            var method = ((Action<object>)delegate { }).GetMethodInfo();
             var sut = new StaticMethod(method);
 
-            var otherMethod = ((Action<int>)delegate { }).Method;
+            var otherMethod = ((Action<int>)delegate { }).GetMethodInfo();
             object other = new StaticMethod(otherMethod);
 
-            // Exercise system
+            // Act
             var result = sut.Equals(other);
-            // Verify outcome
+            // Assert
             Assert.False(result);
-            // Teardown
         }
 
         [Fact]
         public void SutDoesNotEqualOtherObjectWithDifferentParameters()
         {
-            // Fixture setup
-            var method = ((Action<object>)delegate { }).Method;
+            // Arrange
+            var method = ((Action<object>)delegate { }).GetMethodInfo();
             var sut = new StaticMethod(method, method.GetParameters());
 
-            var otherParameters = ((Action<int>)delegate { }).Method.GetParameters();
+            var otherParameters = ((Action<int>)delegate { }).GetMethodInfo().GetParameters();
             object other = new StaticMethod(method, otherParameters);
 
-            // Exercise system
+            // Act
             var result = sut.Equals(other);
-            // Verify outcome
+            // Assert
             Assert.False(result);
-            // Teardown
         }
 
         [Fact]
         public void SutEqualsOtherObjectWithSameMethod()
         {
-            var method = ((Action<object>)delegate { }).Method;
+            var method = ((Action<object>)delegate { }).GetMethodInfo();
             var sut = new StaticMethod(method);
             object other = new StaticMethod(method);
-            // Exercise system
+            // Act
             var result = sut.Equals(other);
-            // Verify outcome
+            // Assert
             Assert.True(result);
-            // Teardown
         }
 
         [Fact]
         public void SutEqualsOtherObjectWithSameMethodAndSameParameters()
         {
-            var method = ((Action<object>)delegate { }).Method;
+            var method = ((Action<object>)delegate { }).GetMethodInfo();
             var parameters = method.GetParameters();
             var sut = new StaticMethod(method, parameters);
             object other = new StaticMethod(method, parameters);
-            // Exercise system
+            // Act
             var result = sut.Equals(other);
-            // Verify outcome
+            // Assert
             Assert.True(result);
-            // Teardown
         }
 
         [Fact]
         public void GetHashCodeReturnsCorrectResult()
         {
-            // Fixture setup
-            var method = ((Action<object>)delegate { }).Method;
+            // Arrange
+            var method = ((Action<object>)delegate { }).GetMethodInfo();
             var sut = new StaticMethod(method);
-            // Exercise system
+            // Act
             var result = sut.GetHashCode();
-            // Verify outcome
+            // Assert
             var expectedHasCode = method.GetHashCode() ^ method.GetParameters().Aggregate(0, (current, parameter) => current + parameter.GetHashCode());
             Assert.Equal(expectedHasCode, result);
-            // Teardown
         }
     }
 }

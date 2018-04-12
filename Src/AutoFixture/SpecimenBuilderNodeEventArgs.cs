@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 
-namespace Ploeh.AutoFixture
+namespace AutoFixture
 {
     /// <summary>
     /// Event arguments concerning an <see cref="ISpecimenBuilderNode" />
@@ -20,10 +17,7 @@ namespace Ploeh.AutoFixture
         /// <exception cref="System.ArgumentNullException">graph</exception>
         public SpecimenBuilderNodeEventArgs(ISpecimenBuilderNode graph)
         {
-            if (graph == null)
-                throw new ArgumentNullException(nameof(graph));
-
-            this.Graph = graph;
+            this.Graph = graph ?? throw new ArgumentNullException(nameof(graph));
         }
 
         /// <summary>

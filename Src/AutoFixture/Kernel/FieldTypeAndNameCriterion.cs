@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Represents a criterion for comparing a candidate field against a
@@ -36,17 +36,10 @@ namespace Ploeh.AutoFixture.Kernel
         /// <paramref name="typeCriterion" /> or
         /// <paramref name="nameCriterion" /> is <see langword="null" />.
         /// </exception>
-        public FieldTypeAndNameCriterion(
-            IEquatable<Type> typeCriterion, 
-            IEquatable<string> nameCriterion)
+        public FieldTypeAndNameCriterion(IEquatable<Type> typeCriterion, IEquatable<string> nameCriterion)
         {
-            if (typeCriterion == null)
-                throw new ArgumentNullException(nameof(typeCriterion));
-            if (nameCriterion == null)
-                throw new ArgumentNullException(nameof(nameCriterion));
-
-            this.TypeCriterion = typeCriterion;
-            this.NameCriterion = nameCriterion;
+            this.TypeCriterion = typeCriterion ?? throw new ArgumentNullException(nameof(typeCriterion));
+            this.NameCriterion = nameCriterion ?? throw new ArgumentNullException(nameof(nameCriterion));
         }
 
         /// <summary>

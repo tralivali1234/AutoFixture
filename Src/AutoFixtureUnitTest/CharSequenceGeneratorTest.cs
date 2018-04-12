@@ -1,132 +1,122 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.AutoFixtureUnitTest.Kernel;
+using AutoFixture;
+using AutoFixture.Kernel;
+using AutoFixtureUnitTest.Kernel;
 using Xunit;
 
-namespace Ploeh.AutoFixtureUnitTest
+namespace AutoFixtureUnitTest
 {
     public class CharSequenceGeneratorTest
     {
         [Fact]
         public void SutIsSpecimenBuilder()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new CharSequenceGenerator();
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<ISpecimenBuilder>(sut);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithNullRequestReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = new CharSequenceGenerator();
-            // Exercise system
+            // Act
             var dummyContext = new DelegatingSpecimenContext();
             var result = sut.Create(null, dummyContext);
-            // Verify outcome
+            // Assert
             Assert.Equal(new NoSpecimen(), result);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithNullContextDoesNotThrow()
         {
-            // Fixture setup
+            // Arrange
             var sut = new CharSequenceGenerator();
             var dummyRequest = new object();
-            // Exercise system and verify outcome
-            Assert.DoesNotThrow(() => sut.Create(dummyRequest, null));
-            // Teardown
+            // Act & assert
+            Assert.Null(Record.Exception(() => sut.Create(dummyRequest, null)));
         }
 
         [Fact]
         public void CreateWithNonCharRequestReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var dummyRequest = new object();
             var sut = new CharSequenceGenerator();
-            // Exercise system
+            // Act
             var dummyContext = new DelegatingSpecimenContext();
             var result = sut.Create(dummyRequest, dummyContext);
-            // Verify outcome
-#pragma warning disable 618
-            var expectedResult = new NoSpecimen(dummyRequest);
-#pragma warning restore 618
+            // Assert
+            var expectedResult = new NoSpecimen();
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithCharRequestReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var charRequest = typeof(char);
             var sut = new CharSequenceGenerator();
-            // Exercise system
+            // Act
             var dummyContext = new DelegatingSpecimenContext();
             var result = sut.Create(charRequest, dummyContext);
-            // Verify outcome
+            // Assert
             Assert.Equal('!', result);
-            // Teardown
         }
 
         [Fact]
         public void CreateWithCharRequestReturnsCorrectResultOnSecondCall()
         {
-            // Fixture setup
+            // Arrange
             var charRequest = typeof(char);
             var sut = new CharSequenceGenerator();
-            // Exercise system
+            // Act
             var dummyContext = new DelegatingSpecimenContext();
             var result = Enumerable.Range(1, 2)
                 .Select(i => sut.Create(charRequest, dummyContext))
                 .Cast<char>();
-            // Verify outcome
+            // Assert
             char c = ' ';
             IEnumerable<char> expectedResult = Enumerable.Range(1, 2).Select(i => ++c);
             Assert.True(expectedResult.SequenceEqual(result));
-            // Teardown
         }
 
         [Fact]
         public void CreateWithCharRequestReturnsCorrectResultOnTenthCall()
         {
-            // Fixture setup
+            // Arrange
             var charRequest = typeof(char);
             var sut = new CharSequenceGenerator();
-            // Exercise system
+            // Act
             var dummyContext = new DelegatingSpecimenContext();
             var result = Enumerable.Range(1, 10)
                 .Select(i => sut.Create(charRequest, dummyContext))
                 .Cast<char>();
-            // Verify outcome
+            // Assert
             char c = '!';
             IEnumerable<char> expectedResult = Enumerable.Range(1, 10).Select(i => c++);
             Assert.True(expectedResult.SequenceEqual(result));
-            // Teardown
         }
 
         [Fact]
         public void CreateWithCharReturnsCorrectResultWhenRunOutOfChars()
         {
-            // Fixture setup
+            // Arrange
             var charRequest = typeof(char);
             var sut = new CharSequenceGenerator();
-            // Exercise system
+            // Act
             var dummyContext = new DelegatingSpecimenContext();
             var result = Enumerable.Range(1, 95)
                 .Select(i => sut.Create(charRequest, dummyContext))
                 .Cast<char>()
                 .Last();
-            // Verify outcome
+            // Assert
             char expectedResult = '!';
             Assert.Equal(expectedResult, result);
-            // Teardown
         }
     }
 }

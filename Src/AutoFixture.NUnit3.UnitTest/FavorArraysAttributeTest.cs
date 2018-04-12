@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
+using AutoFixture.Kernel;
 using NUnit.Framework;
-using Ploeh.AutoFixture.Kernel;
-using Ploeh.TestTypeFoundation;
+using TestTypeFoundation;
 
-namespace Ploeh.AutoFixture.NUnit3.UnitTest
+namespace AutoFixture.NUnit3.UnitTest
 {
     [TestFixture]
     public class FavorArraysAttributeTest
@@ -12,39 +13,36 @@ namespace Ploeh.AutoFixture.NUnit3.UnitTest
         [Test]
         public void SutIsAttribute()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new FavorArraysAttribute();
-            // Verify outcome
+            // Assert
             Assert.IsInstanceOf<CustomizeAttribute>(sut);
-            // Teardown
         }
 
         [Test]
         public void GetCustomizationFromNullParameterThrows()
         {
-            // Fixture setup
+            // Arrange
             var sut = new FavorArraysAttribute();
-            // Exercise system and verify outcome
+            // Act & Assert
             Assert.Throws<ArgumentNullException>(() =>
                 sut.GetCustomization(null));
-            // Teardown
         }
 
         [Test]
         public void GetCustomizationReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var sut = new FavorArraysAttribute();
             var parameter = typeof(TypeWithOverloadedMembers).GetMethod("DoSomething", new[] { typeof(object) }).GetParameters().Single();
-            // Exercise system
+            // Act
             var result = sut.GetCustomization(parameter);
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<ConstructorCustomization>(result);
             var invoker = (ConstructorCustomization)result;
             Assert.AreEqual(parameter.ParameterType, invoker.TargetType);
             Assert.IsAssignableFrom<ArrayFavoringConstructorQuery>(invoker.Query);
-            // Teardown
         }
     }
 }

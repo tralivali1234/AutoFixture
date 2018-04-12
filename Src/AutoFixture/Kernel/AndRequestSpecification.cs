@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// A boolean 'And' Composite <see cref="IRequestSpecification"/>.
@@ -16,12 +16,7 @@ namespace Ploeh.AutoFixture.Kernel
         /// <param name="specifications">An array of <see cref="IRequestSpecification"/>.</param>
         public AndRequestSpecification(params IRequestSpecification[] specifications)
         {
-            if (specifications == null)
-            {
-                throw new ArgumentNullException(nameof(specifications));
-            }
-
-            this.Specifications = specifications;
+            this.Specifications = specifications ?? throw new ArgumentNullException(nameof(specifications));
         }
 
         /// <summary>

@@ -1,17 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Reflection;
 
-namespace Ploeh.AutoFixture.Kernel
+namespace AutoFixture.Kernel
 {
     /// <summary>
     /// Maps a request for one <see cref="Type" /> to a request for another Type.
     /// </summary>
     public class TypeRelay : ISpecimenBuilder
     {
-        private readonly Type from;
-        private readonly Type to;
+        private readonly IRequestSpecification fromSpecification;
+        
+        /// <summary>
+        /// Gets the type which is relayed from.
+        /// </summary>
+        public Type From { get; }
+        
+        /// <summary>
+        /// Gets the type which is relayed to.
+        /// </summary>
+        public Type To { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TypeRelay"/> class.
@@ -47,13 +54,14 @@ namespace Ploeh.AutoFixture.Kernel
         /// </example>
         public TypeRelay(Type from, Type to)
         {
-            if (from == null)
-                throw new ArgumentNullException(nameof(@from));
-            if (to == null)
-                throw new ArgumentNullException(nameof(to));
+            this.From = from ?? throw new ArgumentNullException(nameof(from));
+            this.To = to ?? throw new ArgumentNullException(nameof(to));
+            
+            if(from.GetTypeInfo().IsGenericTypeDefinition ^ to.GetTypeInfo().IsGenericTypeDefinition)
+                throw new ArgumentException("Relaying from open generic type to open generic type " +
+                                            "or from closed type to closed type are supported only.");
 
-            this.from = from;
-            this.to = to;
+            this.fromSpecification = new ExactTypeSpecification(from);
         }
 
         /// <summary>
@@ -79,16 +87,21 @@ namespace Ploeh.AutoFixture.Kernel
         /// <seealso cref="TypeRelay(Type, Type)" />
         public object Create(object request, ISpecimenContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
+            if (context == null) throw new ArgumentNullException(nameof(context));
             
-            var t = request as Type;
-            if (t == null || t != this.from)
-#pragma warning disable 618
-                return new NoSpecimen(request);
-#pragma warning restore 618
+            if (request is Type t && this.fromSpecification.IsSatisfiedBy(request))
+                return context.Resolve(this.GetRedirectedTypeRequest(t));
 
-            return context.Resolve(this.to);
+            return new NoSpecimen();
+        }
+
+        private Type GetRedirectedTypeRequest(Type originalRequest)
+        {
+            if (!this.From.GetTypeInfo().IsGenericTypeDefinition)
+                return this.To;
+
+            var genericArguments = originalRequest.GetTypeInfo().GenericTypeArguments;
+            return this.To.GetTypeInfo().MakeGenericType(genericArguments);
         }
     }
 }

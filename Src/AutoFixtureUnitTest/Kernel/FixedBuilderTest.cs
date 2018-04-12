@@ -1,35 +1,33 @@
-﻿using Ploeh.AutoFixture.Kernel;
+﻿using AutoFixture.Kernel;
 using Xunit;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
     public class FixedBuilderTest
     {
         [Fact]
         public void SutIsSpecimenBuilder()
         {
-            // Fixture setup
+            // Arrange
             var dummySpecimen = new object();
-            // Exercise system
+            // Act
             var sut = new FixedBuilder(dummySpecimen);
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<ISpecimenBuilder>(sut);
-            // Teardown
         }
 
         [Fact]
         public void CreateReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var expectedSpecimen = new object();
             var sut = new FixedBuilder(expectedSpecimen);
-            // Exercise system
+            // Act
             var dummyRequest = new object();
             var dummyContext = new DelegatingSpecimenContext();
             var result = sut.Create(dummyRequest, dummyContext);
-            // Verify outcome
+            // Assert
             Assert.Equal(expectedSpecimen, result);
-            // Teardown
         }
     }
 }

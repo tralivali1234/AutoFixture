@@ -1,35 +1,34 @@
 using System;
 using System.Linq;
-using Ploeh.AutoFixture.Kernel;
+using AutoFixture.Kernel;
 using Xunit;
 
-namespace Ploeh.AutoFixtureUnitTest.Kernel
+namespace AutoFixtureUnitTest.Kernel
 {
-#pragma warning disable 618
+    [Obsolete]
     public class NullRecursionGuardTest
     {
         [Fact]
         public void SutIsRecursionGuard()
         {
-            // Fixture setup
-            // Exercise system
+            // Arrange
+            // Act
             var sut = new NullRecursionGuard(new DelegatingSpecimenBuilder());
-            // Verify outcome
+            // Assert
             Assert.IsAssignableFrom<RecursionGuard>(sut);
-            // Teardown
         }
 
         [Fact]
         public void ReturnsNullAtRecursionPoint()
         {
-            // Fixture setup
+            // Arrange
             var builder = new DelegatingSpecimenBuilder();
             builder.OnCreate = (r, c) => c.Resolve(r);
             var sut = new NullRecursionGuard(builder);
             var container = new DelegatingSpecimenContext();
             container.OnResolve = r => sut.Create(r, container); // Provoke recursion
 
-            // Exercise system
+            // Act
             object res = sut.Create(Guid.NewGuid(), container);
 
             Assert.Null(res);
@@ -38,10 +37,10 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
         [Fact]
         public void ComposeReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var dummyBuilder = new DelegatingSpecimenBuilder();
             var sut = new NullRecursionGuard(dummyBuilder);
-            // Exercise system
+            // Act
             var expectedBuilders = new[]
             {
                 new DelegatingSpecimenBuilder(),
@@ -49,42 +48,38 @@ namespace Ploeh.AutoFixtureUnitTest.Kernel
                 new DelegatingSpecimenBuilder()
             };
             var actual = sut.Compose(expectedBuilders);
-            // Verify outcome
+            // Assert
             var rg = Assert.IsAssignableFrom<NullRecursionGuard>(actual);
             var composite = Assert.IsAssignableFrom<CompositeSpecimenBuilder>(rg.Builder);
             Assert.True(expectedBuilders.SequenceEqual(composite));
-            // Teardown
         }
 
         [Fact]
         public void ComposeSingleItemReturnsCorrectResult()
         {
-            // Fixture setup
+            // Arrange
             var dummyBuilder = new DelegatingSpecimenBuilder();
             var sut = new NullRecursionGuard(dummyBuilder);
-            // Exercise system
+            // Act
             var expected = new DelegatingSpecimenBuilder();
             var actual = sut.Compose(new[] { expected });
-            // Verify outcome
+            // Assert
             var rg = Assert.IsAssignableFrom<NullRecursionGuard>(actual);
             Assert.Equal(expected, rg.Builder);
-            // Teardown
         }
 
         [Fact]
         public void ComposeRetainsComparer()
         {
-            // Fixture setup
+            // Arrange
             var dummyBuilder = new DelegatingSpecimenBuilder();
             var expected = new DelegatingEqualityComparer();
             var sut = new NullRecursionGuard(dummyBuilder, expected);
-            // Exercise system
+            // Act
             var actual = sut.Compose(new ISpecimenBuilder[0]);
-            // Verify outcome
+            // Assert
             var rg = Assert.IsAssignableFrom<NullRecursionGuard>(actual);
             Assert.Equal(expected, rg.Comparer);
-            // Teardown
         }
     }
-#pragma warning restore 618
 }
